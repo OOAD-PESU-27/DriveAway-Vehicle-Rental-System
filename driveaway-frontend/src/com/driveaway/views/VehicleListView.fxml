@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<VBox spacing="10" alignment="CENTER"
+      xmlns:fx="http://javafx.com/fxml">
+
+    <Label text="DriveAway Login"/>
+
+    <TextField promptText="Email"/>
+
+    <PasswordField promptText="Password"/>
+
+    <Button text="Login"/>
+
+</VBox>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<VBox spacing="10"
+      xmlns:fx="http://javafx.com/fxml">
+
+    <Label text="Vehicle Booking"/>
+
+    <TextField promptText="Vehicle ID"/>
+
+    <Button text="Book Vehicle"/>
+
+</VBox>
