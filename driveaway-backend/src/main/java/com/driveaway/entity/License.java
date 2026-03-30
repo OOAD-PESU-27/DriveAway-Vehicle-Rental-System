@@ -14,7 +14,8 @@ public class License {
     private String userId;
     private String licenseNumber;
     private LocalDate expiryDate;
-    private boolean verified;
+
+    private String status; // VERIFIED / EXPIRED
 
     public License() {}
 
@@ -50,11 +51,11 @@ public class License {
         this.expiryDate = expiryDate;
     }
 
-    public boolean isVerified() {
-        return verified;
+    public String getStatus() {
+        return status;
     }
 
-    public void setVerified(boolean verified) {
-        this.verified = verified;
+    public void setStatus(String status) {
+        this.status = status;
     }
 }

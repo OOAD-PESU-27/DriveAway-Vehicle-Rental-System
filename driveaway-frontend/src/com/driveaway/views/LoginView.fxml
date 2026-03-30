@@ -1,20 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.PasswordField?>
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.*?>
 
 <VBox spacing="15" alignment="CENTER"
-      xmlns:fx="http://javafx.com/fxml">
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.driveaway.controllers.LoginController"
+      style="-fx-background-color: #2c3e50;">
 
-    <Label text="DriveAway Login"/>
+    <padding>
+        <Insets top="40" bottom="40"/>
+    </padding>
 
-    <TextField promptText="Email"/>
+    <Label text="DriveAway Login"
+           style="-fx-text-fill: white; -fx-font-size: 20px;"/>
 
-    <PasswordField promptText="Password"/>
+    <TextField fx:id="emailField" promptText="Email"/>
+    <PasswordField fx:id="passwordField" promptText="Password"/>
 
-    <Button text="Login"/>
-
+    <Button text="Login" onAction="#handleLogin"/>
+    <Button text="Go to Register" onAction="#goToRegister"/>
 </VBox>

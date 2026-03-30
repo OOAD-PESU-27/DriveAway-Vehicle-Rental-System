@@ -1,5 +1,6 @@
 package com.driveaway;
 
+import com.driveaway.utils.SceneNavigator;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -11,10 +12,13 @@ public class MainApp extends Application {
     public void start(Stage stage) throws Exception {
 
         FXMLLoader loader = new FXMLLoader(
-            getClass().getResource("/com/driveaway/views/LoginView.fxml")
+                getClass().getResource("/com/driveaway/views/LoginView.fxml")
         );
 
         Scene scene = new Scene(loader.load(), 600, 400);
+
+        // 🔥 IMPORTANT: set stage for navigation
+        SceneNavigator.setStage(stage);
 
         stage.setTitle("DriveAway Vehicle Rental System");
         stage.setScene(scene);

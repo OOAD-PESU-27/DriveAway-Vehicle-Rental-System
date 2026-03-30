@@ -1,14 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<VBox spacing="10" alignment="CENTER"
-      xmlns:fx="http://javafx.com/fxml">
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.*?>
 
-    <Label text="DriveAway Login"/>
+<VBox spacing="15" alignment="CENTER"
+      xmlns:fx="http://javafx.com/fxml"
+      style="-fx-background-color: #ecf0f1; -fx-padding: 20;">
 
-    <TextField promptText="Email"/>
+    <Label text="🚘 Available Vehicles"
+           style="-fx-font-size: 20px; -fx-font-weight: bold;"/>
 
-    <PasswordField promptText="Password"/>
+    <ListView prefHeight="200" prefWidth="250"/>
 
-    <Button text="Login"/>
+    <Button text="Refresh"
+            style="-fx-background-color: #3498db; -fx-text-fill: white;"/>
 
 </VBox>

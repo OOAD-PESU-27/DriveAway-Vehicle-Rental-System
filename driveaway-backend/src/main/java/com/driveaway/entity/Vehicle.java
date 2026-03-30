@@ -15,7 +15,8 @@ public class Vehicle {
     private double pricePerDay;
     private String registrationNumber;
     private boolean available;
-
+    private String status; // AVAILABLE, BOOKED, MAINTENANCE
+    
     public Vehicle() {}
 
     public String getId() {
