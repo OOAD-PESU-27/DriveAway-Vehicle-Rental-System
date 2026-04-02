@@ -1,5 +1,6 @@
 package com.driveaway.entity;
 
+import com.driveaway.PaymentStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,11 +41,4 @@ public class Payment {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
-}
-
-enum PaymentStatus {
-    PENDING,
-    SUCCESS,
-    FAILED,
-    REFUNDED
 }
