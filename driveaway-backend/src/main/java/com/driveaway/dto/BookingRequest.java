@@ -23,6 +23,6 @@ public class BookingRequest {
     private LocalDate startDate;
 
     @NotNull(message = "End date cannot be null")
-    @Future(message = "End date must be in the future")
+    @FutureOrPresent(message = "End date must be today or in the future")
     private LocalDate endDate;
 }
