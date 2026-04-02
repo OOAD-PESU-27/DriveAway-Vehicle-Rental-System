@@ -1,7 +1,5 @@
 package com.driveaway.repository;
 
-public package com.driveaway.repository;
-
 import com.driveaway.entity.Notification;
 import com.driveaway.NotificationType;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -27,6 +25,4 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     long countByUserIdAndIsReadFalse(String userId);
     
     List<Notification> findBySentAtBetween(LocalDateTime startDate, LocalDateTime endDate);
-} {
-    
 }

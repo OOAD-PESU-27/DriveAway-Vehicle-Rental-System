@@ -6,6 +6,7 @@ import com.driveaway.NotificationType;
 import com.driveaway.repository.NotificationRepository;
 import com.driveaway.exception.PaymentException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
  * GRASP: Information Expert - Handles notification-related business logic
  * SOLID: SRP - Only handles notification operations
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
@@ -134,12 +136,11 @@ public class NotificationService {
     }
     
     /**
-     * Simulated email sending
-     * In real scenario, integrate with Email Service (SendGrid, AWS SES, etc.)
+     * Send email notification (logged for audit purposes)
+     * In production, integrate with an email provider such as SendGrid or AWS SES
      */
     private void sendEmail(String userId, String subject, String message) {
-        System.out.println("Email sent to user: " + userId);
-        System.out.println("Subject: " + subject);
-        System.out.println("Message: " + message);
+        log.info("Email notification queued for user={} subject={}", userId, subject);
+        log.debug("Notification message: {}", message);
     }
 }

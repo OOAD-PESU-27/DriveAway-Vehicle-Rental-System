@@ -1,7 +1,5 @@
 package com.driveaway.repository;
 
-public package com.driveaway.repository;
-
 import com.driveaway.entity.Report;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
@@ -20,7 +18,5 @@ public interface ReportRepository extends MongoRepository<Report, String> {
     
     List<Report> findByGeneratedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
     
-    Optional<Report> findLatestByReportType(String reportType);
-} {
-    
+    Optional<Report> findFirstByReportTypeOrderByGeneratedAtDesc(String reportType);
 }
