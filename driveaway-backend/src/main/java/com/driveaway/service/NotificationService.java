@@ -131,7 +131,7 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new PaymentException("Notification not found"));
         
-        notification.setIsRead(true);
+        notification.setRead(true);
         notificationRepository.save(notification);
     }
     
