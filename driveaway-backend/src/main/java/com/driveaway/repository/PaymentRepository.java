@@ -1,7 +1,7 @@
 package com.driveaway.repository;
 
 import com.driveaway.entity.Payment;
-import com.driveaway.entity.Payment.PaymentStatus;
+import com.driveaway.PaymentStatus;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;

@@ -5,15 +5,31 @@
 
 <VBox spacing="15" alignment="CENTER"
       xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.driveaway.controllers.PaymentController"
       style="-fx-background-color: #fdfefe; -fx-padding: 20;">
 
     <Label text="💳 Payment"
            style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
-    <TextField promptText="Card Number"
+    <TextField fx:id="rentalIdField" promptText="Rental / Booking ID"
                style="-fx-padding: 10; -fx-background-radius: 8;"/>
 
+    <TextField fx:id="amountField" promptText="Amount (₹)"
+               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+
+    <ComboBox fx:id="paymentMethodBox" promptText="Payment Method"
+              prefWidth="200"/>
+
+    <TextField fx:id="cardNumberField" promptText="Card Number (for CARD)"
+               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+
+    <TextField fx:id="upiIdField" promptText="UPI ID (for UPI)"
+               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+
+    <Label fx:id="statusLabel" style="-fx-text-fill: #c0392b;"/>
+
     <Button text="Pay Now"
+            onAction="#handlePay"
             style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-padding: 8 20;"/>
 
 </VBox>

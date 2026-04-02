@@ -1,5 +1,6 @@
 package com.driveaway.entity;
 
+import com.driveaway.NotificationType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,10 +41,4 @@ public class Notification {
         this.sentAt = LocalDateTime.now();
         this.notificationChannel = "IN_APP";
     }
-}
-
-enum NotificationType {
-    PAYMENT_SUCCESS,
-    PAYMENT_FAILED,
-    REFUND
 }

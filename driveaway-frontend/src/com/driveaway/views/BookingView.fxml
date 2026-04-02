@@ -5,15 +5,23 @@
 
 <VBox spacing="15" alignment="CENTER"
       xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.driveaway.controllers.BookingController"
       style="-fx-background-color: #f7f9f9; -fx-padding: 20;">
 
     <Label text="📅 Book a Vehicle"
            style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
 
-    <TextField promptText="Enter Vehicle ID"
+    <TextField fx:id="vehicleIdField" promptText="Vehicle ID"
                style="-fx-padding: 10; -fx-background-radius: 8;"/>
 
+    <DatePicker fx:id="startDatePicker" promptText="Start Date"/>
+
+    <DatePicker fx:id="endDatePicker" promptText="End Date"/>
+
+    <Label fx:id="statusLabel" style="-fx-text-fill: #c0392b;"/>
+
     <Button text="Book Now"
+            onAction="#handleBook"
             style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-padding: 8 20;"/>
 
 </VBox>

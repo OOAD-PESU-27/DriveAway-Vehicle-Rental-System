@@ -1,6 +1,7 @@
 package com.driveaway.controllers;
 
 import com.driveaway.services.LicenseService;
+import com.driveaway.utils.SceneNavigator;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextField;
 
@@ -26,5 +27,9 @@ public class LicenseController {
         );
 
         System.out.println(response);
+
+        if (response != null) {
+            SceneNavigator.load("views/VehicleListView.fxml");
+        }
     }
 }
