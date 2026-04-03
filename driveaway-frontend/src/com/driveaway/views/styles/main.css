@@ -1,17 +1,8 @@
 /* DriveAway Vehicle Rental System - Main Stylesheet */
 
-/* ===== ROOT VARIABLES ===== */
+/* ===== ROOT STYLES ===== */
 .root {
     -fx-font-family: "Segoe UI", Arial, sans-serif;
-    primary-color: #1e40af;
-    secondary-color: #f97316;
-    background-light: #f8fafc;
-    text-dark: #1e293b;
-    text-muted: #64748b;
-    border-color: #e2e8f0;
-    success-color: #22c55e;
-    danger-color: #ef4444;
-    warning-color: #f59e0b;
 }
 
 /* ===== MAIN BACKGROUNDS ===== */
@@ -568,4 +559,25 @@
 
 .hyperlink:hover {
     -fx-text-fill: #1d3a9e;
+}
+
+/* ===== FILTER TAB TOGGLE BUTTONS ===== */
+.filter-tab {
+    -fx-background-color: #f1f5f9;
+    -fx-text-fill: #374151;
+    -fx-background-radius: 6;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
+}
+
+.filter-tab:hover {
+    -fx-background-color: #e2e8f0;
+}
+
+.filter-tab-active {
+    -fx-background-color: #1e40af;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-padding: 6 16 6 16;
+    -fx-cursor: hand;
 }

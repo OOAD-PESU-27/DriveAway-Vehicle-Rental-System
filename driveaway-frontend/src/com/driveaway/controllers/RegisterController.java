@@ -26,8 +26,13 @@ public class RegisterController {
 
         if (name.isBlank()) { setStatus("Full name is required."); return; }
         if (email.isBlank()) { setStatus("Email address is required."); return; }
-        if (password.isBlank() || password.length() < 6) {
-            setStatus("Password must be at least 6 characters."); return;
+        if (password.isBlank() || password.length() < 8) {
+            setStatus("Password must be at least 8 characters."); return;
+        }
+        boolean hasUpper = password.chars().anyMatch(Character::isUpperCase);
+        boolean hasDigit = password.chars().anyMatch(Character::isDigit);
+        if (!hasUpper || !hasDigit) {
+            setStatus("Password must contain at least one uppercase letter and one number."); return;
         }
         if (phone.isBlank()) { setStatus("Phone number is required."); return; }
 

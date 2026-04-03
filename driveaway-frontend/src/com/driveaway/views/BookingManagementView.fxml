@@ -47,14 +47,13 @@
                   style="-fx-padding: 12 16 12 16;">
                 <Label text="Filter:" styleClass="form-label"/>
                 <ToggleButton fx:id="allBtn" text="All" onAction="#filterAll"
-                              selected="true"
-                              style="-fx-background-color: #1e40af; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 6 16 6 16; -fx-cursor: hand;"/>
+                              selected="true" styleClass="filter-tab-active"/>
                 <ToggleButton fx:id="activeBtn" text="✅ Active" onAction="#filterActive"
-                              style="-fx-background-color: #f1f5f9; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-padding: 6 16 6 16; -fx-cursor: hand;"/>
+                              styleClass="filter-tab"/>
                 <ToggleButton fx:id="completedBtn" text="🏁 Completed" onAction="#filterCompleted"
-                              style="-fx-background-color: #f1f5f9; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-padding: 6 16 6 16; -fx-cursor: hand;"/>
+                              styleClass="filter-tab"/>
                 <ToggleButton fx:id="cancelledBtn" text="❌ Cancelled" onAction="#filterCancelled"
-                              style="-fx-background-color: #f1f5f9; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-padding: 6 16 6 16; -fx-cursor: hand;"/>
+                              styleClass="filter-tab"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button text="🔄 Refresh" onAction="#handleRefresh" styleClass="btn-outline"/>
             </HBox>

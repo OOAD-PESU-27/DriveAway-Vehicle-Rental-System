@@ -91,7 +91,7 @@ public class VehicleDetailsController {
         if (vehicleTypeLabel != null) vehicleTypeLabel.setText(type != null ? type : "Vehicle");
         if (brandLabel != null) brandLabel.setText(brand != null ? brand : "-");
         if (modelLabel != null) modelLabel.setText(model != null ? model : "-");
-        if (yearLabel != null) yearLabel.setText("2024");
+        if (yearLabel != null) yearLabel.setText(String.valueOf(java.time.LocalDate.now().getYear()));
         if (fuelLabel != null) fuelLabel.setText(fuel != null ? fuel : "-");
         if (transmissionLabel != null) transmissionLabel.setText(trans != null ? trans : "-");
         if (seatsLabel != null) seatsLabel.setText(seats != null ? seats + " seats" : "-");

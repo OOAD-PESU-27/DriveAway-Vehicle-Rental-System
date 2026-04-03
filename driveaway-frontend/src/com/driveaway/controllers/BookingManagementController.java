@@ -196,13 +196,16 @@ public class BookingManagementController {
     }
 
     private void resetFilterButtons(ToggleButton active) {
-        String defaultStyle = "-fx-background-color: #f1f5f9; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-padding: 6 16 6 16; -fx-cursor: hand;";
-        String activeStyle = "-fx-background-color: #1e40af; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 6 16 6 16; -fx-cursor: hand;";
-        if (allBtn != null) allBtn.setStyle(defaultStyle);
-        if (activeBtn != null) activeBtn.setStyle(defaultStyle);
-        if (completedBtn != null) completedBtn.setStyle(defaultStyle);
-        if (cancelledBtn != null) cancelledBtn.setStyle(defaultStyle);
-        if (active != null) active.setStyle(activeStyle);
+        for (ToggleButton btn : new ToggleButton[]{allBtn, activeBtn, completedBtn, cancelledBtn}) {
+            if (btn != null) {
+                btn.getStyleClass().removeAll("filter-tab-active", "filter-tab");
+                btn.getStyleClass().add("filter-tab");
+            }
+        }
+        if (active != null) {
+            active.getStyleClass().removeAll("filter-tab", "filter-tab-active");
+            active.getStyleClass().add("filter-tab-active");
+        }
     }
 
     // Navigation

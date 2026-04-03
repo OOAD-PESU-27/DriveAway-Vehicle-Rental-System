@@ -223,7 +223,12 @@ public class VehicleCatalogController {
             specs.getChildren().add(seatsLbl);
         }
         if (trans != null) {
-            Label transLbl = new Label("⚙ " + trans.substring(0, Math.min(4, trans.length())));
+            String transDisplay = switch (trans.toUpperCase()) {
+                case "AUTOMATIC" -> "Auto";
+                case "MANUAL" -> "Manual";
+                default -> trans.length() > 6 ? trans.substring(0, 6) : trans;
+            };
+            Label transLbl = new Label("⚙ " + transDisplay);
             transLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
             specs.getChildren().add(transLbl);
         }
