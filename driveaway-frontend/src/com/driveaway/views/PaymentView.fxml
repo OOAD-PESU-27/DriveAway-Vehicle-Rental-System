@@ -1,35 +1,147 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
 
-<VBox spacing="15" alignment="CENTER"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.driveaway.controllers.PaymentController"
-      style="-fx-background-color: #fdfefe; -fx-padding: 20;">
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.PaymentController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
 
-    <Label text="💳 Payment"
-           style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+    <!-- TOP NAVIGATION BAR -->
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
+            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
 
-    <TextField fx:id="rentalIdField" promptText="Rental / Booking ID"
-               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <HBox alignment="TOP_CENTER" style="-fx-padding: 32;">
 
-    <TextField fx:id="amountField" promptText="Amount (₹)"
-               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+                <!-- Payment Card -->
+                <VBox spacing="0" styleClass="card" maxWidth="560" HBox.hgrow="ALWAYS">
 
-    <ComboBox fx:id="paymentMethodBox" promptText="Payment Method"
-              prefWidth="200"/>
+                    <!-- Header -->
+                    <VBox style="-fx-background-color: #1e40af; -fx-background-radius: 12 12 0 0; -fx-padding: 24;">
+                        <Label text="💳 Secure Payment" styleClass="nav-logo"/>
+                        <Label text="Complete your booking payment safely"
+                               styleClass="nav-subtitle"/>
+                    </VBox>
 
-    <TextField fx:id="cardNumberField" promptText="Card Number (for CARD)"
-               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+                    <VBox spacing="18" style="-fx-padding: 24;">
 
-    <TextField fx:id="upiIdField" promptText="UPI ID (for UPI)"
-               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+                        <!-- Booking Reference -->
+                        <VBox spacing="6">
+                            <Label text="Booking Reference" styleClass="form-label"/>
+                            <TextField fx:id="rentalIdField" promptText="Enter booking ID"
+                                       styleClass="form-field" maxWidth="Infinity"/>
+                        </VBox>
 
-    <Label fx:id="statusLabel" style="-fx-text-fill: #c0392b;"/>
+                        <!-- Amount -->
+                        <VBox spacing="6">
+                            <Label text="Amount (₹)" styleClass="form-label"/>
+                            <TextField fx:id="amountField" promptText="Enter amount"
+                                       styleClass="form-field" maxWidth="Infinity"
+                                       onKeyReleased="#updateSummary"/>
+                        </VBox>
 
-    <Button text="Pay Now"
-            onAction="#handlePay"
-            style="-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-padding: 8 20;"/>
+                        <!-- Payment Method -->
+                        <VBox spacing="6">
+                            <Label text="Payment Method" styleClass="form-label"/>
+                            <ComboBox fx:id="paymentMethodBox" promptText="Select payment method"
+                                      maxWidth="Infinity" styleClass="form-combo"
+                                      onAction="#handleMethodChange"/>
+                        </VBox>
 
-</VBox>
+                        <!-- CARD Fields -->
+                        <VBox fx:id="cardSection" spacing="12">
+                            <Label text="Card Details" styleClass="section-title"/>
+                            <VBox spacing="6">
+                                <Label text="Card Number" styleClass="form-label"/>
+                                <TextField fx:id="cardNumberField" promptText="1234 5678 9012 3456"
+                                           styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
+                            <HBox spacing="16">
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <Label text="Expiry Date" styleClass="form-label"/>
+                                    <TextField fx:id="expiryField" promptText="MM/YY"
+                                               styleClass="form-field" maxWidth="Infinity"/>
+                                </VBox>
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <Label text="CVV" styleClass="form-label"/>
+                                    <PasswordField fx:id="cvvField" promptText="123"
+                                                   styleClass="form-field" maxWidth="Infinity"/>
+                                </VBox>
+                            </HBox>
+                            <VBox spacing="6">
+                                <Label text="Cardholder Name" styleClass="form-label"/>
+                                <TextField fx:id="cardHolderField" promptText="As on card"
+                                           styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
+                        </VBox>
+
+                        <!-- UPI Field -->
+                        <VBox fx:id="upiSection" spacing="6" visible="false" managed="false">
+                            <Label text="UPI ID" styleClass="form-label"/>
+                            <TextField fx:id="upiIdField" promptText="yourname@paytm"
+                                       styleClass="form-field" maxWidth="Infinity"/>
+                        </VBox>
+
+                        <!-- Net Banking Field -->
+                        <VBox fx:id="netBankingSection" spacing="6" visible="false" managed="false">
+                            <Label text="Select Bank" styleClass="form-label"/>
+                            <ComboBox fx:id="bankCombo" promptText="Choose your bank"
+                                      maxWidth="Infinity" styleClass="form-combo"/>
+                        </VBox>
+
+                        <!-- Amount Summary -->
+                        <VBox styleClass="payment-summary" spacing="8">
+                            <Label text="Payment Summary" styleClass="section-title"/>
+                            <HBox>
+                                <Label text="Amount:" styleClass="spec-label" HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="summaryAmountLabel" text="₹0.00" styleClass="spec-value"/>
+                            </HBox>
+                            <HBox>
+                                <Label text="Processing Fee:" styleClass="spec-label" HBox.hgrow="ALWAYS"/>
+                                <Label text="₹0.00" styleClass="spec-label"/>
+                            </HBox>
+                            <Separator/>
+                            <HBox>
+                                <Label text="Total:" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                                <Label fx:id="totalAmountLabel" text="₹0.00" styleClass="payment-total"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Status Label -->
+                        <Label fx:id="statusLabel" wrapText="true" maxWidth="Infinity"/>
+
+                        <!-- Pay Button -->
+                        <Button text="🔒  Pay Securely" onAction="#handlePay"
+                                styleClass="btn-success" maxWidth="Infinity"
+                                style="-fx-font-size: 16px; -fx-padding: 14 24 14 24;"/>
+
+                        <HBox alignment="CENTER" spacing="16">
+                            <Button text="← Back" onAction="#goToBookings" styleClass="btn-outline"/>
+                            <Label text="🔒 Secured by DriveAway" styleClass="text-muted"/>
+                        </HBox>
+
+                    </VBox>
+                </VBox>
+            </HBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

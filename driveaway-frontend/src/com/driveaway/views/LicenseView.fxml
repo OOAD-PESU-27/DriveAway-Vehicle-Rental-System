@@ -1,17 +1,54 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 
-<VBox spacing="15" alignment="CENTER"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.driveaway.controllers.LicenseController">
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.driveaway.controllers.LicenseController"
+           stylesheets="@styles/main.css"
+           styleClass="login-container">
 
-    <Label text="Add Driving License"/>
+    <VBox alignment="CENTER" spacing="0" maxWidth="420"
+          styleClass="login-card">
 
-    <TextField fx:id="licenseField" promptText="License Number"/>
-    <TextField fx:id="expiryField" promptText="yyyy-MM-dd"/>
+        <Label text="🪪" styleClass="login-logo" alignment="CENTER"
+               maxWidth="Infinity"/>
+        <Label text="Driving License" styleClass="login-title" alignment="CENTER"
+               maxWidth="Infinity">
+            <VBox.margin><Insets top="8"/></VBox.margin>
+        </Label>
+        <Label text="Please verify your driving license to continue"
+               styleClass="login-subtitle" alignment="CENTER"
+               maxWidth="Infinity" wrapText="true">
+            <VBox.margin><Insets bottom="28"/></VBox.margin>
+        </Label>
 
-    <Button text="Submit" onAction="#handleSubmit"/>
+        <!-- License Number -->
+        <Label text="License Number" styleClass="form-label" maxWidth="Infinity"/>
+        <TextField fx:id="licenseField" promptText="DL-1234567890123"
+                   styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="14"/></VBox.margin>
+        </TextField>
 
-</VBox>
+        <!-- Expiry Date -->
+        <Label text="Expiry Date" styleClass="form-label" maxWidth="Infinity"/>
+        <TextField fx:id="expiryField" promptText="yyyy-MM-dd (e.g. 2028-12-31)"
+                   styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="6"/></VBox.margin>
+        </TextField>
+
+        <!-- Status -->
+        <Label fx:id="statusLabel" styleClass="text-danger" maxWidth="Infinity"
+               wrapText="true">
+            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        </Label>
+
+        <Button text="Verify &amp; Continue" onAction="#handleSubmit"
+                styleClass="btn-primary" maxWidth="Infinity">
+            <VBox.margin><Insets top="8"/></VBox.margin>
+        </Button>
+
+    </VBox>
+
+</StackPane>

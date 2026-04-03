@@ -1,27 +1,60 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
 
-<VBox spacing="15" alignment="CENTER"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.driveaway.controllers.BookingController"
-      style="-fx-background-color: #f7f9f9; -fx-padding: 20;">
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.BookingController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
 
-    <Label text="📅 Book a Vehicle"
-           style="-fx-font-size: 18px; -fx-font-weight: bold;"/>
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button, nav-button-active"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
 
-    <TextField fx:id="vehicleIdField" promptText="Vehicle ID"
-               style="-fx-padding: 10; -fx-background-radius: 8;"/>
+    <center>
+        <HBox alignment="CENTER" style="-fx-padding: 32;">
+            <VBox spacing="16" styleClass="card" maxWidth="480" HBox.hgrow="ALWAYS">
+                <Label text="📅 Book a Vehicle" styleClass="page-title"/>
+                <Separator/>
 
-    <DatePicker fx:id="startDatePicker" promptText="Start Date"/>
+                <Label text="Vehicle ID" styleClass="form-label"/>
+                <TextField fx:id="vehicleIdField" promptText="Vehicle ID"
+                           styleClass="form-field" maxWidth="Infinity"/>
 
-    <DatePicker fx:id="endDatePicker" promptText="End Date"/>
+                <HBox spacing="16">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="Start Date" styleClass="form-label"/>
+                        <DatePicker fx:id="startDatePicker" maxWidth="Infinity"
+                                    styleClass="date-picker"/>
+                    </VBox>
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="End Date" styleClass="form-label"/>
+                        <DatePicker fx:id="endDatePicker" maxWidth="Infinity"
+                                    styleClass="date-picker"/>
+                    </VBox>
+                </HBox>
 
-    <Label fx:id="statusLabel" style="-fx-text-fill: #c0392b;"/>
+                <Label fx:id="statusLabel" styleClass="text-danger" wrapText="true"/>
 
-    <Button text="Book Now"
-            onAction="#handleBook"
-            style="-fx-background-color: #e67e22; -fx-text-fill: white; -fx-padding: 8 20;"/>
+                <HBox spacing="12">
+                    <Button text="Book Now 🚀" onAction="#handleBook" styleClass="btn-primary"/>
+                    <Button text="← Back" onAction="#goToVehicles" styleClass="btn-outline"/>
+                </HBox>
+            </VBox>
+        </HBox>
+    </center>
 
-</VBox>
+</BorderPane>

@@ -1,26 +1,74 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
 
-<VBox spacing="12" alignment="CENTER"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.driveaway.controllers.RegisterController"
-      style="-fx-background-color: #34495e;">
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.driveaway.controllers.RegisterController"
+           stylesheets="@styles/main.css"
+           styleClass="login-container">
 
-    <padding>
-        <Insets top="30"/>
-    </padding>
+    <VBox alignment="CENTER" spacing="0" maxWidth="420"
+          styleClass="login-card">
 
-    <Label text="Register"
-           style="-fx-text-fill: white; -fx-font-size: 18px;"/>
+        <!-- Logo & Branding -->
+        <Label text="🚗" styleClass="login-logo" alignment="CENTER"
+               maxWidth="Infinity"/>
+        <Label text="Create Account" styleClass="login-title" alignment="CENTER"
+               maxWidth="Infinity">
+            <VBox.margin><Insets top="8"/></VBox.margin>
+        </Label>
+        <Label text="Join DriveAway today" styleClass="login-subtitle"
+               alignment="CENTER" maxWidth="Infinity">
+            <VBox.margin><Insets bottom="24"/></VBox.margin>
+        </Label>
 
-    <TextField fx:id="nameField" promptText="Name"/>
-    <TextField fx:id="emailField" promptText="Email"/>
-    <PasswordField fx:id="passwordField" promptText="Password"/>
-    <TextField fx:id="phoneField" promptText="Phone"/>
+        <!-- Full Name -->
+        <Label text="Full Name" styleClass="form-label" maxWidth="Infinity"/>
+        <TextField fx:id="nameField" promptText="John Doe"
+                   styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="12"/></VBox.margin>
+        </TextField>
 
-    <Button text="Register" onAction="#handleRegister"/>
+        <!-- Email -->
+        <Label text="Email Address" styleClass="form-label" maxWidth="Infinity"/>
+        <TextField fx:id="emailField" promptText="you@example.com"
+                   styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="12"/></VBox.margin>
+        </TextField>
 
-</VBox>
+        <!-- Password -->
+        <Label text="Password" styleClass="form-label" maxWidth="Infinity"/>
+        <PasswordField fx:id="passwordField" promptText="Create a strong password"
+                       styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="12"/></VBox.margin>
+        </PasswordField>
+
+        <!-- Phone -->
+        <Label text="Phone Number" styleClass="form-label" maxWidth="Infinity"/>
+        <TextField fx:id="phoneField" promptText="+91 9876543210"
+                   styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="6"/></VBox.margin>
+        </TextField>
+
+        <!-- Status -->
+        <Label fx:id="statusLabel" styleClass="text-danger" maxWidth="Infinity"
+               wrapText="true">
+            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        </Label>
+
+        <!-- Register Button -->
+        <Button text="Create Account" onAction="#handleRegister"
+                styleClass="btn-primary" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="14"/></VBox.margin>
+        </Button>
+
+        <!-- Back to Login -->
+        <Button text="Already have an account? Sign In" onAction="#goToLogin"
+                styleClass="btn-outline" maxWidth="Infinity"/>
+
+    </VBox>
+
+</StackPane>

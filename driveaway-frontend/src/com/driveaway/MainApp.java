@@ -15,12 +15,14 @@ public class MainApp extends Application {
                 getClass().getResource("/com/driveaway/views/LoginView.fxml")
         );
 
-        Scene scene = new Scene(loader.load(), 600, 400);
+        Scene scene = new Scene(loader.load(), 1000, 680);
 
-        // 🔥 IMPORTANT: set stage for navigation
+        // Set stage for navigation
         SceneNavigator.setStage(stage);
 
-        stage.setTitle("DriveAway Vehicle Rental System");
+        stage.setTitle("DriveAway - Vehicle Rental System");
+        stage.setMinWidth(800);
+        stage.setMinHeight(580);
         stage.setScene(scene);
         stage.show();
     }

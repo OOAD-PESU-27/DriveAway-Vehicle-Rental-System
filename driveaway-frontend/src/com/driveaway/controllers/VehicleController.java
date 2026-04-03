@@ -35,7 +35,19 @@ public class VehicleController {
         }
         // Pass selected vehicle info to booking view
         SelectedVehicleHolder.setSelectedVehicleInfo(selected);
-        SceneNavigator.load("views/BookingView.fxml");
+        SceneNavigator.load("views/VehicleDetailsView.fxml");
+    }
+
+    @FXML
+    public void goToDashboard() { SceneNavigator.load("views/DashboardView.fxml"); }
+    @FXML
+    public void goToCatalog() { SceneNavigator.load("views/VehicleCatalogView.fxml"); }
+    @FXML
+    public void goToBookings() { SceneNavigator.load("views/BookingManagementView.fxml"); }
+    @FXML
+    public void handleLogout() {
+        LoginController.logout();
+        SceneNavigator.load("views/LoginView.fxml");
     }
 
     private void loadVehicles() {
@@ -91,6 +103,7 @@ public class VehicleController {
     public static class SelectedVehicleHolder {
         private static String selectedVehicleInfo;
         private static String selectedVehicleId;
+        private static String[] selectedVehicleData;
 
         public static void setSelectedVehicleInfo(String info) {
             selectedVehicleInfo = info;
@@ -99,7 +112,19 @@ public class VehicleController {
             }
         }
 
+        public static void setSelectedVehicleId(String id) {
+            selectedVehicleId = id;
+        }
+
+        public static void setSelectedVehicleData(String[] data) {
+            selectedVehicleData = data;
+            if (data != null && data.length > 0) {
+                selectedVehicleId = data[0];
+            }
+        }
+
         public static String getSelectedVehicleId() { return selectedVehicleId; }
         public static String getSelectedVehicleInfo() { return selectedVehicleInfo; }
+        public static String[] getSelectedVehicleData() { return selectedVehicleData; }
     }
 }

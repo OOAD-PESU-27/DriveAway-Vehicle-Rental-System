@@ -74,6 +74,14 @@ public class BookingController {
         }
     }
 
+    @FXML public void goToDashboard() { SceneNavigator.load("views/DashboardView.fxml"); }
+    @FXML public void goToVehicles() { SceneNavigator.load("views/VehicleCatalogView.fxml"); }
+    @FXML public void goToBookings() { SceneNavigator.load("views/BookingManagementView.fxml"); }
+    @FXML public void handleLogout() {
+        LoginController.logout();
+        SceneNavigator.load("views/LoginView.fxml");
+    }
+
     private void setStatus(String message) {
         if (statusLabel != null) {
             statusLabel.setText(message);
