@@ -31,6 +31,10 @@ public class HttpUtil {
             InputStream is = (status >= 200 && status < 300)
                     ? conn.getInputStream() : conn.getErrorStream();
 
+            if (is == null) {
+                return null;
+            }
+
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             StringBuilder response = new StringBuilder();
             String line;
@@ -58,6 +62,10 @@ public class HttpUtil {
             int status = conn.getResponseCode();
             InputStream is = (status >= 200 && status < 300)
                     ? conn.getInputStream() : conn.getErrorStream();
+
+            if (is == null) {
+                return null;
+            }
 
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
             StringBuilder response = new StringBuilder();
