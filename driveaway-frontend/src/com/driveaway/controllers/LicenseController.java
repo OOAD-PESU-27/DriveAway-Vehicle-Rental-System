@@ -15,6 +15,13 @@ public class LicenseController {
     private final LicenseService service = new LicenseService();
 
     @FXML
+    public void initialize() {
+        if (LoginController.getUserId() == null) {
+            SceneNavigator.load("views/LoginView.fxml");
+        }
+    }
+
+    @FXML
     public void handleSubmit() {
         String license = licenseField != null ? licenseField.getText() : "";
         String expiry = expiryField != null ? expiryField.getText() : "";

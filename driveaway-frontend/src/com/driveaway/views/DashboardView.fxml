@@ -123,8 +123,7 @@
                         <Button text="See All →" onAction="#goToVehicles"
                                 styleClass="btn-outline, btn-small"/>
                     </HBox>
-                    <HBox fx:id="featuredVehiclesBox" spacing="16" alignment="CENTER_LEFT"
-                          wrapLength="1000"/>
+                    <HBox fx:id="featuredVehiclesBox" spacing="16" alignment="CENTER_LEFT"/>
                     <Label fx:id="vehiclesStatusLabel" styleClass="text-muted"/>
                 </VBox>
 
