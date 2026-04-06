@@ -89,8 +89,8 @@ public class VehicleCatalogController {
             return;
         }
 
-        String[] entries = response.replace("[", "").replace("]", "").split("\\},\\{");
-        for (String entry : entries) {
+        List<String> jsonObjects = extractJsonObjects(response);
+        for (String entry : jsonObjects) {
             String id = extract(entry, "id");
             String brand = extract(entry, "brand");
             String model = extract(entry, "model");
@@ -109,6 +109,42 @@ public class VehicleCatalogController {
         }
         setStatus("");
         displayFilteredVehicles();
+    }
+
+    /**
+     * Extracts individual JSON objects from a JSON array string.
+     * Uses brace-counting to correctly handle any JSON formatting,
+     * including whitespace and multi-line responses.
+     */
+    private List<String> extractJsonObjects(String jsonArray) {
+        List<String> objects = new ArrayList<>();
+        int depth = 0;
+        int start = -1;
+        boolean inString = false;
+        for (int i = 0; i < jsonArray.length(); i++) {
+            char c = jsonArray.charAt(i);
+            if (inString) {
+                if (c == '\\') {
+                    i++; // skip the next escaped character
+                } else if (c == '"') {
+                    inString = false;
+                }
+                continue;
+            }
+            if (c == '"') {
+                inString = true;
+            } else if (c == '{') {
+                if (depth == 0) start = i;
+                depth++;
+            } else if (c == '}') {
+                depth--;
+                if (depth == 0 && start >= 0) {
+                    objects.add(jsonArray.substring(start, i + 1));
+                    start = -1;
+                }
+            }
+        }
+        return objects;
     }
 
     private void displayFilteredVehicles() {
