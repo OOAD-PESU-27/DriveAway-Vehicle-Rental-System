@@ -78,19 +78,28 @@ public class VehicleCatalogController {
         vehicleGrid.getChildren().clear();
         allVehicles.clear();
 
+        System.out.println("DEBUG: Fetching all vehicles from backend...");
         String response = vehicleService.getAllVehicles();
-        if (response == null || response.isBlank() || response.equals("[]")) {
+        System.out.println("DEBUG: getAllVehicles response: " + response);
+
+        if (response == null || response.isBlank() || response.trim().equals("[]")) {
+            System.out.println("DEBUG: getAllVehicles returned empty/null, trying getAvailableVehicles...");
             response = vehicleService.getAvailableVehicles();
+            System.out.println("DEBUG: getAvailableVehicles response: " + response);
         }
 
-        if (response == null || response.isBlank() || response.equals("[]")) {
+        if (response == null || response.isBlank() || response.trim().equals("[]")) {
+            System.out.println("DEBUG: Both endpoints returned no data. Backend may not be running.");
             setStatus("No vehicles available. Make sure the backend is running.");
             resultCountLabel.setText("0 vehicles found");
             return;
         }
 
         List<String> jsonObjects = extractJsonObjects(response);
+        System.out.println("DEBUG: Parsed " + jsonObjects.size() + " vehicle objects from response");
+
         for (String entry : jsonObjects) {
+            System.out.println("DEBUG: Processing vehicle entry: " + entry);
             String id = extract(entry, "id");
             String brand = extract(entry, "brand");
             String model = extract(entry, "model");
@@ -100,13 +109,18 @@ public class VehicleCatalogController {
             String transmission = extract(entry, "transmission");
             String seats = extract(entry, "seatingCapacity");
             String available = extract(entry, "available");
+            System.out.println("DEBUG: Extracted - id=" + id + ", brand=" + brand + ", model=" + model
+                    + ", type=" + type + ", price=" + price + ", available=" + available);
 
             if (brand != null && model != null) {
                 allVehicles.add(new String[]{
                         id, brand, model, type, price, fuel, transmission, seats, available
                 });
+            } else {
+                System.out.println("DEBUG: Skipping entry - brand or model is null");
             }
         }
+        System.out.println("DEBUG: Total vehicles loaded into list: " + allVehicles.size());
         setStatus("");
         displayFilteredVehicles();
     }
@@ -344,13 +358,27 @@ public class VehicleCatalogController {
         int idx = json.indexOf(key);
         if (idx < 0) return null;
         int start = idx + key.length();
+        // Skip optional whitespace after colon
+        while (start < json.length() && json.charAt(start) == ' ') start++;
         if (start >= json.length()) return null;
         char ch = json.charAt(start);
         if (ch == '"') {
-            int end = json.indexOf('"', start + 1);
-            return end > start ? json.substring(start + 1, end) : null;
+            // String value: find the closing quote, handling escaped quotes
+            int end = start + 1;
+            while (end < json.length()) {
+                char c = json.charAt(end);
+                if (c == '\\') {
+                    end += 2; // skip both the backslash and the escaped character
+                    continue;
+                }
+                if (c == '"') {
+                    break;
+                }
+                end++;
+            }
+            return end < json.length() ? json.substring(start + 1, end) : null;
         } else if (ch == 'n') {
-            return null;
+            return null; // null value
         } else {
             int end = json.indexOf(',', start);
             if (end < 0) end = json.indexOf('}', start);
