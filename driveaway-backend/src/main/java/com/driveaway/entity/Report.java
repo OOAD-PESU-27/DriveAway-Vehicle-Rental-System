@@ -20,7 +20,7 @@ public class Report {
     @Id
     private String id;
     
-    private String reportType; // DAILY, WEEKLY, MONTHLY, CUSTOM
+    private String reportType; // DAILY, WEEKLY, MONTHLY, CUSTOM, VEHICLE_INVENTORY
     private LocalDateTime reportDate;
     private long totalTransactions;
     private double totalRevenue;
@@ -31,6 +31,17 @@ public class Report {
     private LocalDateTime endDate;
     private LocalDateTime generatedAt;
     private String generatedBy; // Admin ID
+    private String title;
+
+    // Vehicle inventory report fields
+    private long totalVehicles;
+    private long availableVehicles;
+    private long bookedVehicles;
+    private long maintenanceVehicles;
+
+    // Security deposit summary
+    private double totalSecurityDeposit;
+    private double releasedSecurityDeposit;
     
     public Report(String reportType, LocalDateTime startDate, LocalDateTime endDate) {
         this.reportType = reportType;

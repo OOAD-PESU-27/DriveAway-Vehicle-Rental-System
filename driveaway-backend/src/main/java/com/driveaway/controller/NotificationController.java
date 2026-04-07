@@ -15,9 +15,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
+@CrossOrigin
 public class NotificationController {
 
     private final NotificationService notificationService;
+
+    /**
+     * Get all notifications (admin)
+     * GET /api/v1/notifications
+     */
+    @GetMapping
+    public ResponseEntity<List<Notification>> getAllNotifications(
+            @RequestHeader(value = "X-Admin-ID", required = false) String adminId) {
+        return ResponseEntity.ok(notificationService.getAllNotifications());
+    }
 
     /**
      * Get all notifications for a user

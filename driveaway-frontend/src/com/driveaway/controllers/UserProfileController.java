@@ -1,6 +1,7 @@
 package com.driveaway.controllers;
 
 import com.driveaway.services.BookingService;
+import com.driveaway.utils.HttpUtil;
 import com.driveaway.utils.SceneNavigator;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
@@ -30,6 +31,8 @@ public class UserProfileController {
     @FXML private VBox saveSection;
     @FXML private Label saveStatusLabel;
 
+    private static final String BASE_URL = "http://localhost:8080";
+
     private final BookingService bookingService = new BookingService();
     private boolean isEditing = false;
 
@@ -39,7 +42,44 @@ public class UserProfileController {
         String userName = LoginController.getUserName();
         String userEmail = LoginController.getUserEmail();
 
-        // Populate profile info
+        // Attempt to load fresh profile data from backend
+        if (userId != null) {
+            loadProfileFromBackend(userId);
+            loadBookingStats(userId);
+        } else {
+            // Fall back to session cache
+            populateFromSession(userName, userEmail);
+        }
+    }
+
+    private void loadProfileFromBackend(String userId) {
+        try {
+            String response = HttpUtil.sendGet(BASE_URL + "/user/" + userId);
+            if (response != null && response.contains("\"id\"")) {
+                String name = extractField(response, "name");
+                String email = extractField(response, "email");
+                String phone = extractField(response, "phone");
+
+                // Update session cache
+                if (name != null) LoginController.setUserName(name);
+
+                populateFromSession(
+                        name != null ? name : LoginController.getUserName(),
+                        email != null ? email : LoginController.getUserEmail()
+                );
+                if (phoneField != null && phone != null) phoneField.setText(phone);
+                if (userIdLabel != null) userIdLabel.setText("ID: " + shorten(userId, 20));
+            } else {
+                // Backend unavailable – use session data
+                populateFromSession(LoginController.getUserName(), LoginController.getUserEmail());
+            }
+        } catch (Exception e) {
+            populateFromSession(LoginController.getUserName(), LoginController.getUserEmail());
+        }
+    }
+
+    private void populateFromSession(String userName, String userEmail) {
+        String userId = LoginController.getUserId();
         if (userIdLabel != null) userIdLabel.setText("ID: " + (userId != null ? shorten(userId, 20) : "N/A"));
         if (profileNameLabel != null) profileNameLabel.setText(userName != null ? userName : "User");
         if (profileEmailLabel != null) profileEmailLabel.setText(userEmail != null ? userEmail : "");
@@ -48,18 +88,12 @@ public class UserProfileController {
                     ? String.valueOf(userName.charAt(0)).toUpperCase() : "U";
             avatarLabel.setText(initials);
         }
-
-        // Populate form fields
         if (nameField != null) nameField.setText(userName != null ? userName : "");
         if (emailField != null) emailField.setText(userEmail != null ? userEmail : "");
         if (phoneField != null) phoneField.setText(LoginController.getUserPhone() != null
                 ? LoginController.getUserPhone() : "");
-
         if (licenseNumberField != null) licenseNumberField.setText("Verified ✓");
         if (licenseExpiryField != null) licenseExpiryField.setText("On file");
-
-        // Load booking stats
-        if (userId != null) loadBookingStats(userId);
     }
 
     private void loadBookingStats(String userId) {
@@ -74,7 +108,7 @@ public class UserProfileController {
         String[] entries = response.replace("[", "").replace("]", "").split("\\},\\{");
         int total = 0, active = 0, completed = 0;
         for (String entry : entries) {
-            String status = extract(entry, "status");
+            String status = extractField(entry, "status");
             if (status != null) {
                 total++;
                 if ("ACTIVE".equalsIgnoreCase(status) || "CONFIRMED".equalsIgnoreCase(status)) active++;
@@ -90,46 +124,69 @@ public class UserProfileController {
     public void toggleEdit() {
         isEditing = !isEditing;
         if (nameField != null) nameField.setEditable(isEditing);
-        if (emailField != null) emailField.setEditable(isEditing);
         if (phoneField != null) phoneField.setEditable(isEditing);
         if (editToggleBtn != null) editToggleBtn.setText(isEditing ? "✖ Cancel Edit" : "✏️ Edit");
         if (saveSection != null) {
             saveSection.setVisible(isEditing);
             saveSection.setManaged(isEditing);
         }
+        if (saveStatusLabel != null) saveStatusLabel.setText("");
     }
 
     @FXML
     public void saveProfile() {
-        // In a real app, this would call the API to update user info
-        String name = nameField != null ? nameField.getText() : "";
-        String email = emailField != null ? emailField.getText() : "";
+        String userId = LoginController.getUserId();
+        String name = nameField != null ? nameField.getText().trim() : "";
+        String phone = phoneField != null ? phoneField.getText().trim() : "";
 
         if (name.isBlank()) {
-            if (saveStatusLabel != null) saveStatusLabel.setText("Name cannot be empty.");
+            if (saveStatusLabel != null) saveStatusLabel.setText("❌ Name cannot be empty.");
             return;
         }
 
-        // Update display
-        if (profileNameLabel != null) profileNameLabel.setText(name);
-        if (profileEmailLabel != null) profileEmailLabel.setText(email);
-        if (avatarLabel != null && !name.isBlank()) {
-            avatarLabel.setText(String.valueOf(name.charAt(0)).toUpperCase());
+        if (userId != null) {
+            try {
+                String json = String.format("{\"name\":\"%s\",\"phone\":\"%s\"}",
+                        escapeJson(name), escapeJson(phone));
+                String response = HttpUtil.sendPut(BASE_URL + "/user/" + userId, json);
+                if (response != null && response.contains("\"id\"")) {
+                    // Update session
+                    LoginController.setUserName(name);
+                    if (profileNameLabel != null) profileNameLabel.setText(name);
+                    if (profileEmailLabel != null && emailField != null) {
+                        profileEmailLabel.setText(emailField.getText());
+                    }
+                    if (avatarLabel != null && !name.isBlank()) {
+                        avatarLabel.setText(String.valueOf(name.charAt(0)).toUpperCase());
+                    }
+                    if (saveStatusLabel != null) saveStatusLabel.setText("✅ Profile updated successfully.");
+                    toggleEdit();
+                } else {
+                    if (saveStatusLabel != null)
+                        saveStatusLabel.setText("❌ Failed to save profile. Please try again.");
+                }
+            } catch (Exception e) {
+                if (saveStatusLabel != null)
+                    saveStatusLabel.setText("❌ Error: " + e.getMessage());
+            }
+        } else {
+            // Offline mode: update session only
+            LoginController.setUserName(name);
+            if (profileNameLabel != null) profileNameLabel.setText(name);
+            if (avatarLabel != null && !name.isBlank()) {
+                avatarLabel.setText(String.valueOf(name.charAt(0)).toUpperCase());
+            }
+            if (saveStatusLabel != null) saveStatusLabel.setText("✅ Profile updated (offline mode).");
+            toggleEdit();
         }
-
-        // Update session data
-        LoginController.setUserName(name);
-
-        if (saveStatusLabel != null) saveStatusLabel.setText("✅ Profile updated successfully.");
-        toggleEdit();
     }
 
     @FXML
     public void cancelEdit() {
-        // Restore original values
         if (nameField != null) nameField.setText(LoginController.getUserName() != null ? LoginController.getUserName() : "");
         if (emailField != null) emailField.setText(LoginController.getUserEmail() != null ? LoginController.getUserEmail() : "");
         if (phoneField != null) phoneField.setText(LoginController.getUserPhone() != null ? LoginController.getUserPhone() : "");
+        if (saveStatusLabel != null) saveStatusLabel.setText("");
         if (isEditing) toggleEdit();
     }
 
@@ -143,12 +200,14 @@ public class UserProfileController {
     @FXML public void goToVehicles() { SceneNavigator.load("views/VehicleCatalogView.fxml"); }
     @FXML public void goToBookings() { SceneNavigator.load("views/BookingManagementView.fxml"); }
     @FXML public void goToProfile() { SceneNavigator.load("views/UserProfileView.fxml"); }
+    @FXML public void goToPayment() { SceneNavigator.load("views/PaymentView.fxml"); }
+    @FXML public void goToNotifications() { SceneNavigator.load("views/NotificationsView.fxml"); }
     @FXML public void handleLogout() {
         LoginController.logout();
         SceneNavigator.load("views/LoginView.fxml");
     }
 
-    private String extract(String json, String field) {
+    private String extractField(String json, String field) {
         String key = "\"" + field + "\":";
         int idx = json.indexOf(key);
         if (idx < 0) return null;
@@ -164,6 +223,11 @@ public class UserProfileController {
 
     private String shorten(String s, int max) {
         if (s == null) return "";
-        return s.length() > max ? s.substring(0, max) + "…" : s;
+        return s.length() > max ? s.substring(0, max) + "\u2026" : s;
+    }
+
+    private String escapeJson(String s) {
+        if (s == null) return "";
+        return s.replace("\\", "\\\\").replace("\"", "\\\"");
     }
 }

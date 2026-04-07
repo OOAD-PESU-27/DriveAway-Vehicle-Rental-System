@@ -16,6 +16,7 @@ public class ReportResponse {
     
     private String reportId;
     private String reportType;
+    private String title;
     private LocalDateTime reportDate;
     private long totalTransactions;
     private double totalRevenue;
@@ -28,6 +29,16 @@ public class ReportResponse {
     private String generatedBy;
     private String message;
     private boolean success;
+
+    // Vehicle inventory fields
+    private long totalVehicles;
+    private long availableVehicles;
+    private long bookedVehicles;
+    private long maintenanceVehicles;
+
+    // Security deposit summary
+    private double totalSecurityDeposit;
+    private double releasedSecurityDeposit;
     
     public ReportResponse(String message, boolean success) {
         this.message = message;
