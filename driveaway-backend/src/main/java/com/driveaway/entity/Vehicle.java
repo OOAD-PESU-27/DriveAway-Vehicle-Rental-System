@@ -16,7 +16,10 @@ public class Vehicle {
     private String registrationNumber;
     private boolean available;
     private String status; // AVAILABLE, BOOKED, MAINTENANCE
-    
+    private String fuelType; // PETROL, DIESEL, ELECTRIC, HYBRID
+    private String transmission; // AUTOMATIC, MANUAL
+    private int seatingCapacity;
+
     public Vehicle() {}
 
     public String getId() {
@@ -81,5 +84,29 @@ public class Vehicle {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getFuelType() {
+        return fuelType;
+    }
+
+    public void setFuelType(String fuelType) {
+        this.fuelType = fuelType;
+    }
+
+    public String getTransmission() {
+        return transmission;
+    }
+
+    public void setTransmission(String transmission) {
+        this.transmission = transmission;
+    }
+
+    public int getSeatingCapacity() {
+        return seatingCapacity;
+    }
+
+    public void setSeatingCapacity(int seatingCapacity) {
+        this.seatingCapacity = seatingCapacity;
     }
 }
