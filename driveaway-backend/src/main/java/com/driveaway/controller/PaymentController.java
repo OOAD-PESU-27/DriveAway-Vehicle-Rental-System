@@ -19,12 +19,88 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
+@CrossOrigin
 public class PaymentController {
     
     private final PaymentService paymentService;
-    
+
+    // -------------------------------------------------------------------------
+    // Approval-gate workflow endpoints
+    // -------------------------------------------------------------------------
+
     /**
-     * Process payment endpoint
+     * Step 1 – Initiate a payment request (creates notification, awaits approval)
+     * POST /api/v1/payments/request
+     */
+    @PostMapping("/request")
+    public ResponseEntity<?> initiatePaymentRequest(
+            @RequestBody PaymentRequest paymentRequest,
+            @RequestHeader(value = "X-User-ID", required = true) String userId) {
+        try {
+            PaymentResponse response = paymentService.initiatePaymentRequest(paymentRequest, userId);
+            return ResponseEntity.ok(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new PaymentResponse(e.getMessage(), false));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(
+                    new PaymentResponse("An error occurred while initiating payment request", false));
+        }
+    }
+
+    /**
+     * Step 2 – Approve a payment (simulated recipient acceptance)
+     * POST /api/v1/payments/{paymentId}/approve
+     */
+    @PostMapping("/{paymentId}/approve")
+    public ResponseEntity<?> approvePayment(
+            @PathVariable String paymentId,
+            @RequestHeader(value = "X-Approved-By", required = false, defaultValue = "ADMIN") String approvedBy) {
+        try {
+            PaymentResponse response = paymentService.approvePayment(paymentId, approvedBy);
+            return ResponseEntity.ok(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new PaymentResponse(e.getMessage(), false));
+        }
+    }
+
+    /**
+     * Approve payment via simulated token (Option B: mimics clicking an email link)
+     * POST /api/v1/payments/approve-by-token?token=APPR_...
+     */
+    @PostMapping("/approve-by-token")
+    public ResponseEntity<?> approveByToken(@RequestParam String token) {
+        try {
+            PaymentResponse response = paymentService.approvePaymentByToken(token);
+            return ResponseEntity.ok(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new PaymentResponse(e.getMessage(), false));
+        }
+    }
+
+    /**
+     * Step 3 – Complete payment (only works after approval)
+     * POST /api/v1/payments/{paymentId}/complete
+     */
+    @PostMapping("/{paymentId}/complete")
+    public ResponseEntity<?> completePayment(
+            @PathVariable String paymentId,
+            @RequestHeader(value = "X-User-ID", required = true) String userId) {
+        try {
+            PaymentResponse response = paymentService.completePayment(paymentId, userId);
+            return response.isSuccess()
+                    ? ResponseEntity.ok(response)
+                    : ResponseEntity.badRequest().body(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new PaymentResponse(e.getMessage(), false));
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Legacy / existing endpoints
+    // -------------------------------------------------------------------------
+
+    /**
+     * Process payment (legacy direct flow)
      * POST /api/v1/payments/process
      */
     @PostMapping("/process")
@@ -46,9 +122,24 @@ public class PaymentController {
             );
         }
     }
+
+    /**
+     * Get all payments (admin)
+     * GET /api/v1/payments
+     */
+    @GetMapping
+    public ResponseEntity<?> getAllPayments(
+            @RequestHeader(value = "X-Admin-ID", required = false) String adminId) {
+        try {
+            List<Payment> payments = paymentService.getAllPayments();
+            return ResponseEntity.ok(payments);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
     
     /**
-     * Get payment by ID endpoint
+     * Get payment by ID
      * GET /api/v1/payments/{paymentId}
      */
     @GetMapping("/{paymentId}")
@@ -62,7 +153,7 @@ public class PaymentController {
     }
     
     /**
-     * Get user payments endpoint
+     * Get user payments
      * GET /api/v1/payments/user/{userId}
      */
     @GetMapping("/user/{userId}")
@@ -76,7 +167,7 @@ public class PaymentController {
     }
     
     /**
-     * Get payments by status endpoint
+     * Get payments by status
      * GET /api/v1/payments/status/{status}
      */
     @GetMapping("/status/{status}")
@@ -91,7 +182,7 @@ public class PaymentController {
     }
     
     /**
-     * Refund payment endpoint
+     * Refund payment
      * POST /api/v1/payments/{paymentId}/refund
      */
     @PostMapping("/{paymentId}/refund")

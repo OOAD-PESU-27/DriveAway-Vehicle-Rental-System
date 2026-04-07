@@ -33,4 +33,7 @@ public class PaymentRequest {
     private String cvv;
     private String upiId;
     private String netBankingBank;
+
+    // Security deposit (optional; defaults to 0 if not provided)
+    private Double securityDeposit;
 }

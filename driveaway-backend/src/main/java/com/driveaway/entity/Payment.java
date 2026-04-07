@@ -25,12 +25,22 @@ public class Payment {
     private String userId;
     private double amount;
     private String paymentMethod; // CARD, UPI, NETBANKING
-    private PaymentStatus status; // PENDING, SUCCESS, FAILED, REFUNDED
+    private PaymentStatus status; // REQUESTED, PENDING_APPROVAL, APPROVED, COMPLETED, FAILED, REFUNDED
     private String transactionId;
     private LocalDateTime paymentDate;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String failureReason;
+
+    // Security deposit fields
+    private double securityDeposit;
+    private String securityDepositStatus; // HELD, RELEASED, FORFEITED
+
+    // Approval workflow fields
+    private LocalDateTime requestedAt;
+    private LocalDateTime approvedAt;
+    private String approvedBy;
+    private String approvalToken; // Simulated approval token for Option-B flow
     
     public Payment(String rentalId, String userId, double amount, String paymentMethod) {
         this.rentalId = rentalId;

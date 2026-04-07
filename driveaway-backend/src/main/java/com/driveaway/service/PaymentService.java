@@ -25,17 +25,146 @@ public class PaymentService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
     private final ReportService reportService;
-    
+
+    // -------------------------------------------------------------------------
+    // Approval-gate workflow (Option B - simulated, no real SMTP required)
+    // Flow: initiatePaymentRequest -> approvePayment -> completePayment
+    // -------------------------------------------------------------------------
+
     /**
-     * Process a payment request
-     * Implements Observer Pattern - Triggers notification on success
+     * Step 1: Initiate a payment request.
+     * Creates a payment in REQUESTED state and sends a simulated "request" notification.
+     */
+    public PaymentResponse initiatePaymentRequest(PaymentRequest paymentRequest, String userId) {
+        if (paymentRequest.getAmount() <= 0) {
+            throw new PaymentException("Payment amount must be greater than 0");
+        }
+
+        Payment payment = new Payment(
+                paymentRequest.getRentalId(),
+                userId,
+                paymentRequest.getAmount(),
+                paymentRequest.getPaymentMethod()
+        );
+        payment.setStatus(PaymentStatus.REQUESTED);
+        payment.setRequestedAt(LocalDateTime.now());
+
+        // Handle optional security deposit
+        if (paymentRequest.getSecurityDeposit() != null && paymentRequest.getSecurityDeposit() > 0) {
+            payment.setSecurityDeposit(paymentRequest.getSecurityDeposit());
+            payment.setSecurityDepositStatus("HELD");
+        }
+
+        // Generate a simulated approval token
+        String approvalToken = "APPR_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
+        payment.setApprovalToken(approvalToken);
+
+        Payment savedPayment = paymentRepository.save(payment);
+
+        // Send simulated "payment request sent" notification
+        notificationService.sendPaymentRequestNotification(savedPayment, approvalToken);
+
+        auditLogService.logPaymentAction("PAYMENT_REQUESTED", savedPayment.getId(), userId,
+                "Payment request initiated for amount: " + payment.getAmount());
+
+        return buildResponse(savedPayment, "Payment request submitted. Awaiting approval.", true);
+    }
+
+    /**
+     * Step 2: Approve the payment (simulated recipient acceptance).
+     * Can be triggered by paymentId + approvedBy.
+     */
+    public PaymentResponse approvePayment(String paymentId, String approvedBy) {
+        Payment payment = getPaymentById(paymentId);
+
+        if (payment.getStatus() != PaymentStatus.REQUESTED &&
+                payment.getStatus() != PaymentStatus.PENDING_APPROVAL) {
+            throw new PaymentException("Payment is not in a state that can be approved. Current status: " + payment.getStatus());
+        }
+
+        payment.setStatus(PaymentStatus.APPROVED);
+        payment.setApprovedAt(LocalDateTime.now());
+        payment.setApprovedBy(approvedBy);
+        payment.setUpdatedAt(LocalDateTime.now());
+
+        Payment savedPayment = paymentRepository.save(payment);
+
+        notificationService.sendPaymentApprovalNotification(savedPayment);
+
+        auditLogService.logPaymentAction("PAYMENT_APPROVED", paymentId, approvedBy,
+                "Payment approved for amount: " + payment.getAmount());
+
+        return buildResponse(savedPayment, "Payment approved successfully. You can now complete the payment.", true);
+    }
+
+    /**
+     * Approve payment via token (simulated email link acceptance).
+     */
+    public PaymentResponse approvePaymentByToken(String approvalToken) {
+        Payment payment = paymentRepository.findByApprovalToken(approvalToken)
+                .orElseThrow(() -> new PaymentException("Invalid or expired approval token"));
+        return approvePayment(payment.getId(), "SYSTEM_TOKEN");
+    }
+
+    /**
+     * Step 3: Complete/process payment - only allowed after APPROVED status.
+     */
+    public PaymentResponse completePayment(String paymentId, String userId) {
+        Payment payment = getPaymentById(paymentId);
+
+        if (payment.getStatus() != PaymentStatus.APPROVED) {
+            throw new PaymentException("Payment must be approved before it can be completed. Current status: " + payment.getStatus());
+        }
+
+        // Simulate payment gateway
+        String transactionId = generateTransactionId();
+        payment.setTransactionId(transactionId);
+        boolean isSuccess = processPaymentGateway();
+
+        if (isSuccess) {
+            payment.setStatus(PaymentStatus.COMPLETED);
+            payment.setPaymentDate(LocalDateTime.now());
+            if ("HELD".equals(payment.getSecurityDepositStatus())) {
+                payment.setSecurityDepositStatus("RELEASED");
+            }
+            payment.setUpdatedAt(LocalDateTime.now());
+
+            Payment savedPayment = paymentRepository.save(payment);
+
+            notificationService.sendPaymentSuccessNotification(savedPayment);
+            reportService.updateReportOnPaymentSuccess(savedPayment);
+
+            auditLogService.logPaymentAction("PAYMENT_COMPLETED", savedPayment.getId(), userId,
+                    "Payment completed successfully for amount: " + payment.getAmount());
+
+            return buildResponse(savedPayment, "Payment completed successfully.", true);
+        } else {
+            payment.setStatus(PaymentStatus.FAILED);
+            payment.setFailureReason("Payment gateway declined the transaction");
+            payment.setUpdatedAt(LocalDateTime.now());
+
+            Payment savedPayment = paymentRepository.save(payment);
+
+            notificationService.sendPaymentFailureNotification(savedPayment);
+
+            auditLogService.logPaymentAction("PAYMENT_FAILED", savedPayment.getId(), userId,
+                    "Payment failed: " + payment.getFailureReason());
+
+            return buildResponse(savedPayment, "Payment processing failed. Please try again.", false);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Legacy direct-process flow (kept for backward compatibility)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Process a payment request (legacy direct flow)
      */
     public PaymentResponse processPayment(PaymentRequest paymentRequest, String userId) {
         try {
-            // Validation
             validatePaymentRequest(paymentRequest);
             
-            // Create payment entity
             Payment payment = new Payment(
                 paymentRequest.getRentalId(),
                 userId,
@@ -43,59 +172,40 @@ public class PaymentService {
                 paymentRequest.getPaymentMethod()
             );
             
-            // Generate transaction ID
+            if (paymentRequest.getSecurityDeposit() != null && paymentRequest.getSecurityDeposit() > 0) {
+                payment.setSecurityDeposit(paymentRequest.getSecurityDeposit());
+                payment.setSecurityDepositStatus("HELD");
+            }
+
             String transactionId = generateTransactionId();
             payment.setTransactionId(transactionId);
             
-            // Process payment (Simulated)
-            boolean isSuccess = processPaymentGateway(paymentRequest, transactionId);
+            boolean isSuccess = processPaymentGateway();
             
             if (isSuccess) {
                 payment.setStatus(PaymentStatus.SUCCESS);
                 payment.setPaymentDate(LocalDateTime.now());
+                if ("HELD".equals(payment.getSecurityDepositStatus())) {
+                    payment.setSecurityDepositStatus("RELEASED");
+                }
                 
-                // Save payment
                 Payment savedPayment = paymentRepository.save(payment);
-                
-                // Trigger Observer Pattern - Send notification
                 notificationService.sendPaymentSuccessNotification(savedPayment);
-                
-                // Update reports (Observer Pattern)
                 reportService.updateReportOnPaymentSuccess(savedPayment);
-                
-                // Log audit trail
                 auditLogService.logPaymentAction("PAYMENT_SUCCESS", savedPayment.getId(), userId,
                         "Payment processed successfully for amount: " + payment.getAmount());
                 
-                return new PaymentResponse(
-                    savedPayment.getId(),
-                    savedPayment.getRentalId(),
-                    userId,
-                    savedPayment.getAmount(),
-                    savedPayment.getPaymentMethod(),
-                    PaymentStatus.SUCCESS,
-                    transactionId,
-                    LocalDateTime.now(),
-                    "Payment processed successfully",
-                    true
-                );
+                return buildResponse(savedPayment, "Payment processed successfully", true);
             } else {
                 payment.setStatus(PaymentStatus.FAILED);
                 payment.setFailureReason("Payment gateway declined the transaction");
                 
                 Payment savedPayment = paymentRepository.save(payment);
-                
-                // Send failure notification
                 notificationService.sendPaymentFailureNotification(savedPayment);
-                
-                // Log audit trail
                 auditLogService.logPaymentAction("PAYMENT_FAILED", savedPayment.getId(), userId,
                         "Payment failed: " + payment.getFailureReason());
                 
-                return new PaymentResponse(
-                    "Payment processing failed. Please try again.",
-                    false
-                );
+                return new PaymentResponse("Payment processing failed. Please try again.", false);
             }
         } catch (PaymentException e) {
             auditLogService.logPaymentAction("PAYMENT_ERROR", null, userId,
@@ -104,19 +214,13 @@ public class PaymentService {
         }
     }
     
-    /**
-     * Validate payment request
-     */
     private void validatePaymentRequest(PaymentRequest request) {
         if (request.getAmount() <= 0) {
             throw new PaymentException("Payment amount must be greater than 0");
         }
-        
         if (request.getPaymentMethod() == null || request.getPaymentMethod().isEmpty()) {
             throw new PaymentException("Payment method is required");
         }
-        
-        // Additional validation based on payment method
         switch (request.getPaymentMethod().toUpperCase()) {
             case "CARD":
                 if (request.getCardNumber() == null || request.getCardNumber().isEmpty()) {
@@ -138,68 +242,64 @@ public class PaymentService {
         }
     }
     
-    /**
-     * Simulate payment gateway processing
-     * In real scenario, this would call actual payment gateway (Stripe, PayPal, etc.)
-     */
-    private boolean processPaymentGateway(PaymentRequest request, String transactionId) {
+    private boolean processPaymentGateway() {
         // Simulated success rate: 95%
         return Math.random() < 0.95;
     }
     
-    /**
-     * Generate unique transaction ID
-     */
-    private String generateTransactionId() {
+    String generateTransactionId() {
         return "TXN_" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
     }
     
-    /**
-     * Get payment by ID
-     */
     public Payment getPaymentById(String paymentId) {
         return paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new PaymentException("Payment not found with ID: " + paymentId));
     }
+
+    public List<Payment> getAllPayments() {
+        return paymentRepository.findAll();
+    }
     
-    /**
-     * Get all payments for a user
-     */
     public List<Payment> getPaymentsByUserId(String userId) {
         return paymentRepository.findByUserId(userId);
     }
     
-    /**
-     * Get payments by status
-     */
     public List<Payment> getPaymentsByStatus(PaymentStatus status) {
         return paymentRepository.findByStatus(status);
     }
     
-    /**
-     * Process refund
-     */
     public PaymentResponse refundPayment(String paymentId, String adminId) {
         Payment payment = getPaymentById(paymentId);
         
-        if (payment.getStatus() != PaymentStatus.SUCCESS) {
-            throw new PaymentException("Only successful payments can be refunded");
+        if (payment.getStatus() != PaymentStatus.SUCCESS &&
+                payment.getStatus() != PaymentStatus.COMPLETED) {
+            throw new PaymentException("Only successful/completed payments can be refunded");
         }
         
         payment.setStatus(PaymentStatus.REFUNDED);
         payment.setUpdatedAt(LocalDateTime.now());
         Payment refundedPayment = paymentRepository.save(payment);
         
-        // Send refund notification
         notificationService.sendRefundNotification(refundedPayment);
-        
-        // Log audit trail
         auditLogService.logPaymentAction("PAYMENT_REFUNDED", paymentId, adminId,
                 "Payment refunded for amount: " + payment.getAmount());
-        
-        // Update reports
         reportService.updateReportOnPaymentRefund(refundedPayment);
         
         return new PaymentResponse("Payment refunded successfully", true);
+    }
+
+    private PaymentResponse buildResponse(Payment payment, String message, boolean success) {
+        return new PaymentResponse(
+                payment.getId(),
+                payment.getRentalId(),
+                payment.getUserId(),
+                payment.getAmount(),
+                payment.getPaymentMethod(),
+                payment.getStatus(),
+                payment.getTransactionId(),
+                payment.getPaymentDate(),
+                message,
+                success
+        );
     }
 }

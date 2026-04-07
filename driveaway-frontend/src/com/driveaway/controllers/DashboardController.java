@@ -216,6 +216,10 @@ public class DashboardController {
     @FXML public void goToVehicles() { SceneNavigator.load("views/VehicleCatalogView.fxml"); }
     @FXML public void goToBookings() { SceneNavigator.load("views/BookingManagementView.fxml"); }
     @FXML public void goToProfile() { SceneNavigator.load("views/UserProfileView.fxml"); }
+    @FXML public void goToPayment() { SceneNavigator.load("views/PaymentView.fxml"); }
+    @FXML public void goToNotifications() { SceneNavigator.load("views/NotificationsView.fxml"); }
+    @FXML public void goToReports() { SceneNavigator.load("views/ReportsView.fxml"); }
+    @FXML public void goToAdminDashboard() { SceneNavigator.load("views/AdminDashboardView.fxml"); }
     @FXML public void handleLogout() {
         LoginController.logout();
         SceneNavigator.load("views/LoginView.fxml");

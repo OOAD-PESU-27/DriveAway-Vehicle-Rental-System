@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.NotificationsController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
+
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
+            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
+            <Button text="🔔 Notifications" onAction="#goToDashboard" styleClass="nav-button, nav-button-active"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="24" style="-fx-padding: 28 32 28 32;">
+
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="🔔 Notifications" styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                    <Button text="🔄 Refresh" onAction="#handleRefresh" styleClass="btn-outline"/>
+                </HBox>
+
+                <Label fx:id="statusLabel" text="" styleClass="text-muted"/>
+
+                <VBox styleClass="card" spacing="0">
+                    <TableView fx:id="notificationsTable" minHeight="400" maxWidth="Infinity">
+                        <columns>
+                            <TableColumn fx:id="typeCol" text="Type" minWidth="160"/>
+                            <TableColumn fx:id="subjectCol" text="Subject" minWidth="200"/>
+                            <TableColumn fx:id="messageCol" text="Message" minWidth="300"/>
+                            <TableColumn fx:id="statusCol" text="Status" minWidth="80"/>
+                            <TableColumn fx:id="sentAtCol" text="Sent At" minWidth="160"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No notifications found." styleClass="text-muted"/>
+                        </placeholder>
+                    </TableView>
+                </VBox>
+
+                <HBox spacing="12">
+                    <Button text="💳 Make Payment" onAction="#goToPayment" styleClass="btn-primary"/>
+                    <Button text="← Back to Dashboard" onAction="#goToDashboard" styleClass="btn-outline"/>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

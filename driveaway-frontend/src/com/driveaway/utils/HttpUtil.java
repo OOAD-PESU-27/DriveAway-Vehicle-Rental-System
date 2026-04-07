@@ -51,13 +51,57 @@ public class HttpUtil {
         return null;
     }
 
+    public static String sendPut(String urlStr, String json) {
+        try {
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("PUT");
+            conn.setRequestProperty("Content-Type", "application/json");
+            conn.setDoOutput(true);
+
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(json.getBytes());
+            }
+
+            int status = conn.getResponseCode();
+            InputStream is = (status >= 200 && status < 300)
+                    ? conn.getInputStream() : conn.getErrorStream();
+
+            if (is == null) {
+                return null;
+            }
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                response.append(line);
+            }
+
+            return response.toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
     public static String sendGet(String urlStr) {
+        return sendGetWithHeader(urlStr, null, null);
+    }
+
+    public static String sendGetWithHeader(String urlStr, String headerName, String headerValue) {
         try {
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("GET");
             conn.setRequestProperty("Accept", "application/json");
+            if (headerName != null && headerValue != null) {
+                conn.setRequestProperty(headerName, headerValue);
+            }
 
             int status = conn.getResponseCode();
             InputStream is = (status >= 200 && status < 300)

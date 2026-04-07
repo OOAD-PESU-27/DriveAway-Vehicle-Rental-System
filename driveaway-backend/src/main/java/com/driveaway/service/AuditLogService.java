@@ -60,6 +60,27 @@ public class AuditLogService {
     }
     
     /**
+     * Log user/profile action
+     */
+    public void logUserAction(String action, String userId, String performedBy, String details) {
+        AuditLog auditLog = new AuditLog(
+            action,
+            "USER",
+            userId,
+            performedBy,
+            details
+        );
+        auditLogRepository.save(auditLog);
+    }
+    
+    /**
+     * Get all audit logs
+     */
+    public List<AuditLog> getAllAuditLogs() {
+        return auditLogRepository.findAll();
+    }
+
+    /**
      * Get audit logs for entity
      */
     public List<AuditLog> getAuditLogsForEntity(String entityId) {
