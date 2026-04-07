@@ -5,7 +5,7 @@ import com.driveaway.utils.HttpUtil;
 import com.driveaway.utils.SceneNavigator;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.HBox;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class UserProfileController {
     @FXML private Label activeBookingsLabel;
     @FXML private Label completedBookingsLabel;
     @FXML private Button editToggleBtn;
-    @FXML private VBox saveSection;
+    @FXML private HBox saveSection;
     @FXML private Label saveStatusLabel;
 
     private static final String BASE_URL = "http://localhost:8080";
