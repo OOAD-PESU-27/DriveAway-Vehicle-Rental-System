@@ -43,7 +43,7 @@ public class AdminController {
             @RequestHeader(value = "X-Admin-ID", required = true) String adminId) {
         try {
             List<Vehicle> vehicles = vehicleService.getAllVehicles();
-            auditLogService.logPaymentAction("FLEET_VIEWED", null, adminId,
+            auditLogService.logAdminAction("FLEET_VIEWED", null, adminId,
                     "Admin viewed fleet: " + vehicles.size() + " vehicles");
             return ResponseEntity.ok(vehicles);
         } catch (Exception e) {

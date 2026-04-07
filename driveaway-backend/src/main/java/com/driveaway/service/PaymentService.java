@@ -247,7 +247,7 @@ public class PaymentService {
         return Math.random() < 0.95;
     }
     
-    String generateTransactionId() {
+    private String generateTransactionId() {
         return "TXN_" + UUID.randomUUID().toString().substring(0, 12).toUpperCase();
     }
     

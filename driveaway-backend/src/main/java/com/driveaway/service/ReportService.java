@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 /**
  * ReportService - Contains business logic for report generation and analytics
@@ -128,8 +129,7 @@ public class ReportService {
             double releasedSecurityDeposit = 0.0;
             
             for (Payment payment : payments) {
-                if (payment.getStatus() == PaymentStatus.SUCCESS ||
-                        payment.getStatus() == PaymentStatus.COMPLETED) {
+                if (Set.of(PaymentStatus.SUCCESS, PaymentStatus.COMPLETED).contains(payment.getStatus())) {
                     totalRevenue += payment.getAmount();
                     successfulCount++;
                 } else if (payment.getStatus() == PaymentStatus.FAILED) {

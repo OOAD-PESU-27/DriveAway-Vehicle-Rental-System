@@ -60,6 +60,20 @@ public class AuditLogService {
     }
     
     /**
+     * Log admin/fleet action
+     */
+    public void logAdminAction(String action, String entityId, String adminId, String details) {
+        AuditLog auditLog = new AuditLog(
+            action,
+            "ADMIN",
+            entityId,
+            adminId,
+            details
+        );
+        auditLogRepository.save(auditLog);
+    }
+
+    /**
      * Log user/profile action
      */
     public void logUserAction(String action, String userId, String performedBy, String details) {
