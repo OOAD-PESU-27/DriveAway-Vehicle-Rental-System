@@ -5,8 +5,10 @@ import com.driveaway.PaymentStatus;
 import com.driveaway.dto.PaymentRequest;
 import com.driveaway.dto.PaymentResponse;
 import com.driveaway.repository.PaymentRepository;
+import com.driveaway.repository.UserRepository;
 import com.driveaway.exception.PaymentException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.UUID;
  * GRASP: Information Expert - Handles payment-related business logic
  * SOLID: SRP - Only handles payment operations
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -25,6 +28,8 @@ public class PaymentService {
     private final NotificationService notificationService;
     private final AuditLogService auditLogService;
     private final ReportService reportService;
+    private final UserRepository userRepository;
+    private final PaymentEmailVerificationService emailVerificationService;
 
     // -------------------------------------------------------------------------
     // Approval-gate workflow (Option B - simulated, no real SMTP required)
@@ -137,6 +142,9 @@ public class PaymentService {
             auditLogService.logPaymentAction("PAYMENT_COMPLETED", savedPayment.getId(), userId,
                     "Payment completed successfully for amount: " + payment.getAmount());
 
+            // Trigger email verification
+            triggerEmailVerification(savedPayment);
+
             return buildResponse(savedPayment, "Payment completed successfully.", true);
         } else {
             payment.setStatus(PaymentStatus.FAILED);
@@ -194,7 +202,10 @@ public class PaymentService {
                 reportService.updateReportOnPaymentSuccess(savedPayment);
                 auditLogService.logPaymentAction("PAYMENT_SUCCESS", savedPayment.getId(), userId,
                         "Payment processed successfully for amount: " + payment.getAmount());
-                
+
+                // Trigger email verification
+                triggerEmailVerification(savedPayment);
+
                 return buildResponse(savedPayment, "Payment processed successfully", true);
             } else {
                 payment.setStatus(PaymentStatus.FAILED);
@@ -301,5 +312,21 @@ public class PaymentService {
                 message,
                 success
         );
+    }
+
+    /**
+     * Looks up the user's email and triggers the verification email flow.
+     * Errors are logged but do not propagate – payment is already saved.
+     */
+    private void triggerEmailVerification(Payment payment) {
+        try {
+            String userEmail = userRepository.findById(payment.getUserId())
+                    .map(u -> u.getEmail())
+                    .orElse(null);
+            emailVerificationService.sendVerificationEmail(payment, userEmail);
+        } catch (Exception e) {
+            log.error("[PAYMENT] Could not trigger verification email for payment={}: {}",
+                    payment.getId(), e.getMessage(), e);
+        }
     }
 }
