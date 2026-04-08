@@ -334,8 +334,7 @@ public class VehicleCatalogController {
             case "TRUCK"    -> "-fx-background-color: linear-gradient(to bottom right, #7f1d1d, #dc2626, #fca5a5);";
             case "VAN"      -> "-fx-background-color: linear-gradient(to bottom right, #4c1d95, #7c3aed, #c4b5fd);";
             case "ECONOMY"  -> "-fx-background-color: linear-gradient(to bottom right, #0c4a6e, #0891b2, #67e8f9);";
-            case "BIKE", "MOTORCYCLE" ->
-                    "-fx-background-color: linear-gradient(to bottom right, #1c1917, #78716c, #d6d3d1);";
+            case "BIKE", "MOTORCYCLE" -> "-fx-background-color: linear-gradient(to bottom right, #1c1917, #78716c, #d6d3d1);";
             default -> "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #6366f1, #a5b4fc);";
         };
     }
