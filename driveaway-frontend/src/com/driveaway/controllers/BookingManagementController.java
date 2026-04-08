@@ -58,8 +58,15 @@ public class BookingManagementController {
         startDateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[2]));
         endDateCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[3]));
         statusCol.setCellValueFactory(data -> new SimpleStringProperty(data.getValue()[4]));
-        amountCol.setCellValueFactory(data -> new SimpleStringProperty(
-                "₹" + data.getValue()[5]));
+        amountCol.setCellValueFactory(data -> {
+            String amountStr = data.getValue()[5];
+            try {
+                double amt = Double.parseDouble(amountStr);
+                return new SimpleStringProperty("₹" + String.format("%,.2f", amt));
+            } catch (NumberFormatException e) {
+                return new SimpleStringProperty("₹" + amountStr);
+            }
+        });
 
         // Action column with Cancel button
         actionCol.setCellFactory(col -> new TableCell<>() {

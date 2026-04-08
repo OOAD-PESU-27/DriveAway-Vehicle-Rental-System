@@ -376,8 +376,18 @@ public class PaymentService {
         try {
             bookingRepository.findById(rentalId).ifPresent(booking -> {
                 booking.setPaidAmount(payment.getAmount());
-                bookingRepository.save(booking);
-                log.info("[PAYMENT] Updated paidAmount={} on booking={}", payment.getAmount(), rentalId);
+                // Advance booking to ACTIVE to reflect that payment has been made;
+                // CONFIRMED means booked-but-unpaid, ACTIVE means paid-and-ongoing.
+                if ("CONFIRMED".equals(booking.getStatus())) {
+                    booking.setStatus("ACTIVE");
+                    bookingRepository.save(booking);
+                    log.info("[PAYMENT] Updated paidAmount={} and status=ACTIVE on booking={}",
+                            payment.getAmount(), rentalId);
+                } else {
+                    bookingRepository.save(booking);
+                    log.info("[PAYMENT] Updated paidAmount={} on booking={} (status unchanged: {})",
+                            payment.getAmount(), rentalId, booking.getStatus());
+                }
             });
         } catch (Exception e) {
             log.error("[PAYMENT] Could not update paidAmount on booking={}: {}", rentalId, e.getMessage(), e);
