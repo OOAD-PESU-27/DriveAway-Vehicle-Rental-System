@@ -39,11 +39,15 @@ public class RegisterController {
         setStatus("Creating your account...");
         String response = authService.register(name, email, password, phone);
 
-        if (response != null && (response.contains("id") || response.contains("success"))) {
+        if (response != null && response.contains("Registered")) {
             setStatus("✅ Account created! Please sign in.");
             SceneNavigator.load("views/LoginView.fxml");
+        } else if (response != null && (response.toLowerCase().contains("already registered")
+                || response.toLowerCase().contains("already in use")
+                || response.toLowerCase().contains("conflict"))) {
+            setStatus("Email already registered. Please sign in or use a different email.");
         } else {
-            setStatus("Registration failed. Email may already be in use.");
+            setStatus("Registration failed. Please try again later.");
         }
     }
 

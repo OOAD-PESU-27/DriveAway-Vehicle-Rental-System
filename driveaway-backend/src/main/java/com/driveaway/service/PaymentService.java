@@ -315,17 +315,21 @@ public class PaymentService {
     }
 
     /**
-     * Looks up the user's email and triggers the verification email flow.
+     * Looks up the user's name and email, then triggers the confirmation+verification email flow.
      * Errors are logged but do not propagate – payment is already saved.
      */
     private void triggerEmailVerification(Payment payment) {
         try {
-            String userEmail = userRepository.findById(payment.getUserId())
-                    .map(u -> u.getEmail())
-                    .orElse(null);
-            emailVerificationService.sendVerificationEmail(payment, userEmail);
+            userRepository.findById(payment.getUserId()).ifPresent(user -> {
+                emailVerificationService.sendVerificationEmail(
+                        payment, user.getEmail(), user.getName());
+            });
+            if (!userRepository.findById(payment.getUserId()).isPresent()) {
+                log.warn("[PAYMENT] User not found for payment={} userId={} – skipping confirmation email",
+                        payment.getId(), payment.getUserId());
+            }
         } catch (Exception e) {
-            log.error("[PAYMENT] Could not trigger verification email for payment={}: {}",
+            log.error("[PAYMENT] Could not trigger confirmation email for payment={}: {}",
                     payment.getId(), e.getMessage(), e);
         }
     }
