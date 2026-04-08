@@ -120,4 +120,22 @@ class AuthServiceTest {
         assertFalse(ex instanceof DuplicateEmailException,
                 "A generic DB error must NOT be reported as duplicate email");
     }
+
+    // ── null / blank email guard ─────────────────────────────────────────────
+
+    @Test
+    void register_nullEmail_throwsIllegalArgumentException() {
+        validRequest.email = null;
+        assertThrows(IllegalArgumentException.class, () -> authService.register(validRequest));
+        verify(userRepository, never()).findByEmail(any());
+        verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void register_blankEmail_throwsIllegalArgumentException() {
+        validRequest.email = "   ";
+        assertThrows(IllegalArgumentException.class, () -> authService.register(validRequest));
+        verify(userRepository, never()).findByEmail(any());
+        verify(userRepository, never()).save(any());
+    }
 }

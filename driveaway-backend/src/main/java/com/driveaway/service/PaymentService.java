@@ -1,6 +1,7 @@
 package com.driveaway.service;
 
 import com.driveaway.entity.Payment;
+import com.driveaway.entity.User;
 import com.driveaway.PaymentStatus;
 import com.driveaway.dto.PaymentRequest;
 import com.driveaway.dto.PaymentResponse;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -78,9 +80,16 @@ public class PaymentService {
     /**
      * Step 2: Approve the payment (simulated recipient acceptance).
      * Can be triggered by paymentId + approvedBy.
+     * Idempotent: if already APPROVED, returns a success response without re-applying the transition.
      */
     public PaymentResponse approvePayment(String paymentId, String approvedBy) {
         Payment payment = getPaymentById(paymentId);
+
+        // Idempotent: already approved – return success without re-running the transition
+        if (payment.getStatus() == PaymentStatus.APPROVED) {
+            log.info("[PAYMENT] approvePayment called on already-APPROVED payment={} – returning idempotent success", paymentId);
+            return buildResponse(payment, "Payment already approved. You can now complete the payment.", true);
+        }
 
         if (payment.getStatus() != PaymentStatus.REQUESTED &&
                 payment.getStatus() != PaymentStatus.PENDING_APPROVAL) {
@@ -113,9 +122,17 @@ public class PaymentService {
 
     /**
      * Step 3: Complete/process payment - only allowed after APPROVED status.
+     * Idempotent: if already COMPLETED or SUCCESS, returns a success response without re-processing.
      */
     public PaymentResponse completePayment(String paymentId, String userId) {
         Payment payment = getPaymentById(paymentId);
+
+        // Idempotent: already completed – return success without re-processing
+        if (payment.getStatus() == PaymentStatus.COMPLETED ||
+                payment.getStatus() == PaymentStatus.SUCCESS) {
+            log.info("[PAYMENT] completePayment called on already-COMPLETED payment={} – returning idempotent success", paymentId);
+            return buildResponse(payment, "Payment already completed.", true);
+        }
 
         if (payment.getStatus() != PaymentStatus.APPROVED) {
             throw new PaymentException("Payment must be approved before it can be completed. Current status: " + payment.getStatus());
@@ -320,11 +337,12 @@ public class PaymentService {
      */
     private void triggerEmailVerification(Payment payment) {
         try {
-            userRepository.findById(payment.getUserId()).ifPresent(user -> {
+            Optional<User> userOpt = userRepository.findById(payment.getUserId());
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
                 emailVerificationService.sendVerificationEmail(
                         payment, user.getEmail(), user.getName());
-            });
-            if (!userRepository.findById(payment.getUserId()).isPresent()) {
+            } else {
                 log.warn("[PAYMENT] User not found for payment={} userId={} – skipping confirmation email",
                         payment.getId(), payment.getUserId());
             }

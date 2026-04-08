@@ -20,6 +20,10 @@ public class AuthService {
     private BCryptPasswordEncoder encoder;
 
     public String register(RegisterRequest req) {
+        if (req.email == null || req.email.isBlank()) {
+            throw new IllegalArgumentException("Email address is required");
+        }
+
         String normalizedEmail = req.email.trim().toLowerCase();
 
         if (userRepository.findByEmail(normalizedEmail).isPresent()) {
