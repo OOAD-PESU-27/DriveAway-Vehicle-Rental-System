@@ -1,7 +1,6 @@
 package com.driveaway.controllers;
 
 import com.driveaway.services.ReportService;
-import com.driveaway.utils.HttpUtil;
 import com.driveaway.utils.SceneNavigator;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -24,10 +23,19 @@ public class ReportsController {
     @FXML private Label statusLabel;
     @FXML private Label vehicleStatsLabel;
 
+    // Summary stat card labels
+    @FXML private Label totalVehiclesLabel;
+    @FXML private Label availableVehiclesLabel;
+    @FXML private Label totalRevenueLabel;
+    @FXML private Label totalReportsLabel;
+
     private static final String BASE_URL = "http://localhost:8080";
 
     private final ReportService reportService = new ReportService();
     private final String adminId;
+
+    /** Accumulated revenue from all loaded report rows (for the summary card). */
+    private double accumulatedRevenue = 0.0;
 
     public ReportsController() {
         String uid = LoginController.getUserId();
@@ -41,25 +49,95 @@ public class ReportsController {
     }
 
     private void setupTable() {
-        if (typeCol != null) typeCol.setCellValueFactory(d ->
-                new SimpleStringProperty(d.getValue().length > 0 ? d.getValue()[0] : ""));
+        if (typeCol != null) {
+            typeCol.setCellValueFactory(d ->
+                    new SimpleStringProperty(d.getValue().length > 0 ? d.getValue()[0] : ""));
+            // Colour-coded cell for report type
+            typeCol.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        String style = getTypeStyle(item);
+                        setStyle(style);
+                    }
+                }
+            });
+        }
         if (titleCol != null) titleCol.setCellValueFactory(d ->
                 new SimpleStringProperty(d.getValue().length > 1 ? d.getValue()[1] : ""));
-        if (totalTxnCol != null) totalTxnCol.setCellValueFactory(d ->
-                new SimpleStringProperty(d.getValue().length > 2 ? d.getValue()[2] : ""));
-        if (revenueCol != null) revenueCol.setCellValueFactory(d ->
-                new SimpleStringProperty(d.getValue().length > 3 ? d.getValue()[3] : ""));
+        if (totalTxnCol != null) {
+            totalTxnCol.setCellValueFactory(d ->
+                    new SimpleStringProperty(d.getValue().length > 2 ? d.getValue()[2] : ""));
+            totalTxnCol.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        setStyle("-fx-font-weight: bold; -fx-text-fill: #1e40af; -fx-alignment: CENTER;");
+                    }
+                }
+            });
+        }
+        if (revenueCol != null) {
+            revenueCol.setCellValueFactory(d ->
+                    new SimpleStringProperty(d.getValue().length > 3 ? d.getValue()[3] : ""));
+            revenueCol.setCellFactory(col -> new TableCell<>() {
+                @Override
+                protected void updateItem(String item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (empty || item == null) {
+                        setText(null);
+                        setStyle("");
+                    } else {
+                        setText(item);
+                        setStyle("-fx-font-weight: bold; -fx-text-fill: #15803d; -fx-font-size: 13px;");
+                    }
+                }
+            });
+        }
         if (generatedAtCol != null) generatedAtCol.setCellValueFactory(d ->
                 new SimpleStringProperty(d.getValue().length > 4 ? shorten(d.getValue()[4], 19) : ""));
+    }
+
+    /** Returns an inline style for the report type cell based on the type value. */
+    private String getTypeStyle(String type) {
+        if (type == null) return "";
+        return switch (type.toUpperCase()) {
+            case "VEHICLE_INVENTORY", "VEHICLE" ->
+                    "-fx-font-weight: bold; -fx-text-fill: white; "
+                    + "-fx-background-color: #1e40af; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+            case "DAILY" ->
+                    "-fx-font-weight: bold; -fx-text-fill: white; "
+                    + "-fx-background-color: #059669; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+            case "WEEKLY" ->
+                    "-fx-font-weight: bold; -fx-text-fill: white; "
+                    + "-fx-background-color: #d97706; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+            case "MONTHLY" ->
+                    "-fx-font-weight: bold; -fx-text-fill: white; "
+                    + "-fx-background-color: #7c3aed; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+            default ->
+                    "-fx-font-weight: bold; -fx-text-fill: #374151;";
+        };
     }
 
     private void loadReports() {
         String response = reportService.getAllReports(adminId);
         ObservableList<String[]> rows = FXCollections.observableArrayList();
+        accumulatedRevenue = 0.0;
 
         if (response == null || response.isBlank() || response.equals("[]")) {
-            setStatus("No reports yet. Generate one using the buttons above.");
+            setStatus("No reports yet. Generate one using the cards above.");
             if (reportsTable != null) reportsTable.setItems(rows);
+            updateSummaryCards(rows.size());
             return;
         }
 
@@ -71,6 +149,12 @@ public class ReportsController {
             String txn = extractField(entry, "totalTransactions");
             String rev = extractField(entry, "totalRevenue");
             String genAt = extractField(entry, "generatedAt");
+
+            // Accumulate revenue for summary card
+            if (rev != null && !rev.isBlank()) {
+                try { accumulatedRevenue += Double.parseDouble(rev); } catch (NumberFormatException ignored) {}
+            }
+
             rows.add(new String[]{
                     type != null ? type : "",
                     title != null ? title : "",
@@ -82,6 +166,16 @@ public class ReportsController {
 
         if (reportsTable != null) reportsTable.setItems(rows);
         setStatus(rows.size() + " report(s) loaded.");
+        updateSummaryCards(rows.size());
+    }
+
+    private void updateSummaryCards(int reportCount) {
+        if (totalReportsLabel != null) totalReportsLabel.setText(String.valueOf(reportCount));
+        if (totalRevenueLabel != null) {
+            totalRevenueLabel.setText(accumulatedRevenue > 0
+                    ? "\u20b9" + String.format("%.0f", accumulatedRevenue)
+                    : "\u20b90");
+        }
     }
 
     @FXML
@@ -93,10 +187,15 @@ public class ReportsController {
             String available = extractField(response, "availableVehicles");
             String booked = extractField(response, "bookedVehicles");
             String maintenance = extractField(response, "maintenanceVehicles");
+
+            // Update stat cards from vehicle report response
+            if (totalVehiclesLabel != null && total != null) totalVehiclesLabel.setText(total);
+            if (availableVehiclesLabel != null && available != null) availableVehiclesLabel.setText(available);
+
             if (vehicleStatsLabel != null) {
                 vehicleStatsLabel.setText(String.format(
-                        "Fleet: Total=%s | Available=%s | Booked=%s | Maintenance=%s",
-                        total, available, booked, maintenance));
+                        "🚘 Fleet: Total=%s | ✅ Available=%s | 📅 Booked=%s | 🔧 Maintenance=%s",
+                        nvl(total), nvl(available), nvl(booked), nvl(maintenance)));
             }
             setStatus("✅ Vehicle inventory report generated.");
             loadReports();
@@ -183,4 +282,9 @@ public class ReportsController {
         if (s == null) return "";
         return s.length() > max ? s.substring(0, max) + "\u2026" : s;
     }
+
+    private String nvl(String s) {
+        return s != null ? s : "0";
+    }
 }
+
