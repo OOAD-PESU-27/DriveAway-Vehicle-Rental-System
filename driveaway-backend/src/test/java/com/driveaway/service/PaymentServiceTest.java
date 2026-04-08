@@ -6,6 +6,7 @@ import com.driveaway.dto.PaymentResponse;
 import com.driveaway.entity.Payment;
 import com.driveaway.exception.PaymentException;
 import com.driveaway.repository.PaymentRepository;
+import com.driveaway.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,6 +35,10 @@ class PaymentServiceTest {
     private AuditLogService auditLogService;
     @Mock
     private ReportService reportService;
+    @Mock
+    private UserRepository userRepository;
+    @Mock
+    private PaymentEmailVerificationService emailVerificationService;
 
     @InjectMocks
     private PaymentService paymentService;

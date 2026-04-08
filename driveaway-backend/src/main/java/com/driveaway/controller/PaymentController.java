@@ -5,6 +5,7 @@ import com.driveaway.PaymentStatus;
 import com.driveaway.dto.PaymentRequest;
 import com.driveaway.dto.PaymentResponse;
 import com.driveaway.service.PaymentService;
+import com.driveaway.service.PaymentEmailVerificationService;
 import com.driveaway.exception.PaymentException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +24,7 @@ import java.util.List;
 public class PaymentController {
     
     private final PaymentService paymentService;
+    private final PaymentEmailVerificationService emailVerificationService;
 
     // -------------------------------------------------------------------------
     // Approval-gate workflow endpoints
@@ -198,6 +200,54 @@ public class PaymentController {
             return ResponseEntity.badRequest().body(
                 new PaymentResponse(e.getMessage(), false)
             );
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Email verification endpoints
+    // -------------------------------------------------------------------------
+
+    /**
+     * Verify a payment via a one-time email token.
+     * GET /api/v1/payments/verify-email?token=...
+     */
+    @GetMapping("/verify-email")
+    public ResponseEntity<?> verifyEmail(@RequestParam String token) {
+        try {
+            emailVerificationService.verifyToken(token);
+            return ResponseEntity.ok("Payment verified successfully.");
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Verification failed: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Resend the payment verification email.
+     * POST /api/v1/payments/{paymentId}/resend-verification
+     * Body (optional JSON): { "email": "user@example.com" }
+     * Header X-User-Email can also be used.
+     */
+    @PostMapping("/{paymentId}/resend-verification")
+    public ResponseEntity<?> resendVerification(
+            @PathVariable String paymentId,
+            @RequestHeader(value = "X-User-Email", required = false) String headerEmail,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
+        try {
+            String userEmail = headerEmail;
+            if (userEmail == null && body != null) {
+                userEmail = body.get("email");
+            }
+            if (userEmail == null || userEmail.isBlank()) {
+                return ResponseEntity.badRequest().body("User email is required for resend");
+            }
+            emailVerificationService.resendVerification(paymentId, userEmail);
+            return ResponseEntity.ok("Verification email resent successfully.");
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Resend failed: " + e.getMessage());
         }
     }
 }

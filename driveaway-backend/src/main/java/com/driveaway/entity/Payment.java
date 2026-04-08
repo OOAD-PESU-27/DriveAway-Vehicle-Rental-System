@@ -41,6 +41,10 @@ public class Payment {
     private LocalDateTime approvedAt;
     private String approvedBy;
     private String approvalToken; // Simulated approval token for Option-B flow
+
+    // Email verification fields
+    private boolean emailVerificationSent;
+    private boolean emailVerified;
     
     public Payment(String rentalId, String userId, double amount, String paymentMethod) {
         this.rentalId = rentalId;

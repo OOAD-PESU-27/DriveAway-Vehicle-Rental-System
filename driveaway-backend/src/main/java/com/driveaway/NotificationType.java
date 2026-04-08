@@ -11,7 +11,9 @@ public enum NotificationType {
     PAYMENT_COMPLETED("Payment Completed"),
     REFUND_INITIATED("Refund Initiated"),
     REFUND_COMPLETED("Refund Completed"),
-    RENTAL_CONFIRMATION("Rental Confirmation");
+    RENTAL_CONFIRMATION("Rental Confirmation"),
+    PAYMENT_EMAIL_VERIFICATION("Payment Email Verification"),
+    PAYMENT_VERIFIED("Payment Verified");
     
     private final String description;
     
