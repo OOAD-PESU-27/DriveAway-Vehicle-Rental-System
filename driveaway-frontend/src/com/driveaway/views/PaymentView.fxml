@@ -48,7 +48,7 @@
                         <VBox styleClass="card" spacing="6" style="-fx-background-color: #eff6ff; -fx-padding: 12;">
                             <Label text="📋 Payment Approval Flow" styleClass="section-title"
                                    style="-fx-text-fill: #1e40af;"/>
-                            <Label text="1. Submit Request → 2. Await Approval → 3. Complete Payment"
+                            <Label text="1. Submit Request → 2. Approve via Email → 3. Complete Payment"
                                    styleClass="text-muted" wrapText="true"/>
                         </VBox>
 
@@ -157,15 +157,15 @@
                         <!-- APPROVAL SECTION (shown after request submitted) -->
                         <VBox fx:id="approvalSection" spacing="12" visible="false" managed="false"
                               style="-fx-background-color: #fefce8; -fx-padding: 16; -fx-border-color: #fbbf24; -fx-border-radius: 8; -fx-background-radius: 8;">
-                            <Label text="⏳ Awaiting Approval" styleClass="section-title"
+                            <Label text="📧 Approval Email Sent" styleClass="section-title"
                                    style="-fx-text-fill: #b45309;"/>
                             <Label fx:id="approvalTokenLabel"
-                                   text="Approval token will appear here after submission."
+                                   text="An approval link has been sent to your email. Once approved, click Complete Payment below."
                                    wrapText="true" styleClass="text-muted"/>
 
-                            <!-- Step 2: Simulate approval (Option B - no real email) -->
-                            <Button text="✔ Simulate Approval (Option B)"
-                                    onAction="#handleSimulatedApprove"
+                            <!-- Check approval status -->
+                            <Button text="🔄 Refresh Approval Status"
+                                    onAction="#handleCheckApprovalStatus"
                                     styleClass="btn-outline" maxWidth="Infinity"
                                     style="-fx-font-size: 13px;"/>
 

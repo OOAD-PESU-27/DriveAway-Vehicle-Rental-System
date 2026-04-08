@@ -35,6 +35,7 @@ public class BookingManagementController {
     private final BookingService bookingService = new BookingService();
     private List<String[]> allBookings = new ArrayList<>();
     private static String lastBookingId;
+    private static double lastBookingTotalPrice;
 
     public static void setLastBookingId(String id) {
         lastBookingId = id;
@@ -42,6 +43,14 @@ public class BookingManagementController {
 
     public static String getLastBookingId() {
         return lastBookingId;
+    }
+
+    public static void setLastBookingTotalPrice(double price) {
+        lastBookingTotalPrice = price;
+    }
+
+    public static double getLastBookingTotalPrice() {
+        return lastBookingTotalPrice;
     }
 
     @FXML
