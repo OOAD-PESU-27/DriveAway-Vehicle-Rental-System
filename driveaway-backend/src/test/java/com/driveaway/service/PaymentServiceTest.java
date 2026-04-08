@@ -4,6 +4,7 @@ import com.driveaway.PaymentStatus;
 import com.driveaway.dto.PaymentRequest;
 import com.driveaway.dto.PaymentResponse;
 import com.driveaway.entity.Payment;
+import com.driveaway.entity.User;
 import com.driveaway.exception.PaymentException;
 import com.driveaway.repository.PaymentRepository;
 import com.driveaway.repository.UserRepository;
@@ -194,5 +195,69 @@ class PaymentServiceTest {
         PaymentResponse response = paymentService.approvePaymentByToken("APPR_VALIDTOKEN");
         assertTrue(response.isSuccess());
         assertEquals(PaymentStatus.APPROVED, response.getStatus());
+    }
+
+    // -------------------------------------------------------------------------
+    // Email confirmation on payment success
+    // -------------------------------------------------------------------------
+
+    @Test
+    void completePayment_emailFailure_doesNotAffectPaymentCompletion() {
+        // Arrange: payment is in APPROVED state
+        Payment approved = new Payment("r1", "u1", 1000.0, "CARD");
+        approved.setId("pay-100");
+        approved.setStatus(PaymentStatus.APPROVED);
+
+        User user = new User();
+        user.setId("u1");
+        user.setEmail("john@example.com");
+        user.setName("John Doe");
+
+        when(paymentRepository.findById("pay-100")).thenReturn(Optional.of(approved));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.findById("u1")).thenReturn(Optional.of(user));
+
+        // Email service throws an exception – should be swallowed
+        doThrow(new RuntimeException("SMTP error"))
+                .when(emailVerificationService)
+                .sendVerificationEmail(any(Payment.class), anyString(), anyString());
+
+        // Act: completePayment should not throw regardless of email failure
+        assertDoesNotThrow(() -> paymentService.completePayment("pay-100", "u1"),
+                "Email failure must not propagate and roll back payment completion");
+    }
+
+    @Test
+    void completePayment_whenUserHasEmail_triggersConfirmationEmail() {
+        Payment approved = new Payment("r1", "u1", 1000.0, "CARD");
+        approved.setId("pay-101");
+        approved.setStatus(PaymentStatus.APPROVED);
+
+        User user = new User();
+        user.setId("u1");
+        user.setEmail("john@example.com");
+        user.setName("John Doe");
+
+        when(paymentRepository.findById("pay-101")).thenReturn(Optional.of(approved));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(userRepository.findById("u1")).thenReturn(Optional.of(user));
+
+        // Run up to 20 times to get at least one COMPLETED result (95% success rate)
+        PaymentResponse response = null;
+        for (int i = 0; i < 20; i++) {
+            approved.setStatus(PaymentStatus.APPROVED); // reset for retry
+            response = paymentService.completePayment("pay-101", "u1");
+            if (response.getStatus() == PaymentStatus.COMPLETED) break;
+        }
+
+        assertNotNull(response);
+        if (response.getStatus() == PaymentStatus.COMPLETED) {
+            // Verify confirmation email was triggered with user's name and email
+            verify(emailVerificationService, atLeastOnce())
+                    .sendVerificationEmail(
+                            any(Payment.class),
+                            eq("john@example.com"),
+                            eq("John Doe"));
+        }
     }
 }

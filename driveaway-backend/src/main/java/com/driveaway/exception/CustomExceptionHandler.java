@@ -15,7 +15,17 @@ import java.util.Map;
  */
 @RestControllerAdvice
 public class CustomExceptionHandler {
-    
+
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ResponseEntity<?> handleDuplicateEmailException(DuplicateEmailException ex) {
+        Map<String, Object> response = new HashMap<>();
+        response.put("timestamp", LocalDateTime.now());
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", "Conflict");
+        response.put("message", ex.getMessage());
+        return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(PaymentException.class)
     public ResponseEntity<?> handlePaymentException(PaymentException ex) {
         Map<String, Object> response = new HashMap<>();

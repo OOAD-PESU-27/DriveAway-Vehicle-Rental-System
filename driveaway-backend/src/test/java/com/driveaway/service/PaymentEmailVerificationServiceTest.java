@@ -5,8 +5,10 @@ import com.driveaway.entity.Notification;
 import com.driveaway.entity.Payment;
 import com.driveaway.entity.VerificationToken;
 import com.driveaway.exception.PaymentException;
+import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.NotificationRepository;
 import com.driveaway.repository.PaymentRepository;
+import com.driveaway.repository.VehicleRepository;
 import com.driveaway.repository.VerificationTokenRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,8 @@ class PaymentEmailVerificationServiceTest {
     @Mock private NotificationRepository notificationRepository;
     @Mock private EmailService emailService;
     @Mock private AuditLogService auditLogService;
+    @Mock private BookingRepository bookingRepository;
+    @Mock private VehicleRepository vehicleRepository;
 
     @InjectMocks
     private PaymentEmailVerificationService service;
@@ -68,7 +72,7 @@ class PaymentEmailVerificationServiceTest {
         assertFalse(saved.isUsed());
         assertTrue(saved.getExpiresAt().isAfter(LocalDateTime.now()));
 
-        verify(emailService).sendEmail(eq("user@example.com"), contains("Verify"), anyString());
+        verify(emailService).sendEmail(eq("user@example.com"), contains("Confirmation"), anyString());
         verify(paymentRepository).save(argThat(p -> p.isEmailVerificationSent()));
     }
 
@@ -210,6 +214,25 @@ class PaymentEmailVerificationServiceTest {
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
+    @Test
+    void sendVerificationEmail_withUserName_includesNameInEmailBody() {
+        Payment payment = buildPayment("pay-030", PaymentStatus.COMPLETED);
+
+        when(tokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(notificationRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        // bookingRepository returns empty (no vehicle info needed for this test)
+
+        service.sendVerificationEmail(payment, "john@example.com", "John Doe");
+
+        ArgumentCaptor<String> bodyCaptor = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendEmail(eq("john@example.com"), any(), bodyCaptor.capture());
+
+        String body = bodyCaptor.getValue();
+        assertTrue(body.contains("John Doe"), "Email body should greet user by name");
+        assertTrue(body.contains("rental-1"), "Email body should contain the booking ID");
+    }
 
     private Payment buildPayment(String id, PaymentStatus status) {
         Payment p = new Payment("rental-1", "user-1", 2500.0, "CARD");
