@@ -43,8 +43,7 @@ public class RegisterController {
             setStatus("✅ Account created! Please sign in.");
             SceneNavigator.load("views/LoginView.fxml");
         } else if (response != null && (response.toLowerCase().contains("already registered")
-                || response.toLowerCase().contains("already in use")
-                || response.toLowerCase().contains("conflict"))) {
+                || response.toLowerCase().contains("already in use"))) {
             setStatus("Email already registered. Please sign in or use a different email.");
         } else {
             setStatus("Registration failed. Please try again later.");

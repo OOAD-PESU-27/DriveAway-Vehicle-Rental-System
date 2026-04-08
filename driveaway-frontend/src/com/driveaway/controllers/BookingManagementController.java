@@ -119,7 +119,7 @@ public class BookingManagementController {
             String start = extract(entry, "startDate");
             String end = extract(entry, "endDate");
             String status = extract(entry, "status");
-            String amount = extract(entry, "totalAmount");
+            String amount = extract(entry, "totalPrice");
 
             if (id != null) {
                 allBookings.add(new String[]{

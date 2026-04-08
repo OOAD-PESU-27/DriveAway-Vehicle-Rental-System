@@ -133,6 +133,28 @@ class PaymentServiceTest {
                 () -> paymentService.approvePayment("pay-004", "admin-001"));
     }
 
+    @Test
+    void approvePayment_whenAlreadyApproved_returnsIdempotentSuccess() {
+        // Simulates double-click or repeated approval: payment already APPROVED
+        Payment alreadyApproved = new Payment("r1", "u1", 1000.0, "CARD");
+        alreadyApproved.setId("pay-008");
+        alreadyApproved.setStatus(PaymentStatus.APPROVED);
+        alreadyApproved.setApprovedAt(LocalDateTime.now());
+        alreadyApproved.setApprovedBy("admin-001");
+
+        when(paymentRepository.findById("pay-008")).thenReturn(Optional.of(alreadyApproved));
+
+        // Should NOT throw – must return a success response
+        PaymentResponse response = assertDoesNotThrow(
+                () -> paymentService.approvePayment("pay-008", "admin-001"),
+                "approvePayment on an already-APPROVED payment must be idempotent");
+
+        assertTrue(response.isSuccess(), "Idempotent approve must return success=true");
+        assertEquals(PaymentStatus.APPROVED, response.getStatus());
+        // Repository save must NOT be called again (no state change needed)
+        verify(paymentRepository, never()).save(any());
+    }
+
     // -------------------------------------------------------------------------
     // completePayment tests
     // -------------------------------------------------------------------------
@@ -147,6 +169,48 @@ class PaymentServiceTest {
 
         assertThrows(PaymentException.class,
                 () -> paymentService.completePayment("pay-005", "user-001"));
+    }
+
+    @Test
+    void completePayment_whenAlreadyCompleted_returnsIdempotentSuccess() {
+        // Simulates double-click: payment already COMPLETED
+        Payment alreadyCompleted = new Payment("r1", "u1", 10000.0, "CARD");
+        alreadyCompleted.setId("pay-009");
+        alreadyCompleted.setStatus(PaymentStatus.COMPLETED);
+        alreadyCompleted.setTransactionId("TXN_EXISTING");
+        alreadyCompleted.setPaymentDate(LocalDateTime.now().minusMinutes(5));
+
+        when(paymentRepository.findById("pay-009")).thenReturn(Optional.of(alreadyCompleted));
+
+        // Should NOT throw – must return a success response
+        PaymentResponse response = assertDoesNotThrow(
+                () -> paymentService.completePayment("pay-009", "user-001"),
+                "completePayment on an already-COMPLETED payment must be idempotent");
+
+        assertTrue(response.isSuccess(), "Idempotent complete must return success=true");
+        assertEquals(PaymentStatus.COMPLETED, response.getStatus());
+        assertEquals(10000.0, response.getAmount(), "Amount must be preserved on idempotent complete");
+        // Repository save must NOT be called again (no state change)
+        verify(paymentRepository, never()).save(any());
+    }
+
+    @Test
+    void completePayment_afterApproval_persistsNonZeroAmount() {
+        // Verifies the paid amount is not lost during completePayment
+        Payment approved = new Payment("r1", "u1", 10000.0, "CARD");
+        approved.setId("pay-010");
+        approved.setStatus(PaymentStatus.APPROVED);
+        approved.setApprovedAt(LocalDateTime.now());
+        approved.setApprovedBy("admin-001");
+
+        when(paymentRepository.findById("pay-010")).thenReturn(Optional.of(approved));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PaymentResponse response = paymentService.completePayment("pay-010", "user-001");
+        assertNotNull(response);
+        // The exact amount entered must be preserved on both COMPLETED and FAILED outcomes
+        assertEquals(10000.0, response.getAmount(),
+                "Paid amount must equal the originally requested amount after completePayment");
     }
 
     @Test
