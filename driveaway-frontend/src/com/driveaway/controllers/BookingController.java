@@ -63,6 +63,13 @@ public class BookingController {
         termsAcceptedLabel.setManaged(checked);
     }
 
+    /** Opens the Terms and Conditions page. */
+    @FXML
+    public void handleOpenTerms() {
+        TermsAndConditionsController.setPreviousView("views/BookingView.fxml");
+        SceneNavigator.load("views/TermsAndConditionsView.fxml");
+    }
+
     @FXML
     public void handleBook() {
         String userId = LoginController.getUserId();
@@ -162,3 +169,4 @@ public class BookingController {
         }
     }
 }
+

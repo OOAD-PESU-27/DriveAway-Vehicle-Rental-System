@@ -26,7 +26,7 @@
 
     <center>
         <HBox alignment="CENTER" style="-fx-padding: 32;">
-            <VBox spacing="16" styleClass="card" maxWidth="480" HBox.hgrow="ALWAYS">
+            <VBox spacing="16" styleClass="card" maxWidth="500" HBox.hgrow="ALWAYS">
                 <Label text="📅 Book a Vehicle" styleClass="page-title"/>
                 <Separator/>
 
@@ -49,13 +49,21 @@
 
                 <Label fx:id="statusLabel" styleClass="text-danger" wrapText="true"/>
 
-                <CheckBox fx:id="termsCheckBox"
-                          text="I agree to the Terms and Conditions"
-                          onAction="#handleTermsCheckBox"
-                          styleClass="form-label"/>
-                <Label fx:id="termsAcceptedLabel"
-                       text="✅ I have accepted the Terms and Conditions"
-                       styleClass="text-success" wrapText="true"/>
+                <!-- Terms and Conditions with hyperlink -->
+                <VBox styleClass="terms-box" spacing="8">
+                    <HBox alignment="CENTER_LEFT" spacing="6">
+                        <CheckBox fx:id="termsCheckBox"
+                                  onAction="#handleTermsCheckBox"/>
+                        <Label text="I accept the" styleClass="form-label"/>
+                        <Hyperlink text="Terms and Conditions"
+                                   onAction="#handleOpenTerms"
+                                   styleClass="terms-link"/>
+                        <Label text="of DriveAway" styleClass="form-label"/>
+                    </HBox>
+                    <Label fx:id="termsAcceptedLabel"
+                           text="✅ You have accepted the Terms and Conditions"
+                           styleClass="terms-accepted-label" wrapText="true"/>
+                </VBox>
 
                 <HBox spacing="12">
                     <Button text="Book Now 🚀" onAction="#handleBook" styleClass="btn-primary"/>

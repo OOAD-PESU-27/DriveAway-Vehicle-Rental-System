@@ -30,40 +30,128 @@
         <ScrollPane fitToWidth="true" styleClass="scroll-pane">
             <VBox spacing="24" style="-fx-padding: 28 32 28 32;">
 
-                <Label text="📊 Reports" styleClass="page-title"/>
-
-                <!-- Generate buttons -->
-                <VBox styleClass="card" spacing="12">
-                    <Label text="Generate Reports" styleClass="section-title"/>
-                    <HBox spacing="12" alignment="CENTER_LEFT">
-                        <Button text="🚘 Vehicle Inventory" onAction="#handleGenerateVehicleReport"
-                                styleClass="btn-primary"/>
-                        <Button text="📅 Daily" onAction="#handleGenerateDailyReport"
-                                styleClass="btn-outline"/>
-                        <Button text="📆 Weekly" onAction="#handleGenerateWeeklyReport"
-                                styleClass="btn-outline"/>
-                        <Button text="🗓 Monthly" onAction="#handleGenerateMonthlyReport"
-                                styleClass="btn-outline"/>
-                        <Button text="🔄 Refresh List" onAction="#handleRefresh"
-                                styleClass="btn-outline"/>
+                <!-- Page Header Banner -->
+                <VBox styleClass="report-summary-banner" spacing="4">
+                    <HBox alignment="CENTER_LEFT" spacing="16">
+                        <Label text="📊" style="-fx-font-size: 36px;"/>
+                        <VBox spacing="2">
+                            <Label text="Reports &amp; Analytics" styleClass="report-summary-title"/>
+                            <Label text="Generate and view detailed fleet, revenue and booking reports"
+                                   styleClass="report-summary-sub"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="🔄 Refresh" onAction="#handleRefresh"
+                                styleClass="btn-outline"
+                                style="-fx-text-fill: white; -fx-border-color: rgba(255,255,255,0.5);"/>
                     </HBox>
-                    <Label fx:id="vehicleStatsLabel" text="" styleClass="text-muted" wrapText="true"/>
+                </VBox>
+
+                <!-- Summary Stat Cards Row -->
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <VBox styleClass="stat-card-blue" spacing="6" alignment="CENTER_LEFT"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="🚘" style="-fx-font-size: 26px;"/>
+                        <Label fx:id="totalVehiclesLabel" text="—" styleClass="stat-value-white"/>
+                        <Label text="Total Vehicles" styleClass="stat-label-white"/>
+                    </VBox>
+                    <VBox styleClass="stat-card-green" spacing="6" alignment="CENTER_LEFT"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="✅" style="-fx-font-size: 26px;"/>
+                        <Label fx:id="availableVehiclesLabel" text="—" styleClass="stat-value-white"/>
+                        <Label text="Available" styleClass="stat-label-white"/>
+                    </VBox>
+                    <VBox styleClass="stat-card-orange" spacing="6" alignment="CENTER_LEFT"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="💰" style="-fx-font-size: 26px;"/>
+                        <Label fx:id="totalRevenueLabel" text="—" styleClass="stat-value-white"/>
+                        <Label text="Total Revenue" styleClass="stat-label-white"/>
+                    </VBox>
+                    <VBox styleClass="stat-card-purple" spacing="6" alignment="CENTER_LEFT"
+                          HBox.hgrow="ALWAYS">
+                        <Label text="📋" style="-fx-font-size: 26px;"/>
+                        <Label fx:id="totalReportsLabel" text="—" styleClass="stat-value-white"/>
+                        <Label text="Reports Generated" styleClass="stat-label-white"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Generate Report Cards -->
+                <VBox styleClass="card" spacing="14">
+                    <Label text="Generate Reports" styleClass="section-title"/>
+                    <HBox spacing="14" alignment="CENTER_LEFT">
+                        <!-- Vehicle Inventory -->
+                        <Button onAction="#handleGenerateVehicleReport"
+                                styleClass="report-card-vehicle"
+                                minWidth="150" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="🚘" style="-fx-font-size: 28px;"/>
+                                    <Label text="Vehicle Inventory" styleClass="report-btn-label"/>
+                                    <Label text="Fleet status report" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                        <!-- Daily -->
+                        <Button onAction="#handleGenerateDailyReport"
+                                styleClass="report-card-daily"
+                                minWidth="130" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="📅" style="-fx-font-size: 28px;"/>
+                                    <Label text="Daily Report" styleClass="report-btn-label"/>
+                                    <Label text="Today's activity" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                        <!-- Weekly -->
+                        <Button onAction="#handleGenerateWeeklyReport"
+                                styleClass="report-card-weekly"
+                                minWidth="130" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="📆" style="-fx-font-size: 28px;"/>
+                                    <Label text="Weekly Report" styleClass="report-btn-label"/>
+                                    <Label text="7-day overview" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                        <!-- Monthly -->
+                        <Button onAction="#handleGenerateMonthlyReport"
+                                styleClass="report-card-monthly"
+                                minWidth="130" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="🗓" style="-fx-font-size: 28px;"/>
+                                    <Label text="Monthly Report" styleClass="report-btn-label"/>
+                                    <Label text="30-day summary" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                    </HBox>
+                    <Label fx:id="vehicleStatsLabel" text="" styleClass="text-muted" wrapText="true"
+                           style="-fx-padding: 4 0 0 0;"/>
                 </VBox>
 
                 <Label fx:id="statusLabel" text="" styleClass="text-muted"/>
 
-                <!-- Reports table -->
+                <!-- Reports Table -->
                 <VBox styleClass="card" spacing="0">
-                    <TableView fx:id="reportsTable" minHeight="350" maxWidth="Infinity">
+                    <Label text="📋 Report History" styleClass="section-title"
+                           style="-fx-padding: 0 0 12 0;"/>
+                    <TableView fx:id="reportsTable" minHeight="350" maxWidth="Infinity"
+                               styleClass="table-view">
                         <columns>
-                            <TableColumn fx:id="typeCol" text="Type" minWidth="140"/>
-                            <TableColumn fx:id="titleCol" text="Title" minWidth="250"/>
-                            <TableColumn fx:id="totalTxnCol" text="Transactions" minWidth="100"/>
-                            <TableColumn fx:id="revenueCol" text="Revenue" minWidth="120"/>
-                            <TableColumn fx:id="generatedAtCol" text="Generated At" minWidth="160"/>
+                            <TableColumn fx:id="typeCol" text="Report Type" minWidth="150"/>
+                            <TableColumn fx:id="titleCol" text="Title" minWidth="260"/>
+                            <TableColumn fx:id="totalTxnCol" text="Transactions" minWidth="110"/>
+                            <TableColumn fx:id="revenueCol" text="Revenue" minWidth="130"/>
+                            <TableColumn fx:id="generatedAtCol" text="Generated At" minWidth="170"/>
                         </columns>
                         <placeholder>
-                            <Label text="No reports generated yet." styleClass="text-muted"/>
+                            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 40;">
+                                <Label text="📊" style="-fx-font-size: 40px;"/>
+                                <Label text="No reports yet. Generate one above!" styleClass="text-muted"
+                                       style="-fx-font-size: 15px;"/>
+                            </VBox>
                         </placeholder>
                     </TableView>
                 </VBox>

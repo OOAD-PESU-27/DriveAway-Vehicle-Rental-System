@@ -4,6 +4,7 @@ import com.driveaway.services.BookingService;
 import com.driveaway.utils.SceneNavigator;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
@@ -13,6 +14,7 @@ import java.time.temporal.ChronoUnit;
 public class VehicleDetailsController {
 
     @FXML private Label vehicleNameLabel;
+    @FXML private VBox vehicleImageBox;
     @FXML private Label vehicleEmojiLabel;
     @FXML private Label vehicleTypeLabel;
     @FXML private Label availabilityLabel;
@@ -31,6 +33,7 @@ public class VehicleDetailsController {
     @FXML private Label rateLabel;
     @FXML private Label totalLabel;
     @FXML private CheckBox termsCheckBox;
+    @FXML private Label termsAcceptedLabel;
     @FXML private Label statusLabel;
 
     private final BookingService bookingService = new BookingService();
@@ -43,6 +46,11 @@ public class VehicleDetailsController {
         setupLocationCombo();
         setupDateDefaults();
         populateVehicleDetails();
+        // Hide the accepted label initially
+        if (termsAcceptedLabel != null) {
+            termsAcceptedLabel.setVisible(false);
+            termsAcceptedLabel.setManaged(false);
+        }
     }
 
     private void setupLocationCombo() {
@@ -96,6 +104,11 @@ public class VehicleDetailsController {
         if (transmissionLabel != null) transmissionLabel.setText(trans != null ? trans : "-");
         if (seatsLabel != null) seatsLabel.setText(seats != null ? seats + " seats" : "-");
 
+        // Apply type-specific gradient background to vehicle image box
+        if (vehicleImageBox != null) {
+            vehicleImageBox.setStyle(getVehicleImageStyle(type));
+        }
+
         try { pricePerDay = Double.parseDouble(price); } catch (Exception e) { pricePerDay = 0; }
         if (priceLabel != null) priceLabel.setText("₹" + String.format("%.0f", pricePerDay));
         if (rateLabel != null) rateLabel.setText("₹" + String.format("%.0f", pricePerDay));
@@ -107,6 +120,31 @@ public class VehicleDetailsController {
         }
 
         calculateTotal();
+    }
+
+    /** Returns a vehicle-type-specific gradient background style string. */
+    private String getVehicleImageStyle(String type) {
+        if (type == null) return getDefaultImageStyle();
+        String gradient = switch (type.toUpperCase()) {
+            case "SEDAN"    -> "linear-gradient(to bottom right, #1e3a8a, #3b82f6, #93c5fd)";
+            case "SUV"      -> "linear-gradient(to bottom right, #064e3b, #059669, #6ee7b7)";
+            case "LUXURY"   -> "linear-gradient(to bottom right, #78350f, #d97706, #fde68a)";
+            case "TRUCK"    -> "linear-gradient(to bottom right, #7f1d1d, #dc2626, #fca5a5)";
+            case "VAN"      -> "linear-gradient(to bottom right, #4c1d95, #7c3aed, #c4b5fd)";
+            case "ECONOMY"  -> "linear-gradient(to bottom right, #0c4a6e, #0891b2, #67e8f9)";
+            case "BIKE", "MOTORCYCLE" -> "linear-gradient(to bottom right, #1c1917, #78716c, #d6d3d1)";
+            default         -> getDefaultImageStyle();
+        };
+        return "-fx-background-color: " + gradient + "; -fx-background-radius: 16; "
+                + "-fx-effect: dropshadow(gaussian, rgba(30,64,175,0.18), 18, 0, 0, 6); "
+                + "-fx-min-height: 200; -fx-min-width: 300; -fx-max-width: 320;";
+    }
+
+    private String getDefaultImageStyle() {
+        return "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #6366f1, #a5b4fc); "
+                + "-fx-background-radius: 16; "
+                + "-fx-effect: dropshadow(gaussian, rgba(30,64,175,0.18), 18, 0, 0, 6); "
+                + "-fx-min-height: 200; -fx-min-width: 300; -fx-max-width: 320;";
     }
 
     @FXML
@@ -126,6 +164,22 @@ public class VehicleDetailsController {
         double total = days * pricePerDay;
         if (durationLabel != null) durationLabel.setText(days + " day" + (days != 1 ? "s" : ""));
         if (totalLabel != null) totalLabel.setText("₹" + String.format("%.0f", total));
+    }
+
+    /** Called when the T&C checkbox is toggled. */
+    @FXML
+    public void handleTermsCheckBox() {
+        if (termsCheckBox == null || termsAcceptedLabel == null) return;
+        boolean checked = termsCheckBox.isSelected();
+        termsAcceptedLabel.setVisible(checked);
+        termsAcceptedLabel.setManaged(checked);
+    }
+
+    /** Opens the Terms and Conditions page. */
+    @FXML
+    public void handleOpenTerms() {
+        TermsAndConditionsController.setPreviousView("views/VehicleDetailsView.fxml");
+        SceneNavigator.load("views/TermsAndConditionsView.fxml");
     }
 
     @FXML
@@ -215,3 +269,4 @@ public class VehicleDetailsController {
         return null;
     }
 }
+

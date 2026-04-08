@@ -230,24 +230,30 @@ public class VehicleCatalogController {
 
         VBox card = new VBox(0);
         card.getStyleClass().add("vehicle-card");
-        card.setMinWidth(235);
-        card.setMaxWidth(250);
+        card.setMinWidth(245);
+        card.setMaxWidth(265);
 
-        // Card header with emoji
-        VBox header = new VBox(6);
+        // ── Card photo/image header with type-specific gradient ──────────────
+        VBox header = new VBox(8);
         header.setAlignment(Pos.CENTER);
-        header.setPadding(new Insets(18, 12, 14, 12));
-        header.setStyle("-fx-background-color: #f0f7ff; -fx-background-radius: 12 12 0 0;");
+        header.setPadding(new Insets(22, 12, 18, 12));
+        header.setStyle(getCardHeaderStyle(type));
 
+        // Large vehicle emoji
         Label icon = new Label(getVehicleEmoji(type));
-        icon.setStyle("-fx-font-size: 52px;");
+        icon.setStyle("-fx-font-size: 56px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 0, 2);");
+
+        // Road / decorative stripe at bottom of header
+        Label tagLine = new Label(getTypeTagLine(type));
+        tagLine.setStyle("-fx-font-size: 10px; -fx-text-fill: rgba(255,255,255,0.80); "
+                + "-fx-font-style: italic;");
 
         boolean isAvailable = !"false".equalsIgnoreCase(avail);
         Label availLabel = new Label(isAvailable ? "✅ Available" : "❌ Unavailable");
         availLabel.getStyleClass().add(isAvailable ? "badge-active" : "badge-cancelled");
-        header.getChildren().addAll(icon, availLabel);
+        header.getChildren().addAll(icon, tagLine, availLabel);
 
-        // Card body
+        // ── Card body ────────────────────────────────────────────────────────
         VBox body = new VBox(6);
         body.getStyleClass().add("vehicle-card-body");
         body.setPadding(new Insets(12, 14, 14, 14));
@@ -258,6 +264,8 @@ public class VehicleCatalogController {
 
         Label typeLabel = new Label(type != null ? type : "Vehicle");
         typeLabel.getStyleClass().add("vehicle-type");
+        // Override vehicle-type badge colour to match card header
+        typeLabel.setStyle(getTypeBadgeStyle(type));
 
         // Specs mini row
         HBox specs = new HBox(10);
@@ -313,6 +321,55 @@ public class VehicleCatalogController {
         body.getChildren().addAll(nameLabel, typeLabel, specs, priceBox, spacer, btnRow);
         card.getChildren().addAll(header, body);
         return card;
+    }
+
+    /** Returns the inline style for the card photo header based on vehicle type. */
+    private String getCardHeaderStyle(String type) {
+        String base = "-fx-background-radius: 16 16 0 0; ";
+        if (type == null) return base + "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #6366f1, #a5b4fc);";
+        return base + switch (type.toUpperCase()) {
+            case "SEDAN"    -> "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #3b82f6, #93c5fd);";
+            case "SUV"      -> "-fx-background-color: linear-gradient(to bottom right, #064e3b, #059669, #6ee7b7);";
+            case "LUXURY"   -> "-fx-background-color: linear-gradient(to bottom right, #78350f, #d97706, #fde68a);";
+            case "TRUCK"    -> "-fx-background-color: linear-gradient(to bottom right, #7f1d1d, #dc2626, #fca5a5);";
+            case "VAN"      -> "-fx-background-color: linear-gradient(to bottom right, #4c1d95, #7c3aed, #c4b5fd);";
+            case "ECONOMY"  -> "-fx-background-color: linear-gradient(to bottom right, #0c4a6e, #0891b2, #67e8f9);";
+            case "BIKE", "MOTORCYCLE" ->
+                    "-fx-background-color: linear-gradient(to bottom right, #1c1917, #78716c, #d6d3d1);";
+            default -> "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #6366f1, #a5b4fc);";
+        };
+    }
+
+    /** Returns a coloured badge style that matches the card header. */
+    private String getTypeBadgeStyle(String type) {
+        String base = "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: white; "
+                + "-fx-padding: 3 10 3 10; -fx-background-radius: 20; ";
+        if (type == null) return base + "-fx-background-color: #6366f1;";
+        return base + switch (type.toUpperCase()) {
+            case "SEDAN"    -> "-fx-background-color: #1e40af;";
+            case "SUV"      -> "-fx-background-color: #059669;";
+            case "LUXURY"   -> "-fx-background-color: #d97706;";
+            case "TRUCK"    -> "-fx-background-color: #dc2626;";
+            case "VAN"      -> "-fx-background-color: #7c3aed;";
+            case "ECONOMY"  -> "-fx-background-color: #0891b2;";
+            case "BIKE", "MOTORCYCLE" -> "-fx-background-color: #78716c;";
+            default -> "-fx-background-color: #6366f1;";
+        };
+    }
+
+    /** Returns a short marketing tag line per vehicle type. */
+    private String getTypeTagLine(String type) {
+        if (type == null) return "Premium Rental";
+        return switch (type.toUpperCase()) {
+            case "SEDAN"    -> "Comfortable City Ride";
+            case "SUV"      -> "Adventure Ready";
+            case "LUXURY"   -> "Premium Experience";
+            case "TRUCK"    -> "Heavy-Duty Power";
+            case "VAN"      -> "Family & Group Travel";
+            case "ECONOMY"  -> "Budget Friendly";
+            case "BIKE", "MOTORCYCLE" -> "Fast & Fun";
+            default -> "Premium Rental";
+        };
     }
 
     private void openDetails(String[] v) {

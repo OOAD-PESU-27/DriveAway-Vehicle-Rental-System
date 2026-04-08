@@ -39,11 +39,11 @@
                 <!-- Vehicle Header -->
                 <HBox spacing="24" alignment="TOP_LEFT">
 
-                    <!-- Vehicle Image Placeholder -->
-                    <VBox styleClass="card" alignment="CENTER" spacing="8"
-                          minWidth="300" maxWidth="300" minHeight="200">
+                    <!-- Vehicle Image / Photo Area -->
+                    <VBox fx:id="vehicleImageBox" styleClass="vehicle-image-card" alignment="CENTER" spacing="10"
+                          minWidth="300" maxWidth="320" minHeight="200">
                         <Label fx:id="vehicleEmojiLabel" text="🚗"
-                               style="-fx-font-size: 72px;"/>
+                               styleClass="vehicle-emoji-large"/>
                         <Label fx:id="vehicleTypeLabel" text="" styleClass="vehicle-type"/>
                     </VBox>
 
@@ -134,10 +134,21 @@
                         </HBox>
                     </VBox>
 
-                    <!-- Terms -->
-                    <CheckBox fx:id="termsCheckBox"
-                              text="I agree to the terms and conditions of DriveAway"
-                              style="-fx-font-size: 13px;"/>
+                    <!-- Terms and Conditions with hyperlink -->
+                    <VBox styleClass="terms-box" spacing="8">
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <CheckBox fx:id="termsCheckBox"
+                                      onAction="#handleTermsCheckBox"/>
+                            <Label text="I accept the" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                            <Hyperlink text="Terms and Conditions"
+                                       onAction="#handleOpenTerms"
+                                       styleClass="terms-link"/>
+                            <Label text="of DriveAway" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                        </HBox>
+                        <Label fx:id="termsAcceptedLabel"
+                               text="✅ You have accepted the Terms and Conditions"
+                               styleClass="terms-accepted-label" wrapText="true"/>
+                    </VBox>
 
                     <!-- Status & Action -->
                     <Label fx:id="statusLabel" styleClass="text-danger" wrapText="true"/>
