@@ -66,12 +66,31 @@ public class BookingController {
         setStatus("Processing booking...");
         String response = bookingService.createBooking(userId, vehicleId, start.toString(), end.toString());
 
-        if (response != null && response.contains("id")) {
+        if (response != null && response.contains("\"id\"")) {
+            String bookingId = extractField(response, "id");
+            if (bookingId != null) {
+                BookingManagementController.setLastBookingId(bookingId);
+            }
             setStatus("Booking confirmed!");
             SceneNavigator.load("views/PaymentView.fxml");
         } else {
             setStatus("Booking failed. Please try again.");
         }
+    }
+
+    private String extractField(String json, String field) {
+        if (json == null) return null;
+        String key = "\"" + field + "\":";
+        int idx = json.indexOf(key);
+        if (idx < 0) return null;
+        int start = idx + key.length();
+        if (start >= json.length()) return null;
+        char ch = json.charAt(start);
+        if (ch == '"') {
+            int end = json.indexOf('"', start + 1);
+            return end > start ? json.substring(start + 1, end) : null;
+        }
+        return null;
     }
 
     @FXML public void goToDashboard() { SceneNavigator.load("views/DashboardView.fxml"); }

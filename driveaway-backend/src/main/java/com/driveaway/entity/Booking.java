@@ -16,6 +16,7 @@ public class Booking {
     private LocalDate startDate;
     private LocalDate endDate;
     private double totalPrice;
+    private double paidAmount;
     private String status;
 
     public Booking() {}
@@ -66,6 +67,14 @@ public class Booking {
 
     public void setTotalPrice(double totalPrice) {
         this.totalPrice = totalPrice;
+    }
+
+    public double getPaidAmount() {
+        return paidAmount;
+    }
+
+    public void setPaidAmount(double paidAmount) {
+        this.paidAmount = paidAmount;
     }
 
     public String getStatus() {

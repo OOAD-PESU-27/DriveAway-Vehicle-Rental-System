@@ -3,9 +3,11 @@ package com.driveaway.service;
 import com.driveaway.PaymentStatus;
 import com.driveaway.dto.PaymentRequest;
 import com.driveaway.dto.PaymentResponse;
+import com.driveaway.entity.Booking;
 import com.driveaway.entity.Payment;
 import com.driveaway.entity.User;
 import com.driveaway.exception.PaymentException;
+import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.PaymentRepository;
 import com.driveaway.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +42,8 @@ class PaymentServiceTest {
     private UserRepository userRepository;
     @Mock
     private PaymentEmailVerificationService emailVerificationService;
+    @Mock
+    private BookingRepository bookingRepository;
 
     @InjectMocks
     private PaymentService paymentService;
@@ -323,5 +327,45 @@ class PaymentServiceTest {
                             eq("john@example.com"),
                             eq("John Doe"));
         }
+    }
+
+    // -------------------------------------------------------------------------
+    // paidAmount update on booking
+    // -------------------------------------------------------------------------
+
+    @Test
+    void completePayment_afterApproval_updatesPaidAmountOnBooking() {
+        Payment approved = new Payment("booking-abc", "u1", 10000.0, "CARD");
+        approved.setId("pay-200");
+        approved.setStatus(PaymentStatus.APPROVED);
+
+        Booking booking = new Booking();
+        booking.setId("booking-abc");
+        booking.setTotalPrice(5000.0);
+
+        when(paymentRepository.findById("pay-200")).thenReturn(Optional.of(approved));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+        when(bookingRepository.findById("booking-abc")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // Gateway succeeds with ~95% probability; retry until we get a COMPLETED result.
+        // The test explicitly fails if COMPLETED is never produced within 50 attempts.
+        PaymentResponse response = null;
+        boolean completed = false;
+        for (int i = 0; i < 50; i++) {
+            approved.setStatus(PaymentStatus.APPROVED);
+            booking.setPaidAmount(0.0);
+            response = paymentService.completePayment("pay-200", "u1");
+            if (response != null && response.getStatus() == PaymentStatus.COMPLETED) {
+                completed = true;
+                break;
+            }
+        }
+
+        assertTrue(completed,
+                "Expected at least one COMPLETED outcome within 50 attempts (gateway ~95% success rate)");
+        assertNotNull(response);
+        verify(bookingRepository, atLeastOnce())
+                .save(argThat(b -> b.getPaidAmount() == 10000.0));
     }
 }

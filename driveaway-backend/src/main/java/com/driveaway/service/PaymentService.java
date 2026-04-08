@@ -5,6 +5,7 @@ import com.driveaway.entity.User;
 import com.driveaway.PaymentStatus;
 import com.driveaway.dto.PaymentRequest;
 import com.driveaway.dto.PaymentResponse;
+import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.PaymentRepository;
 import com.driveaway.repository.UserRepository;
 import com.driveaway.exception.PaymentException;
@@ -32,6 +33,7 @@ public class PaymentService {
     private final ReportService reportService;
     private final UserRepository userRepository;
     private final PaymentEmailVerificationService emailVerificationService;
+    private final BookingRepository bookingRepository;
 
     // -------------------------------------------------------------------------
     // Approval-gate workflow (Option B - simulated, no real SMTP required)
@@ -161,6 +163,9 @@ public class PaymentService {
             auditLogService.logPaymentAction("PAYMENT_COMPLETED", savedPayment.getId(), userId,
                     "Payment completed successfully for amount: " + payment.getAmount());
 
+            // Persist paid amount back to booking so the bookings grid shows a non-zero amount
+            updateBookingPaidAmount(savedPayment);
+
             // Trigger email verification
             triggerEmailVerification(savedPayment);
 
@@ -221,6 +226,9 @@ public class PaymentService {
                 reportService.updateReportOnPaymentSuccess(savedPayment);
                 auditLogService.logPaymentAction("PAYMENT_SUCCESS", savedPayment.getId(), userId,
                         "Payment processed successfully for amount: " + payment.getAmount());
+
+                // Persist paid amount back to booking so the bookings grid shows a non-zero amount
+                updateBookingPaidAmount(savedPayment);
 
                 // Trigger email verification
                 triggerEmailVerification(savedPayment);
@@ -351,6 +359,28 @@ public class PaymentService {
         } catch (Exception e) {
             log.error("[PAYMENT] Could not trigger confirmation email for payment={}: {}",
                     payment.getId(), e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Best-effort update: sets the paid amount on the associated booking record so the
+     * bookings list reflects the actual amount paid rather than ₹0.
+     * Errors are logged but never propagate – the payment record is already saved.
+     */
+    private void updateBookingPaidAmount(Payment payment) {
+        String rentalId = payment.getRentalId();
+        if (rentalId == null || rentalId.isBlank()) {
+            log.warn("[PAYMENT] Payment {} has no rentalId – skipping booking paidAmount update", payment.getId());
+            return;
+        }
+        try {
+            bookingRepository.findById(rentalId).ifPresent(booking -> {
+                booking.setPaidAmount(payment.getAmount());
+                bookingRepository.save(booking);
+                log.info("[PAYMENT] Updated paidAmount={} on booking={}", payment.getAmount(), rentalId);
+            });
+        } catch (Exception e) {
+            log.error("[PAYMENT] Could not update paidAmount on booking={}: {}", rentalId, e.getMessage(), e);
         }
     }
 }

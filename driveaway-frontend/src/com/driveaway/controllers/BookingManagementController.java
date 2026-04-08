@@ -119,7 +119,22 @@ public class BookingManagementController {
             String start = extract(entry, "startDate");
             String end = extract(entry, "endDate");
             String status = extract(entry, "status");
-            String amount = extract(entry, "totalPrice");
+
+            // Prefer paidAmount (set after payment completes) over totalPrice (estimated at booking time)
+            String paidAmountStr = extract(entry, "paidAmount");
+            String totalPriceStr = extract(entry, "totalPrice");
+            String amount = "0";
+            if (paidAmountStr != null) {
+                try {
+                    double paid = Double.parseDouble(paidAmountStr);
+                    if (paid > 0) amount = paidAmountStr;
+                } catch (NumberFormatException ignored) {
+                    // paidAmountStr was not a valid number; fall through to totalPrice fallback
+                }
+            }
+            if ("0".equals(amount) && totalPriceStr != null) {
+                amount = totalPriceStr;
+            }
 
             if (id != null) {
                 allBookings.add(new String[]{
@@ -128,7 +143,7 @@ public class BookingManagementController {
                         start != null ? start : "-",
                         end != null ? end : "-",
                         status != null ? status : "PENDING",
-                        amount != null ? amount : "0"
+                        amount
                 });
             }
         }
