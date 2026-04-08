@@ -42,8 +42,7 @@ public class RegisterController {
         if (response != null && response.contains("Registered")) {
             setStatus("✅ Account created! Please sign in.");
             SceneNavigator.load("views/LoginView.fxml");
-        } else if (response != null && (response.contains("\"status\":409")
-                || response.toLowerCase().contains("already registered")
+        } else if (response != null && (response.toLowerCase().contains("already registered")
                 || response.toLowerCase().contains("already in use"))) {
             setStatus("Email already registered. Please sign in or use a different email.");
         } else {

@@ -127,7 +127,9 @@ public class PaymentService {
     public PaymentResponse completePayment(String paymentId, String userId) {
         Payment payment = getPaymentById(paymentId);
 
-        // Idempotent: already completed – return success without re-processing
+        // Idempotent: already completed – return success without re-processing.
+        // SUCCESS is treated equivalently to COMPLETED: it is a backward-compatibility alias
+        // for the same terminal state (see PaymentStatus enum).
         if (payment.getStatus() == PaymentStatus.COMPLETED ||
                 payment.getStatus() == PaymentStatus.SUCCESS) {
             log.info("[PAYMENT] completePayment called on already-COMPLETED payment={} – returning idempotent success", paymentId);

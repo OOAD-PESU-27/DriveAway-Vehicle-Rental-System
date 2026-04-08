@@ -208,8 +208,9 @@ class PaymentServiceTest {
 
         PaymentResponse response = paymentService.completePayment("pay-010", "user-001");
         assertNotNull(response);
-        // Amount must always be non-zero regardless of gateway result
-        assertTrue(response.getAmount() > 0, "Paid amount must be non-zero after completePayment");
+        // The exact amount entered must be preserved on both COMPLETED and FAILED outcomes
+        assertEquals(10000.0, response.getAmount(),
+                "Paid amount must equal the originally requested amount after completePayment");
     }
 
     @Test
