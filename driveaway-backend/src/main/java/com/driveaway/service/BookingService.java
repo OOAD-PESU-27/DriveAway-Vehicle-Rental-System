@@ -122,8 +122,8 @@ public class BookingService {
     public Booking completeBooking(String bookingId, String staffId) {
         Booking booking = getBookingById(bookingId);
 
-        if (!"CONFIRMED".equals(booking.getStatus())) {
-            throw new PaymentException("Only confirmed bookings can be completed");
+        if (!"CONFIRMED".equals(booking.getStatus()) && !"ACTIVE".equals(booking.getStatus())) {
+            throw new PaymentException("Only confirmed or active (paid) bookings can be completed");
         }
 
         booking.setStatus("COMPLETED");

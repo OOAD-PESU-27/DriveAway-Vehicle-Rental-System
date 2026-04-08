@@ -335,13 +335,17 @@ class PaymentServiceTest {
 
     @Test
     void completePayment_afterApproval_updatesPaidAmountOnBooking() {
+        // Payment amount of 10000 is the amount the user chose to pay; booking's totalPrice (also
+        // set to 10000) is the estimated price computed at booking creation time.  Both use the
+        // same value here to keep the test self-consistent.
         Payment approved = new Payment("booking-abc", "u1", 10000.0, "CARD");
         approved.setId("pay-200");
         approved.setStatus(PaymentStatus.APPROVED);
 
         Booking booking = new Booking();
         booking.setId("booking-abc");
-        booking.setTotalPrice(5000.0);
+        booking.setTotalPrice(10000.0);
+        booking.setStatus("CONFIRMED");
 
         when(paymentRepository.findById("pay-200")).thenReturn(Optional.of(approved));
         when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
@@ -355,6 +359,7 @@ class PaymentServiceTest {
         for (int i = 0; i < 50; i++) {
             approved.setStatus(PaymentStatus.APPROVED);
             booking.setPaidAmount(0.0);
+            booking.setStatus("CONFIRMED");
             response = paymentService.completePayment("pay-200", "u1");
             if (response != null && response.getStatus() == PaymentStatus.COMPLETED) {
                 completed = true;
@@ -366,6 +371,7 @@ class PaymentServiceTest {
                 "Expected at least one COMPLETED outcome within 50 attempts (gateway ~95% success rate)");
         assertNotNull(response);
         verify(bookingRepository, atLeastOnce())
-                .save(argThat(b -> b.getPaidAmount() == 10000.0));
+                .save(argThat(b -> b.getPaidAmount() == 10000.0
+                        && "ACTIVE".equals(b.getStatus())));
     }
 }
