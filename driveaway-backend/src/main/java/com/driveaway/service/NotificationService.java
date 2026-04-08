@@ -2,16 +2,22 @@ package com.driveaway.service;
 
 import com.driveaway.entity.Notification;
 import com.driveaway.entity.Payment;
+import com.driveaway.entity.User;
 import com.driveaway.NotificationType;
 import com.driveaway.repository.NotificationRepository;
+import com.driveaway.repository.UserRepository;
 import com.driveaway.exception.PaymentException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.util.List;
+import java.util.Optional;
 
 /**
- * NotificationService - Contains business logic for notifications (Option B: simulated)
+ * NotificationService - Contains business logic for notifications.
+ * Sends approval-request emails via EmailService (real SMTP when configured,
+ * log-only fallback when not configured).
  * GRASP: Information Expert - Handles notification-related business logic
  * SOLID: SRP - Only handles notification operations
  */
@@ -22,21 +28,27 @@ public class NotificationService {
     
     private final NotificationRepository notificationRepository;
     private final AuditLogService auditLogService;
+    private final EmailService emailService;
+    private final UserRepository userRepository;
+
+    @Value("${app.base-url:http://localhost:8080}")
+    private String baseUrl;
 
     /**
-     * Send simulated payment request notification (Option B - no real SMTP).
-     * Persists a notification record with the approval token for local testing.
+     * Send a payment approval-request email to the user.
+     * Uses EmailService which sends via real SMTP when configured, or logs in
+     * simulation mode otherwise. Persists a notification record either way.
      */
     public void sendPaymentRequestNotification(Payment payment, String approvalToken) {
         try {
-            String approveUrl = "POST /api/v1/payments/" + payment.getId() + "/approve  (or use token: " + approvalToken + ")";
+            String approveUrl = baseUrl + "/api/v1/payments/approve-by-token?token=" + approvalToken;
             Notification notification = new Notification(
                     payment.getUserId(),
                     payment.getId(),
                     NotificationType.PAYMENT_REQUEST_SENT,
                     "Payment request of ₹" + payment.getAmount() + " has been submitted and is pending approval. " +
-                    "Simulated approval action: " + approveUrl,
-                    "Payment Request Submitted – Awaiting Approval"
+                    "Click the link to approve: " + approveUrl,
+                    "Payment Request Submitted – Awaiting Your Approval"
             );
             notification.setApprovalToken(approvalToken);
             notification.setNotificationChannel("EMAIL");
@@ -45,16 +57,62 @@ public class NotificationService {
             Notification savedNotification = notificationRepository.save(notification);
 
             auditLogService.logNotificationAction("NOTIFICATION_SENT", savedNotification.getId(),
-                    payment.getUserId(), "Payment request notification sent (simulated EMAIL)");
+                    payment.getUserId(), "Payment request approval email sent");
 
-            // Log simulated email for local debugging
-            log.info("[SIMULATED EMAIL] To user={} Subject='{}' ApprovalToken={}",
-                    payment.getUserId(), notification.getSubject(), approvalToken);
-            log.info("[SIMULATED EMAIL] To approve: POST /api/v1/payments/{}/approve", payment.getId());
+            // Send approval email to the user
+            sendApprovalRequestEmail(payment, approvalToken, approveUrl);
 
         } catch (Exception e) {
+            log.error("[NOTIFICATION] Error sending payment request notification for payment={}: {}",
+                    payment.getId(), e.getMessage(), e);
             auditLogService.logNotificationAction("NOTIFICATION_ERROR", null, payment.getUserId(),
                     "Error sending payment request notification: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Resolves the user's email address and sends the approval-request email.
+     * When no email address is found the notification status is updated to reflect
+     * that the email was not delivered.
+     */
+    private void sendApprovalRequestEmail(Payment payment, String approvalToken, String approveUrl) {
+        try {
+            Optional<User> userOpt = userRepository.findById(payment.getUserId());
+            String userEmail = userOpt.map(User::getEmail).orElse(null);
+            String userName  = userOpt.map(User::getName).orElse(null);
+
+            if (userEmail == null || userEmail.isBlank()) {
+                log.warn("[NOTIFICATION] No email address for userId={} – approval request email not sent. " +
+                        "Approval token: {}", payment.getUserId(), approvalToken);
+                // Update the persisted notification to indicate email was not sent
+                notificationRepository.findAll().stream()
+                        .filter(n -> payment.getId().equals(n.getPaymentId())
+                                && approvalToken.equals(n.getApprovalToken()))
+                        .findFirst()
+                        .ifPresent(n -> {
+                            n.setStatus("NOT_SENT");
+                            notificationRepository.save(n);
+                        });
+                return;
+            }
+
+            String greeting = (userName != null && !userName.isBlank()) ? "Hello " + userName + "," : "Hello,";
+            String subject = "DriveAway – Approve Your Payment Request (Booking #" + payment.getRentalId() + ")";
+            String body = String.format(
+                    "%s%n%n" +
+                    "A payment request of ₹%.2f has been submitted for Booking #%s.%n%n" +
+                    "To approve this payment and proceed with your rental, please click the link below:%n%n" +
+                    "  %s%n%n" +
+                    "If you did not make this request, please ignore this email or contact us immediately.%n%n" +
+                    "Thank you,%n" +
+                    "DriveAway Team",
+                    greeting, payment.getAmount(), payment.getRentalId(), approveUrl);
+
+            emailService.sendEmail(userEmail, subject, body);
+            log.info("[NOTIFICATION] Approval request email sent to={} for payment={}", userEmail, payment.getId());
+        } catch (Exception e) {
+            log.error("[NOTIFICATION] Failed to send approval request email for payment={}: {}",
+                    payment.getId(), e.getMessage(), e);
         }
     }
 

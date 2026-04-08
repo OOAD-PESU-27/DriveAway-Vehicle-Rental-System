@@ -56,6 +56,12 @@ public class PaymentController {
         if (bookingId != null && rentalIdField != null) {
             rentalIdField.setText(bookingId);
         }
+        // Pre-fill amount from booking's totalPrice
+        double totalPrice = BookingManagementController.getLastBookingTotalPrice();
+        if (totalPrice > 0 && amountField != null) {
+            amountField.setText(String.format("%.2f", totalPrice));
+            updateSummary();
+        }
         showCardSection();
         if (approvalSection != null) {
             approvalSection.setVisible(false);
@@ -149,16 +155,16 @@ public class PaymentController {
             if (currentPaymentId == null) currentPaymentId = extractField(response, "id");
 
             String displayId = currentPaymentId != null ? currentPaymentId : "N/A";
-            setStatus("✅ Payment request submitted! Status: REQUESTED – awaiting approval.", true);
+            setStatus("✅ Payment request submitted! An approval email has been sent to your registered email address. Please check your inbox and click the approval link, then return here to complete the payment.", true);
             if (paymentIdLabel != null) paymentIdLabel.setText("Payment ID: " + displayId);
 
-            // Show approval section for simulation
+            // Show approval section after request is submitted
             if (approvalSection != null) {
                 approvalSection.setVisible(true);
                 approvalSection.setManaged(true);
             }
-            if (approvalTokenLabel != null && currentApprovalToken != null) {
-                approvalTokenLabel.setText("Approval token logged in backend (simulated email):\n" + currentApprovalToken);
+            if (approvalTokenLabel != null) {
+                approvalTokenLabel.setText("An approval link has been sent to your email. Once approved, click \"Complete Payment\" below.");
             }
         } else {
             setStatus("❌ Failed to submit payment request. Please try again.", false);
@@ -166,22 +172,33 @@ public class PaymentController {
     }
 
     /**
-     * Step 2 (simulated): Approve the payment (mimics clicking the email approval link).
-     * In real usage an admin or the payment recipient would perform this via their email.
+     * Checks the current approval status of the submitted payment request.
+     * If approved, the user can proceed to complete payment.
      */
     @FXML
-    public void handleSimulatedApprove() {
-        String userId = LoginController.getUserId();
+    public void handleCheckApprovalStatus() {
         if (currentPaymentId == null) {
-            setStatus("No pending payment to approve.", false);
+            setStatus("No pending payment found. Please submit a payment request first.", false);
             return;
         }
-        setStatus("⏳ Simulating approval...", false);
-        String response = paymentService.approvePayment(currentPaymentId, userId != null ? userId : "SIMULATED_APPROVER");
-        if (response != null && response.contains("\"success\":true")) {
-            setStatus("✅ Payment APPROVED. You can now complete the payment.", true);
+        setStatus("⏳ Checking approval status...", false);
+        String response = paymentService.getPaymentById(currentPaymentId);
+        if (response != null) {
+            String status = extractField(response, "status");
+            if ("APPROVED".equals(status)) {
+                setStatus("✅ Payment has been approved! You can now complete the payment.", true);
+                if (approvalTokenLabel != null) {
+                    approvalTokenLabel.setText("✅ Approved! Click \"Complete Payment\" below to finalise your booking.");
+                }
+            } else if ("REQUESTED".equals(status) || "PENDING_APPROVAL".equals(status)) {
+                setStatus("⏳ Approval is still pending. Please check your email and click the approval link.", false);
+            } else if ("COMPLETED".equals(status) || "SUCCESS".equals(status)) {
+                setStatus("✅ Payment already completed.", true);
+            } else {
+                setStatus("Current status: " + (status != null ? status : "unknown") + ". Please contact support if this is unexpected.", false);
+            }
         } else {
-            setStatus("❌ Approval failed: " + (response != null ? extractField(response, "message") : "no response"), false);
+            setStatus("❌ Could not retrieve payment status. Please try again.", false);
         }
     }
 

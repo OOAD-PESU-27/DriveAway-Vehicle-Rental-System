@@ -49,6 +49,14 @@
 
                 <Label fx:id="statusLabel" styleClass="text-danger" wrapText="true"/>
 
+                <CheckBox fx:id="termsCheckBox"
+                          text="I agree to the Terms and Conditions"
+                          onAction="#handleTermsCheckBox"
+                          styleClass="form-label"/>
+                <Label fx:id="termsAcceptedLabel"
+                       text="✅ I have accepted the Terms and Conditions"
+                       styleClass="text-success" wrapText="true"/>
+
                 <HBox spacing="12">
                     <Button text="Book Now 🚀" onAction="#handleBook" styleClass="btn-primary"/>
                     <Button text="← Back" onAction="#goToVehicles" styleClass="btn-outline"/>

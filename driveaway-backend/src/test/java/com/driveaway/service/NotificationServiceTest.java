@@ -4,13 +4,17 @@ import com.driveaway.NotificationType;
 import com.driveaway.PaymentStatus;
 import com.driveaway.entity.Notification;
 import com.driveaway.entity.Payment;
+import com.driveaway.entity.User;
 import com.driveaway.repository.NotificationRepository;
+import com.driveaway.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -26,6 +30,10 @@ class NotificationServiceTest {
     private NotificationRepository notificationRepository;
     @Mock
     private AuditLogService auditLogService;
+    @Mock
+    private EmailService emailService;
+    @Mock
+    private UserRepository userRepository;
 
     @InjectMocks
     private NotificationService notificationService;
@@ -49,6 +57,8 @@ class NotificationServiceTest {
             n.setId("notif-001");
             return n;
         });
+        // User lookup for email – return empty so email sending is skipped gracefully
+        when(userRepository.findById("user-1")).thenReturn(Optional.empty());
 
         notificationService.sendPaymentRequestNotification(payment, approvalToken);
 
@@ -63,6 +73,37 @@ class NotificationServiceTest {
         assertEquals("EMAIL", saved.getNotificationChannel());
         assertEquals("SENT", saved.getStatus());
         assertFalse(saved.isRead());
+    }
+
+    @Test
+    void sendPaymentRequestNotification_withUserEmail_sendsApprovalEmail() {
+        Payment payment = buildPayment("user-5", 3000.0, PaymentStatus.REQUESTED);
+        String approvalToken = "APPR_EMAILTOKEN";
+
+        when(notificationRepository.save(any(Notification.class))).thenAnswer(inv -> {
+            Notification n = inv.getArgument(0);
+            n.setId("notif-005");
+            return n;
+        });
+
+        User user = new User();
+        user.setId("user-5");
+        user.setEmail("customer@example.com");
+        user.setName("Test Customer");
+        when(userRepository.findById("user-5")).thenReturn(Optional.of(user));
+
+        notificationService.sendPaymentRequestNotification(payment, approvalToken);
+
+        // Verify email was sent with correct recipient and token in URL
+        ArgumentCaptor<String> toCaptor    = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<String> bodyCaptor  = ArgumentCaptor.forClass(String.class);
+        verify(emailService).sendEmail(toCaptor.capture(), anyString(), bodyCaptor.capture());
+
+        assertEquals("customer@example.com", toCaptor.getValue());
+        assertTrue(bodyCaptor.getValue().contains(approvalToken),
+                "Email body must contain the approval token");
+        assertTrue(bodyCaptor.getValue().contains("/approve-by-token"),
+                "Email body must contain the approval link path");
     }
 
     @Test

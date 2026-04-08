@@ -66,11 +66,25 @@ public class PaymentController {
     }
 
     /**
-     * Approve payment via simulated token (Option B: mimics clicking an email link)
+     * Approve payment via token – POST variant (used by internal tools / API clients)
      * POST /api/v1/payments/approve-by-token?token=APPR_...
      */
     @PostMapping("/approve-by-token")
     public ResponseEntity<?> approveByToken(@RequestParam String token) {
+        try {
+            PaymentResponse response = paymentService.approvePaymentByToken(token);
+            return ResponseEntity.ok(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new PaymentResponse(e.getMessage(), false));
+        }
+    }
+
+    /**
+     * Approve payment via token – GET variant (used when user clicks the link in the approval email)
+     * GET /api/v1/payments/approve-by-token?token=APPR_...
+     */
+    @GetMapping("/approve-by-token")
+    public ResponseEntity<?> approveByTokenGet(@RequestParam String token) {
         try {
             PaymentResponse response = paymentService.approvePaymentByToken(token);
             return ResponseEntity.ok(response);
