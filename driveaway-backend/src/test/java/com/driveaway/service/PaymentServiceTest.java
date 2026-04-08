@@ -348,20 +348,24 @@ class PaymentServiceTest {
         when(bookingRepository.findById("booking-abc")).thenReturn(Optional.of(booking));
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // Run multiple times to get at least one COMPLETED result
+        // Gateway succeeds with ~95% probability; retry until we get a COMPLETED result.
+        // The test explicitly fails if COMPLETED is never produced within 50 attempts.
         PaymentResponse response = null;
-        for (int i = 0; i < 20; i++) {
+        boolean completed = false;
+        for (int i = 0; i < 50; i++) {
             approved.setStatus(PaymentStatus.APPROVED);
-            booking.setPaidAmount(0.0); // reset for retry
+            booking.setPaidAmount(0.0);
             response = paymentService.completePayment("pay-200", "u1");
-            if (response != null && response.getStatus() == PaymentStatus.COMPLETED) break;
+            if (response != null && response.getStatus() == PaymentStatus.COMPLETED) {
+                completed = true;
+                break;
+            }
         }
 
+        assertTrue(completed,
+                "Expected at least one COMPLETED outcome within 50 attempts (gateway ~95% success rate)");
         assertNotNull(response);
-        if (response.getStatus() == PaymentStatus.COMPLETED) {
-            // booking.setPaidAmount(10000.0) should have been called via bookingRepository.save
-            verify(bookingRepository, atLeastOnce())
-                    .save(argThat(b -> b.getPaidAmount() == 10000.0));
-        }
+        verify(bookingRepository, atLeastOnce())
+                .save(argThat(b -> b.getPaidAmount() == 10000.0));
     }
 }

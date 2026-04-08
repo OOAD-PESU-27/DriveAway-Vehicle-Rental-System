@@ -128,7 +128,9 @@ public class BookingManagementController {
                 try {
                     double paid = Double.parseDouble(paidAmountStr);
                     if (paid > 0) amount = paidAmountStr;
-                } catch (NumberFormatException ignored) {}
+                } catch (NumberFormatException ignored) {
+                    // paidAmountStr was not a valid number; fall through to totalPrice fallback
+                }
             }
             if ("0".equals(amount) && totalPriceStr != null) {
                 amount = totalPriceStr;
