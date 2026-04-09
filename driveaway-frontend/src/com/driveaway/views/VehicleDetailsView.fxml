@@ -136,17 +136,17 @@
 
                     <!-- Terms and Conditions with hyperlink -->
                     <VBox styleClass="terms-box" spacing="8">
-                        <HBox alignment="CENTER_LEFT" spacing="6">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
                             <CheckBox fx:id="termsCheckBox"
                                       onAction="#handleTermsCheckBox"/>
                             <Label text="I accept the" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
                             <Hyperlink text="Terms and Conditions"
                                        onAction="#handleOpenTerms"
                                        styleClass="terms-link"/>
-                            <Label text="of DriveAway" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                            <Label text="of DriveAway rental service" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
                         </HBox>
                         <Label fx:id="termsAcceptedLabel"
-                               text="✅ You have accepted the Terms and Conditions"
+                               text="✅ I accept the Terms and Conditions of DriveAway rental service"
                                styleClass="terms-accepted-label" wrapText="true"/>
                     </VBox>
 

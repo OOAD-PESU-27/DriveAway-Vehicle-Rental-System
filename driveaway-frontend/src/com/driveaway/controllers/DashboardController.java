@@ -157,26 +157,40 @@ public class DashboardController {
 
     private VBox createMiniVehicleCard(String id, String brand, String model,
                                        String type, String price) {
-        VBox card = new VBox(8);
+        VBox card = new VBox(0);
         card.getStyleClass().add("vehicle-card");
-        card.setPadding(new Insets(14));
-        card.setMinWidth(190);
-        card.setMaxWidth(190);
+        card.setMinWidth(195);
+        card.setMaxWidth(195);
+
+        // Coloured header
+        VBox header = new VBox(5);
+        header.setAlignment(javafx.geometry.Pos.CENTER);
+        header.setPadding(new Insets(16, 8, 14, 8));
+        header.setStyle(getMiniCardHeaderStyle(type));
 
         String emoji = getVehicleEmoji(type);
         Label icon = new Label(emoji);
-        icon.setStyle("-fx-font-size: 36px;");
+        icon.setStyle("-fx-font-size: 40px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 5, 0, 0, 2);");
+
+        Label typeLabel = new Label(type != null ? type.toUpperCase() : "VEHICLE");
+        typeLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: rgba(255,255,255,0.92); "
+                + "-fx-font-weight: bold; -fx-background-color: rgba(0,0,0,0.18); "
+                + "-fx-background-radius: 12; -fx-padding: 2 8 2 8;");
+        header.getChildren().addAll(icon, typeLabel);
+
+        // Body
+        VBox body = new VBox(6);
+        body.setPadding(new Insets(10, 12, 12, 12));
 
         Label name = new Label(brand + " " + model);
         name.getStyleClass().add("vehicle-name");
         name.setWrapText(true);
-
-        Label typeLabel = new Label(type != null ? type : "Vehicle");
-        typeLabel.getStyleClass().add("vehicle-type");
+        name.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0f172a;");
 
         HBox priceBox = new HBox(4);
         Label priceLabel = new Label("₹" + (price != null ? price : "0"));
         priceLabel.getStyleClass().add("vehicle-price");
+        priceLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1d4ed8;");
         Label perDay = new Label("/day");
         perDay.getStyleClass().add("vehicle-price-label");
         priceBox.getChildren().addAll(priceLabel, perDay);
@@ -184,7 +198,7 @@ public class DashboardController {
         Region spacer = new Region();
         VBox.setVgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-        Button bookBtn = new Button("Book Now");
+        Button bookBtn = new Button("Book Now 🚀");
         bookBtn.getStyleClass().addAll("btn-secondary", "btn-small");
         bookBtn.setMaxWidth(Double.MAX_VALUE);
         String vehicleId = id;
@@ -195,8 +209,24 @@ public class DashboardController {
             SceneNavigator.load("views/VehicleDetailsView.fxml");
         });
 
-        card.getChildren().addAll(icon, name, typeLabel, priceBox, spacer, bookBtn);
+        body.getChildren().addAll(name, priceBox, spacer, bookBtn);
+        card.getChildren().addAll(header, body);
         return card;
+    }
+
+    private String getMiniCardHeaderStyle(String type) {
+        String base = "-fx-background-radius: 18 18 0 0; ";
+        if (type == null) return base + "-fx-background-color: linear-gradient(to bottom right, #312e81, #4f46e5, #818cf8);";
+        return base + switch (type.toUpperCase()) {
+            case "SEDAN"    -> "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #2563eb, #60a5fa);";
+            case "SUV"      -> "-fx-background-color: linear-gradient(to bottom right, #064e3b, #059669, #34d399);";
+            case "LUXURY"   -> "-fx-background-color: linear-gradient(to bottom right, #78350f, #b45309, #fcd34d);";
+            case "TRUCK"    -> "-fx-background-color: linear-gradient(to bottom right, #7f1d1d, #dc2626, #f87171);";
+            case "VAN"      -> "-fx-background-color: linear-gradient(to bottom right, #4c1d95, #6d28d9, #a78bfa);";
+            case "ECONOMY"  -> "-fx-background-color: linear-gradient(to bottom right, #0c4a6e, #0284c7, #38bdf8);";
+            case "BIKE", "MOTORCYCLE" -> "-fx-background-color: linear-gradient(to bottom right, #27272a, #71717a, #d4d4d8);";
+            default -> "-fx-background-color: linear-gradient(to bottom right, #312e81, #4f46e5, #818cf8);";
+        };
     }
 
     private String getVehicleEmoji(String type) {

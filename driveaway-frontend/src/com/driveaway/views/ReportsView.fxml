@@ -134,23 +134,33 @@
                 <Label fx:id="statusLabel" text="" styleClass="text-muted"/>
 
                 <!-- Reports Table -->
-                <VBox styleClass="card" spacing="0">
-                    <Label text="📋 Report History" styleClass="section-title"
-                           style="-fx-padding: 0 0 12 0;"/>
-                    <TableView fx:id="reportsTable" minHeight="350" maxWidth="Infinity"
+                <VBox styleClass="card" spacing="12">
+                    <HBox alignment="CENTER_LEFT" spacing="12">
+                        <Label text="📋 Report History" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                        <!-- Legend -->
+                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                            <Label text="🔵 Vehicle" style="-fx-font-size: 11px; -fx-text-fill: #1e40af; -fx-font-weight: bold;"/>
+                            <Label text="🟢 Daily" style="-fx-font-size: 11px; -fx-text-fill: #059669; -fx-font-weight: bold;"/>
+                            <Label text="🟡 Weekly" style="-fx-font-size: 11px; -fx-text-fill: #b45309; -fx-font-weight: bold;"/>
+                            <Label text="🟣 Monthly" style="-fx-font-size: 11px; -fx-text-fill: #6d28d9; -fx-font-weight: bold;"/>
+                        </HBox>
+                    </HBox>
+                    <TableView fx:id="reportsTable" minHeight="380" maxWidth="Infinity"
                                styleClass="table-view">
                         <columns>
-                            <TableColumn fx:id="typeCol" text="Report Type" minWidth="150"/>
+                            <TableColumn fx:id="typeCol" text="Report Type" minWidth="160"/>
                             <TableColumn fx:id="titleCol" text="Title" minWidth="260"/>
-                            <TableColumn fx:id="totalTxnCol" text="Transactions" minWidth="110"/>
-                            <TableColumn fx:id="revenueCol" text="Revenue" minWidth="130"/>
-                            <TableColumn fx:id="generatedAtCol" text="Generated At" minWidth="170"/>
+                            <TableColumn fx:id="totalTxnCol" text="Transactions" minWidth="120"/>
+                            <TableColumn fx:id="revenueCol" text="Revenue" minWidth="140"/>
+                            <TableColumn fx:id="generatedAtCol" text="Generated At" minWidth="180"/>
                         </columns>
                         <placeholder>
-                            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 40;">
-                                <Label text="📊" style="-fx-font-size: 40px;"/>
+                            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 50;">
+                                <Label text="📊" style="-fx-font-size: 48px;"/>
                                 <Label text="No reports yet. Generate one above!" styleClass="text-muted"
                                        style="-fx-font-size: 15px;"/>
+                                <Label text="Click the coloured buttons above to generate your first report."
+                                       styleClass="text-muted" wrapText="true" style="-fx-font-size: 12px;"/>
                             </VBox>
                         </placeholder>
                     </TableView>

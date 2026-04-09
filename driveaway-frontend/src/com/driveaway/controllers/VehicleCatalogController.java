@@ -230,23 +230,23 @@ public class VehicleCatalogController {
 
         VBox card = new VBox(0);
         card.getStyleClass().add("vehicle-card");
-        card.setMinWidth(245);
-        card.setMaxWidth(265);
+        card.setMinWidth(248);
+        card.setMaxWidth(270);
 
         // ── Card photo/image header with type-specific gradient ──────────────
-        VBox header = new VBox(8);
+        VBox header = new VBox(7);
         header.setAlignment(Pos.CENTER);
-        header.setPadding(new Insets(22, 12, 18, 12));
+        header.setPadding(new Insets(24, 12, 20, 12));
         header.setStyle(getCardHeaderStyle(type));
 
         // Large vehicle emoji
         Label icon = new Label(getVehicleEmoji(type));
-        icon.setStyle("-fx-font-size: 56px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 6, 0, 0, 2);");
+        icon.setStyle("-fx-font-size: 62px; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.30), 8, 0, 0, 3);");
 
-        // Road / decorative stripe at bottom of header
+        // Tag line
         Label tagLine = new Label(getTypeTagLine(type));
-        tagLine.setStyle("-fx-font-size: 10px; -fx-text-fill: rgba(255,255,255,0.80); "
-                + "-fx-font-style: italic;");
+        tagLine.setStyle("-fx-font-size: 11px; -fx-text-fill: rgba(255,255,255,0.88); "
+                + "-fx-font-style: italic; -fx-font-weight: bold;");
 
         boolean isAvailable = !"false".equalsIgnoreCase(avail);
         Label availLabel = new Label(isAvailable ? "✅ Available" : "❌ Unavailable");
@@ -254,30 +254,32 @@ public class VehicleCatalogController {
         header.getChildren().addAll(icon, tagLine, availLabel);
 
         // ── Card body ────────────────────────────────────────────────────────
-        VBox body = new VBox(6);
+        VBox body = new VBox(7);
         body.getStyleClass().add("vehicle-card-body");
-        body.setPadding(new Insets(12, 14, 14, 14));
+        body.setPadding(new Insets(13, 15, 15, 15));
 
         Label nameLabel = new Label(brand + " " + model);
         nameLabel.getStyleClass().add("vehicle-name");
         nameLabel.setWrapText(true);
 
-        Label typeLabel = new Label(type != null ? type : "Vehicle");
+        Label typeLabel = new Label(type != null ? type.toUpperCase() : "VEHICLE");
         typeLabel.getStyleClass().add("vehicle-type");
-        // Override vehicle-type badge colour to match card header
         typeLabel.setStyle(getTypeBadgeStyle(type));
 
-        // Specs mini row
-        HBox specs = new HBox(10);
+        // Specs mini row — coloured pill background
+        HBox specs = new HBox(8);
         specs.setAlignment(Pos.CENTER_LEFT);
+        specs.setStyle("-fx-background-color: #f0f7ff; -fx-background-radius: 8; "
+                + "-fx-padding: 6 10 6 10; -fx-border-color: #bfdbfe; "
+                + "-fx-border-radius: 8; -fx-border-width: 1;");
         if (fuel != null) {
             Label fuelLbl = new Label("⛽ " + fuel);
-            fuelLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+            fuelLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #1d4ed8; -fx-font-weight: bold;");
             specs.getChildren().add(fuelLbl);
         }
         if (seats != null) {
             Label seatsLbl = new Label("💺 " + seats);
-            seatsLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+            seatsLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #059669; -fx-font-weight: bold;");
             specs.getChildren().add(seatsLbl);
         }
         if (trans != null) {
@@ -287,7 +289,7 @@ public class VehicleCatalogController {
                 default -> trans.length() > 6 ? trans.substring(0, 6) : trans;
             };
             Label transLbl = new Label("⚙ " + transDisplay);
-            transLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+            transLbl.setStyle("-fx-font-size: 11px; -fx-text-fill: #7c3aed; -fx-font-weight: bold;");
             specs.getChildren().add(transLbl);
         }
 
@@ -308,7 +310,7 @@ public class VehicleCatalogController {
         detailsBtn.getStyleClass().addAll("btn-outline", "btn-small");
         detailsBtn.setOnAction(e -> openDetails(v));
 
-        Button bookBtn = new Button("Book Now");
+        Button bookBtn = new Button("Book Now 🚀");
         bookBtn.getStyleClass().addAll("btn-secondary", "btn-small");
         bookBtn.setDisable(!isAvailable);
         bookBtn.setOnAction(e -> bookVehicle(v));
@@ -343,16 +345,16 @@ public class VehicleCatalogController {
     private String getTypeBadgeStyle(String type) {
         String base = "-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: white; "
                 + "-fx-padding: 3 10 3 10; -fx-background-radius: 20; ";
-        if (type == null) return base + "-fx-background-color: #6366f1;";
+        if (type == null) return base + "-fx-background-color: #4f46e5;";
         return base + switch (type.toUpperCase()) {
-            case "SEDAN"    -> "-fx-background-color: #1e40af;";
+            case "SEDAN"    -> "-fx-background-color: #2563eb;";
             case "SUV"      -> "-fx-background-color: #059669;";
-            case "LUXURY"   -> "-fx-background-color: #d97706;";
+            case "LUXURY"   -> "-fx-background-color: #b45309;";
             case "TRUCK"    -> "-fx-background-color: #dc2626;";
-            case "VAN"      -> "-fx-background-color: #7c3aed;";
-            case "ECONOMY"  -> "-fx-background-color: #0891b2;";
-            case "BIKE", "MOTORCYCLE" -> "-fx-background-color: #78716c;";
-            default -> "-fx-background-color: #6366f1;";
+            case "VAN"      -> "-fx-background-color: #6d28d9;";
+            case "ECONOMY"  -> "-fx-background-color: #0284c7;";
+            case "BIKE", "MOTORCYCLE" -> "-fx-background-color: #71717a;";
+            default -> "-fx-background-color: #4f46e5;";
         };
     }
 

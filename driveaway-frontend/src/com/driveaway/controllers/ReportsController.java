@@ -111,19 +111,18 @@ public class ReportsController {
     /** Returns an inline style for the report type cell based on the type value. */
     private String getTypeStyle(String type) {
         if (type == null) return "";
+        String baseCell = "-fx-font-weight: bold; -fx-text-fill: white; "
+                + "-fx-background-radius: 8; -fx-padding: 4 10 4 10; "
+                + "-fx-alignment: CENTER; -fx-font-size: 12px;";
         return switch (type.toUpperCase()) {
             case "VEHICLE_INVENTORY", "VEHICLE" ->
-                    "-fx-font-weight: bold; -fx-text-fill: white; "
-                    + "-fx-background-color: #1e40af; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+                    baseCell + "-fx-background-color: linear-gradient(to right, #1e3a8a, #2563eb);";
             case "DAILY" ->
-                    "-fx-font-weight: bold; -fx-text-fill: white; "
-                    + "-fx-background-color: #059669; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+                    baseCell + "-fx-background-color: linear-gradient(to right, #047857, #059669);";
             case "WEEKLY" ->
-                    "-fx-font-weight: bold; -fx-text-fill: white; "
-                    + "-fx-background-color: #d97706; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+                    baseCell + "-fx-background-color: linear-gradient(to right, #b45309, #d97706);";
             case "MONTHLY" ->
-                    "-fx-font-weight: bold; -fx-text-fill: white; "
-                    + "-fx-background-color: #7c3aed; -fx-background-radius: 6; -fx-padding: 3 8 3 8;";
+                    baseCell + "-fx-background-color: linear-gradient(to right, #5b21b6, #7c3aed);";
             default ->
                     "-fx-font-weight: bold; -fx-text-fill: #374151;";
         };
