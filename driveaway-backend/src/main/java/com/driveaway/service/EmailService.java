@@ -9,13 +9,14 @@ import org.springframework.stereotype.Service;
 
 /**
  * EmailService - Sends emails via JavaMailSender when SMTP is configured,
- * or falls back to a simulated log-only mode when mail host is not set.
+ * or falls back to a simulated log-only mode when no password is provided.
  *
- * Required environment variables (optional – enables real SMTP when provided):
- *   MAIL_HOST     – SMTP host, e.g. smtp.gmail.com
- *   MAIL_PORT     – SMTP port, e.g. 587
- *   MAIL_USERNAME – SMTP username / sender address
- *   MAIL_PASSWORD – SMTP password / app-password
+ * Defaults to Gmail SMTP with the DriveAway rental-vehicle sender mailbox.
+ * Override any setting via the matching environment variable:
+ *   MAIL_HOST     – SMTP host (default: smtp.gmail.com)
+ *   MAIL_PORT     – SMTP port (default: 587)
+ *   MAIL_USERNAME – SMTP username / sender address (default: rentalvehicle.driveaway@gmail.com)
+ *   MAIL_PASSWORD – SMTP password / Gmail App Password (required for real delivery)
  *   MAIL_FROM     – From address shown to recipients (defaults to MAIL_USERNAME)
  */
 @Slf4j
@@ -26,7 +27,7 @@ public class EmailService {
     @Autowired(required = false)
     private JavaMailSender mailSender;
 
-    @Value("${spring.mail.from:noreply@driveaway.com}")
+    @Value("${spring.mail.from:rentalvehicle.driveaway@gmail.com}")
     private String fromAddress;
 
     /**
@@ -55,7 +56,7 @@ public class EmailService {
                 throw e;
             }
         } else {
-            // Simulated mode – no SMTP host configured
+            // Simulated mode – MAIL_PASSWORD not set; set it to enable real Gmail SMTP delivery
             log.info("[SIMULATED EMAIL] To={} Subject='{}' Body={}", to, subject, body);
         }
     }

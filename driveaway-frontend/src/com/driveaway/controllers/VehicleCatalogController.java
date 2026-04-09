@@ -325,17 +325,17 @@ public class VehicleCatalogController {
 
     /** Returns the inline style for the card photo header based on vehicle type. */
     private String getCardHeaderStyle(String type) {
-        String base = "-fx-background-radius: 16 16 0 0; ";
-        if (type == null) return base + "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #6366f1, #a5b4fc);";
+        String base = "-fx-background-radius: 18 18 0 0; ";
+        if (type == null) return base + "-fx-background-color: linear-gradient(to bottom right, #312e81, #4f46e5, #818cf8);";
         return base + switch (type.toUpperCase()) {
-            case "SEDAN"    -> "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #3b82f6, #93c5fd);";
-            case "SUV"      -> "-fx-background-color: linear-gradient(to bottom right, #064e3b, #059669, #6ee7b7);";
-            case "LUXURY"   -> "-fx-background-color: linear-gradient(to bottom right, #78350f, #d97706, #fde68a);";
-            case "TRUCK"    -> "-fx-background-color: linear-gradient(to bottom right, #7f1d1d, #dc2626, #fca5a5);";
-            case "VAN"      -> "-fx-background-color: linear-gradient(to bottom right, #4c1d95, #7c3aed, #c4b5fd);";
-            case "ECONOMY"  -> "-fx-background-color: linear-gradient(to bottom right, #0c4a6e, #0891b2, #67e8f9);";
-            case "BIKE", "MOTORCYCLE" -> "-fx-background-color: linear-gradient(to bottom right, #1c1917, #78716c, #d6d3d1);";
-            default -> "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #6366f1, #a5b4fc);";
+            case "SEDAN"    -> "-fx-background-color: linear-gradient(to bottom right, #1e3a8a, #2563eb, #60a5fa);";
+            case "SUV"      -> "-fx-background-color: linear-gradient(to bottom right, #064e3b, #059669, #34d399);";
+            case "LUXURY"   -> "-fx-background-color: linear-gradient(to bottom right, #78350f, #b45309, #fcd34d);";
+            case "TRUCK"    -> "-fx-background-color: linear-gradient(to bottom right, #7f1d1d, #dc2626, #f87171);";
+            case "VAN"      -> "-fx-background-color: linear-gradient(to bottom right, #4c1d95, #6d28d9, #a78bfa);";
+            case "ECONOMY"  -> "-fx-background-color: linear-gradient(to bottom right, #0c4a6e, #0284c7, #38bdf8);";
+            case "BIKE", "MOTORCYCLE" -> "-fx-background-color: linear-gradient(to bottom right, #27272a, #71717a, #d4d4d8);";
+            default -> "-fx-background-color: linear-gradient(to bottom right, #312e81, #4f46e5, #818cf8);";
         };
     }
 
