@@ -65,11 +65,19 @@ public class BookingController {
     }
 
     /**
-     * Get all bookings (admin)
-     * GET /api/v1/bookings
+     * Get all bookings (admin) – optionally filtered by status
+     * GET /api/v1/bookings               → all bookings
+     * GET /api/v1/bookings?status=active → active bookings (CONFIRMED + ACTIVE)
+     * GET /api/v1/bookings?status=completed → completed bookings
      */
     @GetMapping
-    public ResponseEntity<List<Booking>> getAllBookings() {
+    public ResponseEntity<List<Booking>> getAllBookings(
+            @RequestParam(value = "status", required = false) String status) {
+        if ("active".equalsIgnoreCase(status)) {
+            return ResponseEntity.ok(bookingService.getActiveBookings());
+        } else if ("completed".equalsIgnoreCase(status)) {
+            return ResponseEntity.ok(bookingService.getCompletedBookings());
+        }
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
@@ -101,6 +109,40 @@ public class BookingController {
             @RequestHeader(value = "X-Staff-ID", required = true) String staffId) {
         try {
             Booking booking = bookingService.completeBooking(bookingId, staffId);
+            return ResponseEntity.ok(booking);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    /**
+     * Record vehicle return with optional damage check
+     * POST /api/v1/bookings/{bookingId}/return
+     * Body: { "damageNotes": "...", "damageCharge": 500.0 }
+     */
+    @PostMapping("/{bookingId}/return")
+    public ResponseEntity<?> returnBooking(
+            @PathVariable String bookingId,
+            @RequestBody(required = false) java.util.Map<String, Object> body,
+            @RequestHeader(value = "X-Staff-ID", required = false, defaultValue = "STAFF") String staffId) {
+        try {
+            String damageNotes = "";
+            double damageCharge = 0.0;
+            if (body != null) {
+                Object notes = body.get("damageNotes");
+                if (notes != null) damageNotes = notes.toString();
+                Object charge = body.get("damageCharge");
+                if (charge != null) {
+                    try {
+                        damageCharge = Double.parseDouble(charge.toString());
+                    } catch (NumberFormatException e) {
+                        return ResponseEntity.badRequest().body("Invalid damageCharge: must be a numeric value");
+                    }
+                }
+            }
+            Booking booking = bookingService.processReturn(bookingId, damageNotes, damageCharge, staffId);
             return ResponseEntity.ok(booking);
         } catch (PaymentException e) {
             return ResponseEntity.badRequest().body(e.getMessage());

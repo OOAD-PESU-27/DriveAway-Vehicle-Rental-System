@@ -52,12 +52,20 @@ public class HttpUtil {
     }
 
     public static String sendPut(String urlStr, String json) {
+        return sendPutWithHeader(urlStr, json, null, null);
+    }
+
+    public static String sendPutWithHeader(String urlStr, String json,
+                                            String headerName, String headerValue) {
         try {
             URL url = new URL(urlStr);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("PUT");
             conn.setRequestProperty("Content-Type", "application/json");
+            if (headerName != null && headerValue != null) {
+                conn.setRequestProperty(headerName, headerValue);
+            }
             conn.setDoOutput(true);
 
             try (OutputStream os = conn.getOutputStream()) {
@@ -85,6 +93,38 @@ public class HttpUtil {
             e.printStackTrace();
         }
 
+        return null;
+    }
+
+    public static String sendDeleteWithHeader(String urlStr, String headerName, String headerValue) {
+        try {
+            URL url = new URL(urlStr);
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("DELETE");
+            conn.setRequestProperty("Accept", "application/json");
+            if (headerName != null && headerValue != null) {
+                conn.setRequestProperty(headerName, headerValue);
+            }
+
+            int status = conn.getResponseCode();
+            if (status == 204) return ""; // No Content = success
+            InputStream is = (status >= 200 && status < 300)
+                    ? conn.getInputStream() : conn.getErrorStream();
+
+            if (is == null) return null;
+
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            StringBuilder response = new StringBuilder();
+            String line;
+            while ((line = br.readLine()) != null) {
+                response.append(line);
+            }
+            return response.toString();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return null;
     }
 

@@ -27,6 +27,10 @@ public class PaymentController {
     @FXML private TextField cvvField;
     @FXML private TextField cardHolderField;
     @FXML private ComboBox<String> bankCombo;
+    // Netbanking account detail fields
+    @FXML private TextField netBankingAccountHolderField;
+    @FXML private TextField netBankingAccountNumberField;
+    @FXML private TextField netBankingIfscField;
     @FXML private VBox cardSection;
     @FXML private VBox upiSection;
     @FXML private VBox netBankingSection;
@@ -117,7 +121,7 @@ public class PaymentController {
 
     /**
      * Step 1: Initiate payment request (Option-B approval-gate flow).
-     * Creates payment in REQUESTED state + triggers simulated notification.
+     * Creates payment in REQUESTED state + triggers in-app approval notification.
      */
     @FXML
     public void handleRequestPayment() {
@@ -131,6 +135,18 @@ public class PaymentController {
 
         if (rentalId.isBlank()) { setStatus("Booking ID is required.", false); return; }
         if (amount.isBlank()) { setStatus("Amount is required.", false); return; }
+
+        // Validate netbanking fields
+        if ("NETBANKING".equals(method)) {
+            String bank = bankCombo != null ? bankCombo.getValue() : null;
+            String acHolder = netBankingAccountHolderField != null ? netBankingAccountHolderField.getText().trim() : "";
+            String acNumber = netBankingAccountNumberField != null ? netBankingAccountNumberField.getText().trim() : "";
+            String ifsc = netBankingIfscField != null ? netBankingIfscField.getText().trim() : "";
+            if (bank == null || bank.isBlank()) { setStatus("Please select a bank for NetBanking.", false); return; }
+            if (acHolder.isBlank()) { setStatus("Account holder name is required for NetBanking.", false); return; }
+            if (acNumber.isBlank()) { setStatus("Account number is required for NetBanking.", false); return; }
+            if (ifsc.isBlank()) { setStatus("IFSC code is required for NetBanking.", false); return; }
+        }
 
         double parsedAmount;
         try {
@@ -155,7 +171,7 @@ public class PaymentController {
             if (currentPaymentId == null) currentPaymentId = extractField(response, "id");
 
             String displayId = currentPaymentId != null ? currentPaymentId : "N/A";
-            setStatus("✅ Payment request submitted! An approval email has been sent to your registered email address. Please check your inbox and click the approval link, then return here to complete the payment.", true);
+            setStatus("✅ Payment request submitted! Use the in-app approval button below to approve the payment.", true);
             if (paymentIdLabel != null) paymentIdLabel.setText("Payment ID: " + displayId);
 
             // Show approval section after request is submitted
@@ -164,10 +180,35 @@ public class PaymentController {
                 approvalSection.setManaged(true);
             }
             if (approvalTokenLabel != null) {
-                approvalTokenLabel.setText("An approval link has been sent to your email. Once approved, click \"Complete Payment\" below.");
+                approvalTokenLabel.setText("Payment ID: " + displayId + "\nClick \"Approve Payment (In-App)\" to approve, then complete the payment.");
             }
         } else {
             setStatus("❌ Failed to submit payment request. Please try again.", false);
+        }
+    }
+
+    /**
+     * In-app approval: approves the payment directly in the app without email.
+     * This replaces the email-link approval dependency.
+     */
+    @FXML
+    public void handleApproveInApp() {
+        if (currentPaymentId == null) {
+            setStatus("No pending payment found. Please submit a payment request first.", false);
+            return;
+        }
+        String userId = LoginController.getUserId();
+        String approvedBy = userId != null ? userId : "IN_APP_USER";
+        setStatus("⏳ Approving payment...", false);
+        String response = paymentService.approvePayment(currentPaymentId, approvedBy);
+        if (response != null && response.contains("\"success\":true")) {
+            setStatus("✅ Payment approved in-app! Click \"Complete Payment\" to finalise your booking.", true);
+            if (approvalTokenLabel != null) {
+                approvalTokenLabel.setText("✅ Approved! Click \"Complete Payment\" below to finalise your booking.");
+            }
+        } else {
+            String msg = response != null ? extractField(response, "message") : null;
+            setStatus("❌ " + (msg != null ? msg : "Approval failed. Please try again."), false);
         }
     }
 
@@ -191,7 +232,7 @@ public class PaymentController {
                     approvalTokenLabel.setText("✅ Approved! Click \"Complete Payment\" below to finalise your booking.");
                 }
             } else if ("REQUESTED".equals(status) || "PENDING_APPROVAL".equals(status)) {
-                setStatus("⏳ Approval is still pending. Please check your email and click the approval link.", false);
+                setStatus("⏳ Approval is still pending. Click \"Approve Payment (In-App)\" above to approve.", false);
             } else if ("COMPLETED".equals(status) || "SUCCESS".equals(status)) {
                 setStatus("✅ Payment already completed.", true);
             } else {

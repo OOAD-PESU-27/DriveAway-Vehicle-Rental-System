@@ -34,6 +34,11 @@ public class PaymentRequest {
     private String upiId;
     private String netBankingBank;
 
+    // Net banking account detail fields (required when paymentMethod == NETBANKING)
+    private String netBankingAccountHolder;
+    private String netBankingAccountNumber;
+    private String netBankingIfscCode;
+
     // Security deposit (optional; defaults to 0 if not provided)
     private Double securityDeposit;
 }
