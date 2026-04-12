@@ -10,6 +10,7 @@ public class DateSelectionEntity {
     private String id;
 
     private String vehicleId;
+    private String userId;
     private String startDate;
     private String endDate;
     private String status; // CONFIRMED, PENDING
@@ -20,6 +21,9 @@ public class DateSelectionEntity {
 
     public String getVehicleId() { return vehicleId; }
     public void setVehicleId(String vehicleId) { this.vehicleId = vehicleId; }
+
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
     public String getStartDate() { return startDate; }
     public void setStartDate(String startDate) { this.startDate = startDate; }
