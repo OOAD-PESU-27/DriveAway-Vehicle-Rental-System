@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.UserProfileController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
+
+    <!-- TOP NAVIGATION BAR -->
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
+            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button, nav-button-active"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="24" style="-fx-padding: 28 32 28 32;">
+
+                <Label text="My Profile" styleClass="page-title"/>
+
+                <HBox spacing="24" alignment="TOP_LEFT">
+
+                    <!-- Profile Card (Left) -->
+                    <VBox styleClass="card" spacing="16" minWidth="280" maxWidth="280"
+                          alignment="CENTER">
+                        <!-- Avatar -->
+                        <VBox styleClass="profile-avatar" alignment="CENTER"
+                              minWidth="80" maxWidth="80" minHeight="80" maxHeight="80">
+                            <Label fx:id="avatarLabel" text="U"
+                                   style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: white;"/>
+                        </VBox>
+                        <Label fx:id="profileNameLabel" text="User Name" styleClass="profile-name"
+                               alignment="CENTER" maxWidth="Infinity"/>
+                        <Label fx:id="profileEmailLabel" text="email@example.com"
+                               styleClass="profile-email" alignment="CENTER" maxWidth="Infinity"/>
+                        <Label fx:id="userIdLabel" text="ID: " styleClass="text-muted"
+                               alignment="CENTER" maxWidth="Infinity"/>
+                        <Separator/>
+                        <Button text="Logout" onAction="#handleLogout"
+                                styleClass="btn-danger" maxWidth="Infinity"/>
+                    </VBox>
+
+                    <!-- Profile Details (Right) -->
+                    <VBox spacing="16" HBox.hgrow="ALWAYS">
+
+                        <!-- Edit Profile -->
+                        <VBox styleClass="card" spacing="16">
+                            <HBox alignment="CENTER_LEFT">
+                                <Label text="Personal Information" styleClass="section-title"
+                                       HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="editToggleBtn" text="✏️ Edit"
+                                        onAction="#toggleEdit" styleClass="btn-outline, btn-small"/>
+                            </HBox>
+                            <Separator/>
+
+                            <GridPane hgap="20" vgap="14">
+                                <Label text="Full Name" styleClass="form-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <TextField fx:id="nameField" styleClass="form-field"
+                                           editable="false"
+                                           GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                           maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+
+                                <Label text="Email Address" styleClass="form-label"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                <TextField fx:id="emailField" styleClass="form-field"
+                                           editable="false"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                           maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+
+                                <Label text="Phone Number" styleClass="form-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                <TextField fx:id="phoneField" styleClass="form-field"
+                                           editable="false"
+                                           GridPane.columnIndex="0" GridPane.rowIndex="3"
+                                           maxWidth="Infinity" GridPane.hgrow="ALWAYS"/>
+                            </GridPane>
+
+                            <HBox fx:id="saveSection" spacing="10" visible="false" managed="false">
+                                <Label fx:id="saveStatusLabel" styleClass="text-muted"
+                                       HBox.hgrow="ALWAYS"/>
+                                <Button text="Save Changes" onAction="#saveProfile"
+                                        styleClass="btn-primary"/>
+                                <Button text="Cancel" onAction="#cancelEdit"
+                                        styleClass="btn-outline"/>
+                            </HBox>
+                        </VBox>
+
+                        <!-- Driving License Section -->
+                        <VBox styleClass="card" spacing="16">
+                            <Label text="🪪 Driving License" styleClass="section-title"/>
+                            <Separator/>
+                            <GridPane hgap="20" vgap="14">
+                                <Label text="License Number" styleClass="form-label"
+                                       GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <TextField fx:id="licenseNumberField" styleClass="form-field"
+                                           editable="false"
+                                           GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                           maxWidth="Infinity"/>
+
+                                <Label text="Expiry Date" styleClass="form-label"
+                                       GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                <TextField fx:id="licenseExpiryField" styleClass="form-field"
+                                           editable="false"
+                                           GridPane.columnIndex="1" GridPane.rowIndex="1"
+                                           maxWidth="Infinity"/>
+                            </GridPane>
+                            <Button text="Update License" onAction="#goToLicense"
+                                    styleClass="btn-outline, btn-small"/>
+                        </VBox>
+
+                        <!-- Booking Summary -->
+                        <VBox styleClass="card" spacing="16">
+                            <HBox alignment="CENTER_LEFT">
+                                <Label text="Booking History" styleClass="section-title"
+                                       HBox.hgrow="ALWAYS"/>
+                                <Button text="View All" onAction="#goToBookings"
+                                        styleClass="btn-outline, btn-small"/>
+                            </HBox>
+                            <Separator/>
+                            <HBox spacing="20">
+                                <VBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="totalBookingsLabel" text="0"
+                                           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1e40af;"/>
+                                    <Label text="Total" styleClass="stat-label"/>
+                                </VBox>
+                                <VBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="activeBookingsLabel" text="0"
+                                           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #16a34a;"/>
+                                    <Label text="Active" styleClass="stat-label"/>
+                                </VBox>
+                                <VBox alignment="CENTER" HBox.hgrow="ALWAYS">
+                                    <Label fx:id="completedBookingsLabel" text="0"
+                                           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #64748b;"/>
+                                    <Label text="Completed" styleClass="stat-label"/>
+                                </VBox>
+                            </HBox>
+                        </VBox>
+
+                    </VBox>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

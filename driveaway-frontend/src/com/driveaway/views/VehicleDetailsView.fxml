@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.VehicleDetailsController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
+
+    <!-- TOP NAVIGATION BAR -->
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button, nav-button-active"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
+            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="20" style="-fx-padding: 28 32 28 32;">
+
+                <!-- Back Button -->
+                <Button text="← Back to Vehicles" onAction="#goToVehicles"
+                        styleClass="btn-outline, btn-small"/>
+
+                <!-- Vehicle Header -->
+                <HBox spacing="24" alignment="TOP_LEFT">
+
+                    <!-- Vehicle Image / Photo Area -->
+                    <VBox fx:id="vehicleImageBox" styleClass="vehicle-image-card" alignment="CENTER" spacing="10"
+                          minWidth="300" maxWidth="320" minHeight="200">
+                        <Label fx:id="vehicleEmojiLabel" text="🚗"
+                               styleClass="vehicle-emoji-large"/>
+                        <Label fx:id="vehicleTypeLabel" text="" styleClass="vehicle-type"/>
+                    </VBox>
+
+                    <!-- Vehicle Info -->
+                    <VBox spacing="14" HBox.hgrow="ALWAYS">
+                        <HBox alignment="CENTER_LEFT" spacing="10">
+                            <Label fx:id="vehicleNameLabel" text="Vehicle Name"
+                                   styleClass="page-title" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="availabilityLabel" text="Available"
+                                   styleClass="badge-active"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="6">
+                            <Label fx:id="priceLabel" text="₹0"
+                                   style="-fx-font-size: 28px; -fx-font-weight: bold; -fx-text-fill: #1e40af;"/>
+                            <Label text="/ day" styleClass="vehicle-price-label"
+                                   style="-fx-font-size: 16px;"/>
+                        </HBox>
+
+                        <!-- Specs Grid -->
+                        <VBox styleClass="card" spacing="12">
+                            <Label text="Specifications" styleClass="section-title"/>
+                            <GridPane hgap="40" vgap="12">
+                                <Label text="Brand" styleClass="spec-label" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                                <Label fx:id="brandLabel" text="-" styleClass="spec-value" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                                <Label text="Model" styleClass="spec-label" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                                <Label fx:id="modelLabel" text="-" styleClass="spec-value" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+                                <Label text="Year" styleClass="spec-label" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                                <Label fx:id="yearLabel" text="-" styleClass="spec-value" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                                <Label text="Fuel Type" styleClass="spec-label" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                                <Label fx:id="fuelLabel" text="-" styleClass="spec-value" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+                                <Label text="Transmission" styleClass="spec-label" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                                <Label fx:id="transmissionLabel" text="-" styleClass="spec-value" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+                                <Label text="Seats" styleClass="spec-label" GridPane.columnIndex="2" GridPane.rowIndex="2"/>
+                                <Label fx:id="seatsLabel" text="-" styleClass="spec-value" GridPane.columnIndex="3" GridPane.rowIndex="2"/>
+                            </GridPane>
+                        </VBox>
+                    </VBox>
+                </HBox>
+
+                <!-- Booking Form -->
+                <VBox styleClass="card" spacing="16">
+                    <Label text="Book This Vehicle" styleClass="section-title"/>
+                    <Separator/>
+
+                    <GridPane hgap="20" vgap="14">
+                        <Label text="Pick-up Date" styleClass="form-label"
+                               GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                        <DatePicker fx:id="startDatePicker"
+                                    styleClass="date-picker" onAction="#calculateTotal"
+                                    GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+
+                        <Label text="Drop-off Date" styleClass="form-label"
+                               GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+                        <DatePicker fx:id="endDatePicker"
+                                    styleClass="date-picker" onAction="#calculateTotal"
+                                    GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                        <Label text="Pick-up Location" styleClass="form-label"
+                               GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                        <ComboBox fx:id="locationCombo" promptText="Select location"
+                                  styleClass="form-combo"
+                                  GridPane.columnIndex="0" GridPane.rowIndex="3"/>
+
+                        <Label text="Special Requests" styleClass="form-label"
+                               GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+                        <TextArea fx:id="specialRequestsArea"
+                                  promptText="Any special requests..."
+                                  prefRowCount="3" styleClass="form-field"
+                                  GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+                    </GridPane>
+
+                    <!-- Price Summary -->
+                    <VBox styleClass="payment-summary" spacing="8">
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Duration:" styleClass="spec-label" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="durationLabel" text="0 days" styleClass="spec-value"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Rate per day:" styleClass="spec-label" HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="rateLabel" text="₹0" styleClass="spec-value"/>
+                        </HBox>
+                        <Separator/>
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Estimated Total:" styleClass="section-title"
+                                   HBox.hgrow="ALWAYS"/>
+                            <Label fx:id="totalLabel" text="₹0" styleClass="payment-total"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Terms and Conditions with hyperlink -->
+                    <VBox styleClass="terms-box" spacing="8">
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <CheckBox fx:id="termsCheckBox"
+                                      onAction="#handleTermsCheckBox"/>
+                            <Label text="I accept the" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                            <Hyperlink text="Terms and Conditions"
+                                       onAction="#handleOpenTerms"
+                                       styleClass="terms-link"/>
+                            <Label text="of DriveAway rental service" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+                        </HBox>
+                        <Label fx:id="termsAcceptedLabel"
+                               text="✅ I accept the Terms and Conditions of DriveAway rental service"
+                               styleClass="terms-accepted-label" wrapText="true"/>
+                    </VBox>
+
+                    <!-- Status & Action -->
+                    <Label fx:id="statusLabel" styleClass="text-danger" wrapText="true"/>
+
+                    <HBox spacing="12">
+                        <Button text="Book Now 🚀" onAction="#handleBook"
+                                styleClass="btn-primary"/>
+                        <Button text="Cancel" onAction="#goToVehicles"
+                                styleClass="btn-outline"/>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

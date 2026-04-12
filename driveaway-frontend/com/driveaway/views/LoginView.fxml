@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Button?>
+
+<VBox spacing="15" alignment="CENTER"
+      xmlns:fx="http://javafx.com/fxml">
+
+    <Label text="DriveAway Login"/>
+
+    <TextField promptText="Email"/>
+
+    <PasswordField promptText="Password"/>
+
+    <Button text="Login"/>
+
+</VBox>

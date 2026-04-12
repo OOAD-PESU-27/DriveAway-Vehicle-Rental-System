@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.VehicleCatalogController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
+
+    <!-- TOP NAVIGATION BAR -->
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button, nav-button-active"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
+            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
+
+    <!-- MAIN LAYOUT: Sidebar + Content -->
+    <center>
+        <HBox spacing="0" style="-fx-padding: 0;">
+
+            <!-- FILTER SIDEBAR -->
+            <VBox styleClass="filter-panel" spacing="6"
+                  style="-fx-padding: 20; -fx-background-radius: 0;">
+
+                <Label text="🔍 Filters" styleClass="filter-title"/>
+                <Separator/>
+
+                <!-- Vehicle Type Filter -->
+                <Label text="VEHICLE TYPE" styleClass="filter-label"/>
+                <ComboBox fx:id="typeFilter" promptText="All Types"
+                          maxWidth="Infinity" onAction="#applyFilters"
+                          styleClass="form-combo"/>
+
+                <!-- Fuel Type Filter -->
+                <Label text="FUEL TYPE" styleClass="filter-label"/>
+                <ComboBox fx:id="fuelFilter" promptText="All Fuel Types"
+                          maxWidth="Infinity" onAction="#applyFilters"
+                          styleClass="form-combo"/>
+
+                <!-- Transmission Filter -->
+                <Label text="TRANSMISSION" styleClass="filter-label"/>
+                <ComboBox fx:id="transmissionFilter" promptText="Any"
+                          maxWidth="Infinity" onAction="#applyFilters"
+                          styleClass="form-combo"/>
+
+                <!-- Availability Filter -->
+                <Label text="AVAILABILITY" styleClass="filter-label"/>
+                <ComboBox fx:id="availabilityFilter" promptText="All"
+                          maxWidth="Infinity" onAction="#applyFilters"
+                          styleClass="form-combo"/>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+                <Button text="Clear Filters" onAction="#clearFilters"
+                        styleClass="btn-outline" maxWidth="Infinity"/>
+                <Button text="🔄 Refresh" onAction="#handleRefresh"
+                        styleClass="btn-primary" maxWidth="Infinity"/>
+
+            </VBox>
+
+            <!-- VEHICLE CATALOG CONTENT -->
+            <VBox HBox.hgrow="ALWAYS" spacing="16"
+                  style="-fx-padding: 24 28 24 28;">
+
+                <!-- Header Row -->
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <VBox spacing="2" HBox.hgrow="ALWAYS">
+                        <Label text="Vehicle Catalog" styleClass="page-title"/>
+                        <Label fx:id="resultCountLabel" text="Loading vehicles..."
+                               styleClass="page-subtitle"/>
+                    </VBox>
+                    <TextField fx:id="searchField" promptText="🔍  Search vehicles..."
+                               styleClass="search-field" onKeyReleased="#handleSearch"/>
+                </HBox>
+
+                <!-- Status Label -->
+                <Label fx:id="statusLabel" styleClass="text-muted" wrapText="true"/>
+
+                <!-- Vehicle Grid -->
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" styleClass="scroll-pane">
+                    <FlowPane fx:id="vehicleGrid" hgap="16" vgap="16"
+                              style="-fx-padding: 4;"/>
+                </ScrollPane>
+
+            </VBox>
+        </HBox>
+    </center>
+
+</BorderPane>

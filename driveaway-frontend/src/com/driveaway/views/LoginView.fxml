@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Pos?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.driveaway.controllers.LoginController"
+           stylesheets="@styles/main.css"
+           styleClass="login-container">
+
+    <VBox alignment="CENTER" spacing="0" maxWidth="420" maxHeight="520"
+          styleClass="login-card">
+
+        <!-- Logo & Branding -->
+        <Label text="🚗" styleClass="login-logo" alignment="CENTER"
+               maxWidth="Infinity"/>
+        <Label text="DriveAway" styleClass="login-title" alignment="CENTER"
+               maxWidth="Infinity">
+            <VBox.margin><Insets top="8"/></VBox.margin>
+        </Label>
+        <Label text="Vehicle Rental System" styleClass="login-subtitle"
+               alignment="CENTER" maxWidth="Infinity">
+            <VBox.margin><Insets bottom="28"/></VBox.margin>
+        </Label>
+
+        <!-- Email -->
+        <Label text="Email Address" styleClass="form-label" maxWidth="Infinity"/>
+        <TextField fx:id="emailField" promptText="you@example.com"
+                   styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="14"/></VBox.margin>
+        </TextField>
+
+        <!-- Password -->
+        <Label text="Password" styleClass="form-label" maxWidth="Infinity"/>
+        <PasswordField fx:id="passwordField" promptText="Enter your password"
+                       styleClass="form-field" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="6"/></VBox.margin>
+        </PasswordField>
+
+        <!-- Status -->
+        <Label fx:id="statusLabel" styleClass="text-danger" maxWidth="Infinity"
+               wrapText="true">
+            <VBox.margin><Insets bottom="8"/></VBox.margin>
+        </Label>
+
+        <!-- Login Button -->
+        <Button text="Sign In" onAction="#handleLogin"
+                styleClass="btn-primary" maxWidth="Infinity">
+            <VBox.margin><Insets top="4" bottom="14"/></VBox.margin>
+        </Button>
+
+        <!-- Divider -->
+        <HBox alignment="CENTER" spacing="10">
+            <Region HBox.hgrow="ALWAYS" styleClass="divider"/>
+            <Label text="or" styleClass="text-muted"/>
+            <Region HBox.hgrow="ALWAYS" styleClass="divider"/>
+        </HBox>
+
+        <!-- Register Link -->
+        <Button text="Create New Account" onAction="#goToRegister"
+                styleClass="btn-outline" maxWidth="Infinity">
+            <VBox.margin><Insets top="14"/></VBox.margin>
+        </Button>
+
+    </VBox>
+
+</StackPane>

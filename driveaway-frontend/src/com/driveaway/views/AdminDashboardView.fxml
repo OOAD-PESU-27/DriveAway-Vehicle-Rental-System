@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.AdminDashboardController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
+
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Admin Dashboard" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
+            <Button text="📊 Reports" onAction="#goToReports" styleClass="nav-button"/>
+            <Button text="🔔 Notifications" onAction="#goToNotifications" styleClass="nav-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="24" style="-fx-padding: 28 32 28 32;">
+
+                <Label text="⚙️ Admin Dashboard" styleClass="page-title"/>
+                <Label fx:id="adminIdLabel" text="" styleClass="text-muted"/>
+
+                <!-- Summary cards -->
+                <HBox spacing="16">
+                    <VBox styleClass="stat-card" spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                        <Label text="🚘" style="-fx-font-size: 28px;"/>
+                        <Label fx:id="fleetCountLabel" text="0" styleClass="stat-value"/>
+                        <Label text="Fleet Vehicles" styleClass="stat-label"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                        <Label text="📅" style="-fx-font-size: 28px;"/>
+                        <Label fx:id="bookingsCountLabel" text="0" styleClass="stat-value"/>
+                        <Label text="Total Bookings" styleClass="stat-label"/>
+                    </VBox>
+                    <VBox styleClass="stat-card" spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                        <Button text="📊 View Reports" onAction="#goToReports"
+                                styleClass="btn-primary" maxWidth="Infinity"/>
+                        <Button text="🔔 View Notifications" onAction="#goToNotifications"
+                                styleClass="btn-outline" maxWidth="Infinity"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Fleet management -->
+                <VBox styleClass="card" spacing="12">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="🚘 Fleet Management" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                        <Button text="🔄 Refresh" onAction="#handleRefreshFleet" styleClass="btn-outline"/>
+                    </HBox>
+                    <Separator/>
+                    <Label fx:id="statusLabel" text="" styleClass="text-muted"/>
+                    <TableView fx:id="fleetTable" minHeight="220" maxWidth="Infinity">
+                        <columns>
+                            <TableColumn fx:id="fleetIdCol" text="ID" minWidth="60"/>
+                            <TableColumn fx:id="brandCol" text="Brand" minWidth="90"/>
+                            <TableColumn fx:id="modelCol" text="Model" minWidth="110"/>
+                            <TableColumn fx:id="typeCol" text="Type" minWidth="90"/>
+                            <TableColumn fx:id="priceCol" text="Price/Day" minWidth="90"/>
+                            <TableColumn fx:id="statusCol" text="Status" minWidth="90"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No vehicles found." styleClass="text-muted"/>
+                        </placeholder>
+                    </TableView>
+
+                    <!-- Add Vehicle Form -->
+                    <VBox styleClass="card" spacing="10"
+                          style="-fx-background-color: #f8fafc; -fx-padding: 14; -fx-border-color: #e2e8f0; -fx-border-radius: 8;">
+                        <Label text="➕ Add / Update Vehicle" styleClass="section-title"/>
+                        <HBox spacing="10">
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Brand" styleClass="form-label"/>
+                                <TextField fx:id="vBrandField" promptText="e.g. Toyota" styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Model" styleClass="form-label"/>
+                                <TextField fx:id="vModelField" promptText="e.g. Innova" styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Type" styleClass="form-label"/>
+                                <ComboBox fx:id="vTypeCombo" maxWidth="Infinity" styleClass="form-combo"/>
+                            </VBox>
+                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                <Label text="Price/Day (₹)" styleClass="form-label"/>
+                                <TextField fx:id="vPriceField" promptText="e.g. 1500" styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
+                        </HBox>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Button text="➕ Add Vehicle" onAction="#handleAddVehicle" styleClass="btn-primary"/>
+                            <Button text="✏️ Update Selected" onAction="#handleUpdateVehicle" styleClass="btn-outline"/>
+                            <Button text="🗑️ Delete Selected" onAction="#handleDeleteVehicle" styleClass="btn-danger"/>
+                            <Label fx:id="vehicleFormStatus" text="" styleClass="text-muted" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                    </VBox>
+                </VBox>
+
+                <!-- All Bookings Management -->
+                <VBox styleClass="card" spacing="12">
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Label text="📅 All Bookings" styleClass="section-title" HBox.hgrow="ALWAYS"/>
+                        <Button text="All" onAction="#loadAllBookingsAdmin" styleClass="btn-outline"/>
+                        <Button text="Active" onAction="#loadActiveBookingsAdmin" styleClass="btn-primary"/>
+                        <Button text="Completed" onAction="#loadCompletedBookingsAdmin" styleClass="btn-outline"/>
+                        <Button text="🔄 Refresh" onAction="#handleRefreshBookings" styleClass="btn-outline"/>
+                    </HBox>
+                    <Separator/>
+                    <TableView fx:id="adminBookingsTable" minHeight="220" maxWidth="Infinity">
+                        <columns>
+                            <TableColumn fx:id="abIdCol" text="Booking ID" minWidth="120"/>
+                            <TableColumn fx:id="abUserCol" text="User ID" minWidth="110"/>
+                            <TableColumn fx:id="abVehicleCol" text="Vehicle" minWidth="110"/>
+                            <TableColumn fx:id="abStartCol" text="Start" minWidth="100"/>
+                            <TableColumn fx:id="abEndCol" text="End" minWidth="100"/>
+                            <TableColumn fx:id="abStatusCol" text="Status" minWidth="100"/>
+                            <TableColumn fx:id="abAmountCol" text="Amount" minWidth="90"/>
+                        </columns>
+                        <placeholder>
+                            <Label text="No bookings found." styleClass="text-muted"/>
+                        </placeholder>
+                    </TableView>
+                    <Label fx:id="adminBookingsStatus" text="" styleClass="text-muted"/>
+                </VBox>
+
+                <!-- Payment Approval Panel -->
+                <VBox styleClass="card" spacing="12">
+                    <Label text="💳 Approve Pending Payment (Admin)" styleClass="section-title"/>
+                    <Separator/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Payment ID" styleClass="form-label"/>
+                            <TextField fx:id="approvePaymentIdField" promptText="Enter payment ID to approve"
+                                       styleClass="form-field" maxWidth="Infinity"/>
+                        </VBox>
+                        <Button text="🔒 Approve Payment" onAction="#handleAdminApprovePayment"
+                                styleClass="btn-primary" style="-fx-padding: 10 18 10 18;"/>
+                    </HBox>
+                    <Label fx:id="approvePaymentStatus" text="" styleClass="text-muted"/>
+                </VBox>
+
+                <!-- Return / Damage Check Panel -->
+                <VBox styleClass="card" spacing="12">
+                    <Label text="🔄 Process Vehicle Return &amp; Damage Check" styleClass="section-title"/>
+                    <Separator/>
+                    <HBox spacing="10">
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Booking ID" styleClass="form-label"/>
+                            <TextField fx:id="returnBookingIdField" promptText="Enter booking ID"
+                                       styleClass="form-field" maxWidth="Infinity"/>
+                        </VBox>
+                        <VBox spacing="4" HBox.hgrow="ALWAYS">
+                            <Label text="Damage Charge (₹)" styleClass="form-label"/>
+                            <TextField fx:id="damageChargeField" promptText="0.00"
+                                       styleClass="form-field" maxWidth="Infinity"/>
+                        </VBox>
+                    </HBox>
+                    <VBox spacing="4">
+                        <Label text="Damage Notes" styleClass="form-label"/>
+                        <TextField fx:id="damageNotesField" promptText="Describe any damage (or leave blank)"
+                                   styleClass="form-field" maxWidth="Infinity"/>
+                    </VBox>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button text="📦 Process Return" onAction="#handleProcessReturn"
+                                styleClass="btn-primary" style="-fx-padding: 10 18 10 18;"/>
+                        <Label fx:id="returnStatus" text="" styleClass="text-muted" HBox.hgrow="ALWAYS"/>
+                    </HBox>
+                </VBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

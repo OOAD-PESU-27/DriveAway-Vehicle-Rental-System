@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.TermsAndConditionsController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
+
+    <!-- TOP NAVIGATION BAR -->
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="← Back" onAction="#goBack" styleClass="nav-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" styleClass="scroll-pane">
+            <VBox spacing="20" style="-fx-padding: 32 48 32 48; -fx-max-width: 900;">
+
+                <!-- Header -->
+                <VBox styleClass="report-summary-banner" spacing="6">
+                    <HBox alignment="CENTER_LEFT" spacing="16">
+                        <Label text="📜" style="-fx-font-size: 40px;"/>
+                        <VBox spacing="4">
+                            <Label text="Terms and Conditions" styleClass="report-summary-title"/>
+                            <Label text="DriveAway Vehicle Rental System — Please read carefully before booking"
+                                   styleClass="report-summary-sub"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <!-- Last Updated -->
+                <Label text="Last updated: April 2025" styleClass="text-muted"
+                       style="-fx-font-style: italic;"/>
+
+                <!-- Section 1 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="1. Acceptance of Terms" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="By using DriveAway's vehicle rental services and checking the acceptance box during booking, you confirm that you have read, understood, and agree to be bound by these Terms and Conditions. If you do not agree with any part of these terms, you must not use our services."/>
+                </VBox>
+
+                <!-- Section 2 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="2. Eligibility and Licence Requirements" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="• You must be at least 21 years of age to rent a vehicle.&#10;• You must hold a valid driving licence issued by a recognised authority.&#10;• You must present a valid government-issued photo ID at the time of pick-up.&#10;• International customers must carry an International Driving Permit (IDP) alongside their national licence."/>
+                </VBox>
+
+                <!-- Section 3 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="3. Booking and Payment" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="• All bookings are subject to vehicle availability.&#10;• Full payment or a valid payment authorisation is required to confirm a booking.&#10;• Prices are quoted in Indian Rupees (₹) and include applicable taxes unless stated otherwise.&#10;• DriveAway reserves the right to modify prices without prior notice; confirmed bookings are honoured at the price paid."/>
+                </VBox>
+
+                <!-- Section 4 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="4. Cancellation and Refund Policy" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="• Cancellations made more than 48 hours before the pick-up time are eligible for a full refund.&#10;• Cancellations within 48 hours of pick-up will incur a cancellation fee equivalent to one day's rental.&#10;• No-shows (failure to collect the vehicle without prior cancellation) will be charged the full rental amount.&#10;• Refunds, where applicable, will be processed within 5–7 working days."/>
+                </VBox>
+
+                <!-- Section 5 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="5. Vehicle Use and Responsibilities" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="• The rented vehicle must only be driven by the named renter unless an additional driver has been registered.&#10;• Vehicles must not be used for racing, off-road driving, or any illegal activity.&#10;• Smoking is strictly prohibited inside all DriveAway vehicles. A cleaning fee of ₹2,000 will be charged for violations.&#10;• The renter is responsible for all traffic violations and parking fines incurred during the rental period.&#10;• Vehicles must be returned with the same fuel level as at the time of pick-up, or a refuelling charge will apply."/>
+                </VBox>
+
+                <!-- Section 6 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="6. Insurance and Liability" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="• All vehicles include third-party liability insurance as required by law.&#10;• Optional Collision Damage Waiver (CDW) is available at an additional daily charge.&#10;• Without CDW, the renter is liable for damage up to the full value of the vehicle.&#10;• DriveAway is not liable for any loss of personal belongings left in the vehicle."/>
+                </VBox>
+
+                <!-- Section 7 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="7. Privacy and Data Protection" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="• DriveAway collects and processes personal data in accordance with applicable privacy laws.&#10;• Your data is used solely for the purpose of providing rental services and improving our platform.&#10;• We do not sell or share your personal data with third parties without your consent, except as required by law."/>
+                </VBox>
+
+                <!-- Section 8 -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="8. Governing Law" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="These Terms and Conditions are governed by and construed in accordance with the laws of India. Any disputes arising from these terms shall be subject to the exclusive jurisdiction of the courts of Mumbai, Maharashtra."/>
+                </VBox>
+
+                <!-- Contact -->
+                <VBox styleClass="card" spacing="10">
+                    <Label text="9. Contact Us" styleClass="section-title"/>
+                    <Separator/>
+                    <Label wrapText="true" styleClass="page-subtitle"
+                           text="If you have any questions about these Terms and Conditions, please contact us:&#10;&#10;📧 support@driveaway.in&#10;📞 1800-123-4567 (toll-free, Mon–Sat, 9 AM – 6 PM)&#10;🏢 DriveAway Pvt. Ltd., 5th Floor, Tech Park, Bandra Kurla Complex, Mumbai 400051"/>
+                </VBox>
+
+                <!-- Accept / Back button -->
+                <HBox spacing="14" alignment="CENTER_LEFT">
+                    <Button text="✅ I Accept — Go Back to Booking" onAction="#handleAcceptAndGoBack"
+                            styleClass="btn-primary"/>
+                    <Button text="← Back" onAction="#goBack" styleClass="btn-outline"/>
+                </HBox>
+
+            </VBox>
+        </ScrollPane>
+    </center>
+
+</BorderPane>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.BookingManagementController"
+            stylesheets="@styles/main.css"
+            styleClass="main-background">
+
+    <!-- TOP NAVIGATION BAR -->
+    <top>
+        <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
+            <VBox alignment="CENTER_LEFT">
+                <Label text="🚗 DriveAway" styleClass="nav-logo"/>
+                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
+            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button, nav-button-active"/>
+            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
+            <Separator orientation="VERTICAL"/>
+            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+        </HBox>
+    </top>
+
+    <!-- MAIN CONTENT -->
+    <center>
+        <VBox spacing="20" style="-fx-padding: 28 32 28 32;">
+
+            <!-- Page Header -->
+            <HBox alignment="CENTER_LEFT" spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="My Bookings" styleClass="page-title"/>
+                    <Label fx:id="bookingCountLabel" text="Loading your bookings..."
+                           styleClass="page-subtitle"/>
+                </VBox>
+                <Button text="🚘 Book New Vehicle" onAction="#goToVehicles"
+                        styleClass="btn-primary"/>
+            </HBox>
+
+            <!-- Filter Tabs -->
+            <HBox styleClass="card" spacing="8" alignment="CENTER_LEFT"
+                  style="-fx-padding: 12 16 12 16;">
+                <Label text="Filter:" styleClass="form-label"/>
+                <ToggleButton fx:id="allBtn" text="All" onAction="#filterAll"
+                              selected="true" styleClass="filter-tab-active"/>
+                <ToggleButton fx:id="activeBtn" text="✅ Active" onAction="#filterActive"
+                              styleClass="filter-tab"/>
+                <ToggleButton fx:id="completedBtn" text="🏁 Completed" onAction="#filterCompleted"
+                              styleClass="filter-tab"/>
+                <ToggleButton fx:id="cancelledBtn" text="❌ Cancelled" onAction="#filterCancelled"
+                              styleClass="filter-tab"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="🔄 Refresh" onAction="#handleRefresh" styleClass="btn-outline"/>
+            </HBox>
+
+            <!-- Bookings Table -->
+            <VBox styleClass="card" VBox.vgrow="ALWAYS" spacing="12">
+                <TableView fx:id="bookingsTable" VBox.vgrow="ALWAYS"
+                           styleClass="table-view" prefHeight="420">
+                    <columns>
+                        <TableColumn fx:id="bookingIdCol" text="Booking ID" prefWidth="130"/>
+                        <TableColumn fx:id="vehicleIdCol" text="Vehicle" prefWidth="180"/>
+                        <TableColumn fx:id="startDateCol" text="Start Date" prefWidth="120"/>
+                        <TableColumn fx:id="endDateCol" text="End Date" prefWidth="120"/>
+                        <TableColumn fx:id="statusCol" text="Status" prefWidth="110"/>
+                        <TableColumn fx:id="amountCol" text="Amount" prefWidth="100"/>
+                        <TableColumn fx:id="actionCol" text="Actions" prefWidth="160"/>
+                    </columns>
+                    <placeholder>
+                        <VBox alignment="CENTER" spacing="10">
+                            <Label text="📭" style="-fx-font-size: 48px;"/>
+                            <Label text="No bookings found" styleClass="section-title"/>
+                            <Label text="Your bookings will appear here once you book a vehicle."
+                                   styleClass="text-muted"/>
+                            <Button text="Browse Vehicles" onAction="#goToVehicles"
+                                    styleClass="btn-primary"/>
+                        </VBox>
+                    </placeholder>
+                </TableView>
+            </VBox>
+
+            <!-- Status Label -->
+            <Label fx:id="statusLabel" styleClass="text-muted" wrapText="true"/>
+
+        </VBox>
+    </center>
+
+</BorderPane>
