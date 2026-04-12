@@ -1,41 +1,47 @@
 package com.driveaway.utils;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class HttpUtil {
 
     public static String sendPost(String urlStr, String json) {
-        try {
-            URL url = new URL(urlStr);
-            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    try {
+        URL url = new URL(urlStr);
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
-            conn.setRequestMethod("POST");
-            conn.setRequestProperty("Content-Type", "application/json");
-            conn.setDoOutput(true);
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
 
-            try (OutputStream os = conn.getOutputStream()) {
-                os.write(json.getBytes());
-            }
+        // 🔥 IMPORTANT HEADERS
+        conn.setRequestProperty("Content-Type", "application/json");
+        conn.setRequestProperty("Accept", "application/json");
 
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(conn.getInputStream())
-            );
+        OutputStream os = conn.getOutputStream();
+        os.write(json.getBytes());
+        os.flush();
+        os.close();
 
-            StringBuilder response = new StringBuilder();
-            String line;
+        BufferedReader br = new BufferedReader(
+                new InputStreamReader(conn.getInputStream())
+        );
 
-            while ((line = br.readLine()) != null) {
-                response.append(line);
-            }
+        StringBuilder response = new StringBuilder();
+        String line;
 
-            return response.toString();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        while ((line = br.readLine()) != null) {
+            response.append(line);
         }
 
-        return null;
+        return response.toString();
+
+    } catch (Exception e) {
+        e.printStackTrace();
     }
+
+    return null;
+}
 }

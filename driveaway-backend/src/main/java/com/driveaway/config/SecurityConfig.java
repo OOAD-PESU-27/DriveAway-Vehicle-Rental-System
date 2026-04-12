@@ -21,12 +21,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable()) // Disables CSRF so your JavaFX app can send POST requests
+            .csrf(csrf -> csrf.disable())   // disable CSRF
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/register", "/auth/login").permitAll() // VIP list!
-                .anyRequest().authenticated() // Locks down everything else
+                .requestMatchers("/**").permitAll()   // 🔥 allow EVERYTHING
+                .anyRequest().permitAll()
             );
-        
+
         return http.build();
     }
 }
