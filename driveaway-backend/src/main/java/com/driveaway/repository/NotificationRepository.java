@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Collection;
 
 /**
  * NotificationRepository - Handles database operations for notifications
@@ -23,6 +24,8 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     List<Notification> findByUserIdAndIsReadFalse(String userId);
 
     List<Notification> findByUserIdAndTypeAndIsReadFalse(String userId, NotificationType type);
+
+    List<Notification> findByUserIdAndTypeInAndIsReadFalse(String userId, Collection<NotificationType> types);
     
     long countByUserIdAndIsReadFalse(String userId);
     

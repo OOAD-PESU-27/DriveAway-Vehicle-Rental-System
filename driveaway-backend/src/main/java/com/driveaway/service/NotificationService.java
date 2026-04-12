@@ -12,9 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * NotificationService - Contains business logic for notifications.
@@ -278,12 +278,9 @@ public class NotificationService {
     }
 
     public List<Notification> getPendingApprovalNotificationsForUser(String userId) {
-        List<Notification> pending = new ArrayList<>(
-                notificationRepository.findByUserIdAndTypeAndIsReadFalse(
-                        userId, NotificationType.PAYMENT_APPROVAL_LINK_GENERATED));
-        pending.addAll(notificationRepository.findByUserIdAndTypeAndIsReadFalse(
-                userId, NotificationType.PAYMENT_REQUEST_SENT));
-        return pending;
+        return notificationRepository.findByUserIdAndTypeInAndIsReadFalse(
+                userId,
+                Set.of(NotificationType.PAYMENT_APPROVAL_LINK_GENERATED, NotificationType.PAYMENT_REQUEST_SENT));
     }
 
     public void sendBookingConfirmedNotification(com.driveaway.entity.Booking booking) {

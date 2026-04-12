@@ -126,11 +126,13 @@ public class PaymentService {
         }
         Payment payment = paymentRepository.findByApprovalToken(approvalToken)
                 .orElseThrow(() -> new PaymentException("Invalid or expired approval token"));
-        if (payment.getApprovalTokenUsedAt() != null ||
-                payment.getStatus() == PaymentStatus.APPROVED ||
+        if (payment.getApprovalTokenUsedAt() != null) {
+            throw new PaymentException("Approval token has already been used");
+        }
+        if (payment.getStatus() == PaymentStatus.APPROVED ||
                 payment.getStatus() == PaymentStatus.COMPLETED ||
                 payment.getStatus() == PaymentStatus.SUCCESS) {
-            throw new PaymentException("Approval token already used");
+            throw new PaymentException("Payment has already been approved");
         }
         if (payment.getApprovalTokenExpiresAt() != null &&
                 LocalDateTime.now().isAfter(payment.getApprovalTokenExpiresAt())) {
