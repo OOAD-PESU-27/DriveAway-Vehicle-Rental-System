@@ -1,7 +1,9 @@
-module RentalVehicles {
+module com.driveaway {
     requires javafx.controls;
     requires javafx.fxml;
+    requires javafx.graphics;
+    requires javafx.base;
 
-    opens com.rentalvehicles to javafx.fxml;
-    exports com.rentalvehicles;
+    opens com.driveaway to javafx.fxml;
+    opens com.driveaway.controllers to javafx.fxml;
 }
