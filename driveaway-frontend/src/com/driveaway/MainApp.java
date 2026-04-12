@@ -4,19 +4,22 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import com.driveaway.utils.SceneNavigator;
 
 public class MainApp extends Application {
 
     @Override
     public void start(Stage stage) throws Exception {
+        // Set stage in SceneNavigator for navigation between scenes
+        SceneNavigator.setStage(stage);
 
-        // Load FXML from src folder
+        // Load Login page as entry point
         FXMLLoader loader = new FXMLLoader(
-            new java.io.File("src/com/driveaway/views/VehicleListView.fxml")
+            new java.io.File("src/com/driveaway/views/LoginView.fxml")
                 .toURI().toURL()
         );
 
-        Scene scene = new Scene(loader.load(), 400, 500);
+        Scene scene = new Scene(loader.load(), 600, 400);
 
         // ✅ Load CSS from views/style folder
         scene.getStylesheets().add(
@@ -25,7 +28,7 @@ public class MainApp extends Application {
                 .toString()
         );
     
-        stage.setTitle("🚗 DriveAway Vehicles");
+        stage.setTitle("🚗 DriveAway - Login");
         stage.setScene(scene);
         stage.show();
     }

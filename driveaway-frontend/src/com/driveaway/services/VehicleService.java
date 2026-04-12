@@ -1,8 +1,6 @@
 package com.driveaway.services;
 
 import java.time.LocalDate;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import com.driveaway.utils.ApiClient;
 
 public class VehicleService {
@@ -28,20 +26,23 @@ public class VehicleService {
         LocalDate startDate = LocalDate.parse(start);
         LocalDate endDate = LocalDate.parse(end);
 
-        JSONArray datesArray = new JSONArray();
-
+        // Build JSON array of dates manually
+        StringBuilder datesArray = new StringBuilder("[");
+        
         while (!startDate.isAfter(endDate)) {
-            datesArray.put(startDate.toString());
+            if (datesArray.length() > 1) datesArray.append(",");
+            datesArray.append("\"").append(startDate.toString()).append("\"");
             startDate = startDate.plusDays(1);
         }
+        datesArray.append("]");
 
-        JSONObject body = new JSONObject();
-        body.put("dates", datesArray);
+        // Build JSON body manually
+        String body = "{\"dates\":" + datesArray.toString() + "}";
 
-        return ApiClient.post("/vehicles/search", body.toString());
+        return ApiClient.post("/vehicles/search", body);
     }
 
     public String bookVehicle(String json) {
-    return ApiClient.post("/dates/create", json);
+        return ApiClient.post("/dates/create", json);
     }
 }

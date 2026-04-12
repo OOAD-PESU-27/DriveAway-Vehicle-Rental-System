@@ -31,8 +31,8 @@ public class LoginController {
 
             System.out.println("Login Success: " + userId);
 
-            // 👉 Open License Page
-            SceneNavigator.load("views/LicenseView.fxml");
+            // 👉 Navigate to Vehicle List Page
+            SceneNavigator.load("views/VehicleListView.fxml");
 
         } else {
             System.out.println("Login Failed");

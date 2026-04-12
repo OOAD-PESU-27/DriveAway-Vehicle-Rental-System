@@ -17,13 +17,14 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // 2. Adds the rules to open up the login and register endpoints
+    // 2. Adds the rules to open up the endpoints for BOTH you and your friend
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // Disables CSRF so your JavaFX app can send POST requests
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/register", "/auth/login").permitAll() // VIP list!
+                // 👇 VIP list updated! Includes your Auth/License AND your friend's Vehicles/Dates
+                .requestMatchers("/auth/**", "/license/**", "/vehicles/**", "/dates/**", "/error").permitAll() 
                 .anyRequest().authenticated() // Locks down everything else
             );
         

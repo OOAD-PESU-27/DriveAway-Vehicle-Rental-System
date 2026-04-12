@@ -1,15 +1,15 @@
 package com.driveaway.controllers;
 
-
 import javafx.scene.control.Label;
 import com.driveaway.services.VehicleService;
 import javafx.fxml.FXML;
-// ✅ CORRECT
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.scene.layout.FlowPane;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class VehicleController {
     @FXML
@@ -25,137 +25,178 @@ public class VehicleController {
 
     @FXML
     public void initialize() {
-        
+        // Optional initialization
     }
 
     @FXML
     private void handleSearch() {
-
         String start = startDate.getValue().toString();
         String end = endDate.getValue().toString();
 
         String response = service.getVehiclesWithPricing(start, end);
 
-        JSONArray vehicles = new JSONArray(response);
+        if (response == null || response.trim().isEmpty()) {
+            System.out.println("Error: No response from server");
+            return;
+        }
 
-        // ✅ clear previous results
+        System.out.println("API Response: " + response);
+
+        List<VehicleData> vehicles = parseVehicles(response);
         vehicleContainer.getChildren().clear();
 
-        for (int i = 0; i < vehicles.length(); i++) {
-
-            JSONObject v = vehicles.getJSONObject(i);
-
+        for (VehicleData v : vehicles) {
             VBox card = createVehicleCard(v);
-
             vehicleContainer.getChildren().add(card);
         }
     }
 
-    private VBox createVehicleCard(JSONObject v) {
-
-        VBox card = new VBox();
-        card.getStyleClass().add("vehicle-card");
-
-        VBox body = new VBox(6);
-        body.getStyleClass().add("vehicle-card-body");
-
-        Label title = new Label(v.optString("name"));
-        title.getStyleClass().add("vehicle-name");
-
-        Label seats = new Label("Seats: " + v.optInt("seatingCapacity"));
-        seats.getStyleClass().add("spec-label");
-
-        double base = v.optDouble("pricePerDay");
-        double weekend = v.optDouble("weekendPricePerDay");
-        double holiday = v.optDouble("holidayPricePerDay");
-        double total = Double.parseDouble(v.optString("totalPrice", "0"));
-
-        Label baseLabel = new Label("Base: ₹" + base);
-        baseLabel.getStyleClass().add("vehicle-price-label");
-
-        Label weekendLabel = new Label("Weekend: ₹" + weekend);
-        weekendLabel.getStyleClass().add("vehicle-price-label");
-
-        Label holidayLabel = new Label("Holiday: ₹" + holiday);
-        holidayLabel.getStyleClass().add("vehicle-price-label");
-
-        Label totalLabel = new Label("₹" + total);
-        totalLabel.getStyleClass().add("vehicle-price");
-
-        totalLabel.setStyle("-fx-cursor: hand;");
-
-        totalLabel.setOnMouseClicked(e -> {
-
-        String breakdown = v.optString("priceBreakdown", "No details available");
-
-        Alert alert = new Alert(Alert.AlertType.NONE);
-        alert.setTitle("Price Breakdown");
-
-        // 🔥 Create layout
-        VBox container = new VBox(10);
-        container.setStyle("-fx-padding: 15;");
-
-        Label breakdownTitle  = new Label("Calculation Details");
-        breakdownTitle .getStyleClass().add("section-title");
-
-        // Split breakdown lines
-        String[] lines = breakdown.split("\n");
-
-        VBox breakdownBox = new VBox(6);
-
-        for (String line : lines) {
-            Label l = new Label(line);
-            l.getStyleClass().add("text-muted");
-            breakdownBox.getChildren().add(l);
+    private List<VehicleData> parseVehicles(String json) {
+        List<VehicleData> vehicles = new ArrayList<>();
+        Pattern pattern = Pattern.compile("\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}");
+        Matcher matcher = pattern.matcher(json);
+        
+        while (matcher.find()) {
+            String obj = matcher.group();
+            VehicleData vehicle = parseVehicle(obj);
+            if (vehicle.id != null) {
+                vehicles.add(vehicle);
+            }
         }
+        return vehicles;
+    }
 
-        container.getChildren().addAll(breakdownTitle , breakdownBox);
+    private VehicleData parseVehicle(String json) {
+        VehicleData v = new VehicleData();
+        v.id = getJsonString(json, "id");
+        v.name = getJsonString(json, "name");
+        v.seatingCapacity = getJsonInt(json, "seatingCapacity");
+        v.pricePerDay = getJsonDouble(json, "pricePerDay");
+        v.weekendPricePerDay = getJsonDouble(json, "weekendPricePerDay");
+        v.holidayPricePerDay = getJsonDouble(json, "holidayPricePerDay");
+        
+        // 🔥 FIX 1: Parse total price as a double first, because the API doesn't use quotes for it!
+        v.totalPrice = String.valueOf(getJsonDouble(json, "totalPrice"));
+        
+        v.priceBreakdown = getJsonString(json, "priceBreakdown");
+        return v;
+    }
 
-        DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setContent(container);
+    private String getJsonString(String json, String key) {
+        Pattern pattern = Pattern.compile("\"" + key + "\"\\s*:\\s*\"([^\"]*)\"");
+        Matcher matcher = pattern.matcher(json);
+        return matcher.find() ? matcher.group(1) : "";
+    }
 
-        // ✅ Apply your CSS
-        dialogPane.getStylesheets().add(
-            new java.io.File("src/com/driveaway/views/style/main.css")
-                .toURI().toString()
-        );
+    private int getJsonInt(String json, String key) {
+        Pattern pattern = Pattern.compile("\"" + key + "\"\\s*:\\s*(\\d+)");
+        Matcher matcher = pattern.matcher(json);
+        return matcher.find() ? Integer.parseInt(matcher.group(1)) : 0;
+    }
 
-        dialogPane.getStyleClass().add("card");
+    private double getJsonDouble(String json, String key) {
+        Pattern pattern = Pattern.compile("\"" + key + "\"\\s*:\\s*([\\d.]+)");
+        Matcher matcher = pattern.matcher(json);
+        return matcher.find() ? Double.parseDouble(matcher.group(1)) : 0.0;
+    }
 
-        alert.getButtonTypes().setAll(new ButtonType("OK", ButtonBar.ButtonData.OK_DONE));
+    private VBox createVehicleCard(VehicleData v) {
+        VBox card = new VBox();
+        // 🔥 FIX 3: Inline CSS to guarantee it looks beautiful like your friend's UI
+        card.setStyle("-fx-background-color: white; -fx-background-radius: 15; -fx-padding: 20; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5); -fx-pref-width: 240;");
 
-        alert.showAndWait();
-    });
+        VBox body = new VBox(8);
+
+        Label title = new Label(v.name);
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1a202c;");
+
+        Label seats = new Label("Seats: " + v.seatingCapacity);
+        seats.setStyle("-fx-font-size: 12px; -fx-text-fill: #718096;");
+
+        Label baseLabel = new Label("Base: ₹" + v.pricePerDay);
+        baseLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #718096;");
+
+        Label weekendLabel = new Label("Weekend: ₹" + v.weekendPricePerDay);
+        weekendLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #718096;");
+
+        Label holidayLabel = new Label("Holiday: ₹" + v.holidayPricePerDay);
+        holidayLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #718096;");
+
+        // Removed the word "Total:" to match your friend's screenshot exactly
+        Label totalLabel = new Label("₹" + v.totalPrice);
+        totalLabel.setStyle("-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2b6cb0; -fx-padding: 10 0 10 0;");
 
         Button bookBtn = new Button("Book Now");
-        bookBtn.getStyleClass().addAll("btn-primary", "btn-small");
+        bookBtn.setStyle("-fx-background-color: #2b6cb0; -fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold; -fx-padding: 8 20 8 20; -fx-background-radius: 6; -fx-cursor: hand;");
 
-        bookBtn.setOnAction(e -> bookVehicle(v.optString("id")));
+        bookBtn.setOnAction(e -> {
+            String breakdown = v.priceBreakdown.isEmpty() ? "No details available" : v.priceBreakdown;
+            
+            // 🔥 FIX 2: Convert literal "\n" to real newlines AND fix the Rupee glitches
+            breakdown = breakdown.replace("\\n", "\n").replace("? ?", "× ₹").replace("?", "₹");
 
-        body.getChildren().addAll(
-            title,
-            seats,
-            baseLabel,
-            weekendLabel,
-            holidayLabel,
-            totalLabel,
-            bookBtn
-        );
+            Alert alert = new Alert(Alert.AlertType.NONE);
+            alert.setTitle("Price Breakdown");
 
+            VBox container = new VBox(10);
+            container.setStyle("-fx-padding: 15; -fx-background-color: white;");
+
+            Label breakdownTitle = new Label("Calculation Details");
+            breakdownTitle.setStyle("-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1a202c; -fx-padding: 0 0 10 0;");
+
+            String[] lines = breakdown.split("\n");
+            VBox breakdownBox = new VBox(6);
+
+            for (String line : lines) {
+                Label l = new Label(line);
+                l.setStyle("-fx-font-size: 14px; -fx-text-fill: #718096;");
+                breakdownBox.getChildren().add(l);
+            }
+
+            container.getChildren().addAll(breakdownTitle, breakdownBox);
+
+            DialogPane dialogPane = alert.getDialogPane();
+            dialogPane.setContent(container);
+            dialogPane.setStyle("-fx-background-color: white;");
+
+            ButtonType okButton = new ButtonType("OK", ButtonBar.ButtonData.OK_DONE);
+            ButtonType cancelButton = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+            alert.getButtonTypes().setAll(okButton, cancelButton);
+
+            alert.showAndWait().ifPresent(response -> {
+                if (response == okButton) {
+                    bookVehicle(v.id);
+                }
+            });
+        });
+
+        body.getChildren().addAll(title, seats, baseLabel, weekendLabel, holidayLabel, totalLabel, bookBtn);
         card.getChildren().add(body);
-
         return card;
     }
 
-       private void bookVehicle(String vehicleId) {
+    private void bookVehicle(String vehicleId) {
+        String currentUserId = LoginController.getUserId();
 
-        JSONObject data = new JSONObject();
-        data.put("vehicleId", vehicleId);
-        data.put("startDate", startDate.getValue().toString());
-        data.put("endDate", endDate.getValue().toString());
+        String json = "{" +
+            "\"userId\":\"" + currentUserId + "\"," + 
+            "\"vehicleId\":\"" + vehicleId + "\"," +
+            "\"startDate\":\"" + startDate.getValue().toString() + "\"," +
+            "\"endDate\":\"" + endDate.getValue().toString() + "\"" +
+        "}";
 
-        service.bookVehicle(data.toString());
+        service.bookVehicle(json);
+        System.out.println("Booking sent for User ID: " + currentUserId);
+    }
 
-        System.out.println("Booking sent");
+    static class VehicleData {
+        String id;
+        String name;
+        int seatingCapacity;
+        double pricePerDay;
+        double weekendPricePerDay;
+        double holidayPricePerDay;
+        String totalPrice;
+        String priceBreakdown;
     }
 }
