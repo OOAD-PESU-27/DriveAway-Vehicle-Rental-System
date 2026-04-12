@@ -8,7 +8,7 @@ public class VehicleResponse {
     private double pricePerDay;
     private double weekendPricePerDay;
     private double holidayPricePerDay;
-
+    private String priceBreakdown;
     private double totalPrice;
 
     // getters + setters
@@ -18,6 +18,13 @@ public class VehicleResponse {
 
         public void setSeatingCapacity(int seatingCapacity) {
             this.seatingCapacity = seatingCapacity;
+        }
+        public String getPriceBreakdown() {
+            return priceBreakdown;
+        }
+
+        public void setPriceBreakdown(String priceBreakdown) {
+            this.priceBreakdown = priceBreakdown;
         }
         public String getId() { return id; }    
         public void setId(String id) { this.id = id; }

@@ -38,7 +38,8 @@ public class VehicleService {
 
         int holidayCount = DateService.countHolidays(dates, holidays);
         int weekendCount = DateService.countWeekends(dates);
-
+        int weekdayCount = DateService.countWeekdays(dates, holidays);
+            
         PricingStrategy strategy =
                 PricingFactory.getStrategy(holidayCount, weekendCount);
 
@@ -47,9 +48,12 @@ public class VehicleService {
         for (Vehicle v : vehicles) {
 
             double basePrice = v.getPricePerDay();
-
             double total = strategy.calculate(basePrice, dates, holidays);
-
+            String breakdown =
+                "Base: " + weekdayCount + " × ₹" + basePrice + "\n" +
+                "Weekend: " + weekendCount + " × ₹" + (basePrice * 1.3) + "\n" +
+                "Holiday: " + holidayCount + " × ₹" + (basePrice * 1.5);
+                
             VehicleResponse res = new VehicleResponse();
             res.setId(v.getId());
             res.setName(v.getBrand() + " " + v.getModel());
@@ -61,7 +65,9 @@ public class VehicleService {
             res.setTotalPrice(total);
 
             responseList.add(res);
-        }
+            res.setPriceBreakdown(breakdown);
+      
+    }
 
         return responseList;
     }

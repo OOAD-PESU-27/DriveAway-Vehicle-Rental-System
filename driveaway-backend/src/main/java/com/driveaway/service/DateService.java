@@ -28,4 +28,16 @@ public class DateService {
         }
         return count;
     }
+
+    public static int countWeekdays(List<LocalDate> dates, List<String> holidays) {
+        int count = 0;
+
+        for (LocalDate date : dates) {
+            if (!holidays.contains(date.toString()) && !isWeekend(date)) {
+                count++;
+            }
+        }
+
+        return count;
+    }
 }

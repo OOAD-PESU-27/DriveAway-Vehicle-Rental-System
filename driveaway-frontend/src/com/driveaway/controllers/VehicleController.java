@@ -1,5 +1,6 @@
 package com.driveaway.controllers;
 
+
 import javafx.scene.control.Label;
 import com.driveaway.services.VehicleService;
 import javafx.fxml.FXML;
@@ -80,6 +81,51 @@ public class VehicleController {
 
         Label totalLabel = new Label("₹" + total);
         totalLabel.getStyleClass().add("vehicle-price");
+
+        totalLabel.setStyle("-fx-cursor: hand;");
+
+        totalLabel.setOnMouseClicked(e -> {
+
+        String breakdown = v.optString("priceBreakdown", "No details available");
+
+        Alert alert = new Alert(Alert.AlertType.NONE);
+        alert.setTitle("Price Breakdown");
+
+        // 🔥 Create layout
+        VBox container = new VBox(10);
+        container.setStyle("-fx-padding: 15;");
+
+        Label breakdownTitle  = new Label("Calculation Details");
+        breakdownTitle .getStyleClass().add("section-title");
+
+        // Split breakdown lines
+        String[] lines = breakdown.split("\n");
+
+        VBox breakdownBox = new VBox(6);
+
+        for (String line : lines) {
+            Label l = new Label(line);
+            l.getStyleClass().add("text-muted");
+            breakdownBox.getChildren().add(l);
+        }
+
+        container.getChildren().addAll(breakdownTitle , breakdownBox);
+
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setContent(container);
+
+        // ✅ Apply your CSS
+        dialogPane.getStylesheets().add(
+            new java.io.File("src/com/driveaway/views/style/main.css")
+                .toURI().toString()
+        );
+
+        dialogPane.getStyleClass().add("card");
+
+        alert.getButtonTypes().setAll(new ButtonType("OK", ButtonBar.ButtonData.OK_DONE));
+
+        alert.showAndWait();
+    });
 
         Button bookBtn = new Button("Book Now");
         bookBtn.getStyleClass().addAll("btn-primary", "btn-small");
