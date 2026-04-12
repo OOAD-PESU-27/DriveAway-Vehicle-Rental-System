@@ -66,8 +66,15 @@ public class DashboardController {
                 data.getValue().length > 3 ? data.getValue()[3] : ""));
         statusCol.setCellValueFactory(data -> new SimpleStringProperty(
                 data.getValue().length > 4 ? data.getValue()[4] : ""));
-        amountCol.setCellValueFactory(data -> new SimpleStringProperty(
-                data.getValue().length > 5 ? "₹" + data.getValue()[5] : ""));
+        amountCol.setCellValueFactory(data -> {
+            String amountStr = data.getValue().length > 5 ? data.getValue()[5] : "0";
+            try {
+                double amt = Double.parseDouble(amountStr);
+                return new SimpleStringProperty("₹" + String.format("%,.0f", amt));
+            } catch (NumberFormatException e) {
+                return new SimpleStringProperty("₹" + amountStr);
+            }
+        });
     }
 
     private void loadDashboardData(String userId) {
@@ -105,7 +112,20 @@ public class DashboardController {
             String start = extract(entry, "startDate");
             String end = extract(entry, "endDate");
             String status = extract(entry, "status");
-            String amount = extract(entry, "totalAmount");
+
+            // Prefer paidAmount (set after payment) over totalPrice (estimated at booking time)
+            String paidAmountStr = extract(entry, "paidAmount");
+            String totalPriceStr = extract(entry, "totalPrice");
+            String amount = "0";
+            if (paidAmountStr != null) {
+                try {
+                    double paid = Double.parseDouble(paidAmountStr);
+                    if (paid > 0) amount = paidAmountStr;
+                } catch (NumberFormatException ignored) {}
+            }
+            if ("0".equals(amount) && totalPriceStr != null && !totalPriceStr.isBlank()) {
+                amount = totalPriceStr;
+            }
 
             if (id != null) {
                 rows.add(new String[]{id, vehicleId != null ? vehicleId : "-",

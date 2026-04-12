@@ -72,11 +72,26 @@
                         <Label fx:id="totalReportsLabel" text="—" styleClass="stat-value-white"/>
                         <Label text="Reports Generated" styleClass="stat-label-white"/>
                     </VBox>
+                    <VBox style="-fx-background-color: linear-gradient(to bottom right, #0c4a6e, #0284c7, #38bdf8);
+                                 -fx-background-radius: 16; -fx-padding: 20; -fx-min-width: 160;"
+                          spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                        <Label text="📅" style="-fx-font-size: 26px;"/>
+                        <Label fx:id="totalBookingsLabel" text="—" styleClass="stat-value-white"/>
+                        <Label text="Total Bookings" styleClass="stat-label-white"/>
+                    </VBox>
+                    <VBox style="-fx-background-color: linear-gradient(to bottom right, #78350f, #b45309, #fcd34d);
+                                 -fx-background-radius: 16; -fx-padding: 20; -fx-min-width: 160;"
+                          spacing="6" alignment="CENTER_LEFT" HBox.hgrow="ALWAYS">
+                        <Label text="🔧" style="-fx-font-size: 26px;"/>
+                        <Label fx:id="maintenanceCostLabel" text="—" styleClass="stat-value-white"/>
+                        <Label text="Maintenance Cost" styleClass="stat-label-white"/>
+                    </VBox>
                 </HBox>
 
                 <!-- Generate Report Cards -->
                 <VBox styleClass="card" spacing="14">
                     <Label text="Generate Reports" styleClass="section-title"/>
+                    <!-- Row 1: Original report types -->
                     <HBox spacing="14" alignment="CENTER_LEFT">
                         <!-- Vehicle Inventory -->
                         <Button onAction="#handleGenerateVehicleReport"
@@ -127,6 +142,69 @@
                             </graphic>
                         </Button>
                     </HBox>
+                    <!-- Row 2: New analytics report types -->
+                    <HBox spacing="14" alignment="CENTER_LEFT">
+                        <!-- Revenue -->
+                        <Button onAction="#handleGenerateRevenueReport"
+                                style="-fx-background-color: linear-gradient(to bottom right, #0c4a6e, #0284c7, #38bdf8);
+                                       -fx-background-radius: 14; -fx-padding: 18 22 18 22; -fx-cursor: hand;
+                                       -fx-effect: dropshadow(gaussian, rgba(2,132,199,0.5),12,0,0,4);
+                                       -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 14; -fx-border-width: 1;"
+                                minWidth="150" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="💰" style="-fx-font-size: 28px;"/>
+                                    <Label text="Revenue Report" styleClass="report-btn-label"/>
+                                    <Label text="All-time earnings" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                        <!-- Vehicle Usage -->
+                        <Button onAction="#handleGenerateVehicleUsageReport"
+                                style="-fx-background-color: linear-gradient(to bottom right, #065f46, #059669, #34d399);
+                                       -fx-background-radius: 14; -fx-padding: 18 22 18 22; -fx-cursor: hand;
+                                       -fx-effect: dropshadow(gaussian, rgba(5,150,105,0.5),12,0,0,4);
+                                       -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 14; -fx-border-width: 1;"
+                                minWidth="130" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="🚗" style="-fx-font-size: 28px;"/>
+                                    <Label text="Vehicle Usage" styleClass="report-btn-label"/>
+                                    <Label text="Fleet utilisation" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                        <!-- Damage -->
+                        <Button onAction="#handleGenerateDamageReport"
+                                style="-fx-background-color: linear-gradient(to bottom right, #7f1d1d, #dc2626, #f87171);
+                                       -fx-background-radius: 14; -fx-padding: 18 22 18 22; -fx-cursor: hand;
+                                       -fx-effect: dropshadow(gaussian, rgba(220,38,38,0.5),12,0,0,4);
+                                       -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 14; -fx-border-width: 1;"
+                                minWidth="130" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="⚠️" style="-fx-font-size: 28px;"/>
+                                    <Label text="Damage Report" styleClass="report-btn-label"/>
+                                    <Label text="Incidents &amp; penalties" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                        <!-- Maintenance -->
+                        <Button onAction="#handleGenerateMaintenanceReport"
+                                style="-fx-background-color: linear-gradient(to bottom right, #78350f, #b45309, #fcd34d);
+                                       -fx-background-radius: 14; -fx-padding: 18 22 18 22; -fx-cursor: hand;
+                                       -fx-effect: dropshadow(gaussian, rgba(180,83,9,0.5),12,0,0,4);
+                                       -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 14; -fx-border-width: 1;"
+                                minWidth="130" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                            <graphic>
+                                <VBox spacing="4" alignment="CENTER" style="-fx-padding: 4 0 4 0;">
+                                    <Label text="🔧" style="-fx-font-size: 28px;"/>
+                                    <Label text="Maintenance" styleClass="report-btn-label"/>
+                                    <Label text="Service costs" styleClass="report-btn-sub"/>
+                                </VBox>
+                            </graphic>
+                        </Button>
+                    </HBox>
                     <Label fx:id="vehicleStatsLabel" text="" styleClass="text-muted" wrapText="true"
                            style="-fx-padding: 4 0 0 0;"/>
                 </VBox>
@@ -138,11 +216,15 @@
                     <HBox alignment="CENTER_LEFT" spacing="12">
                         <Label text="📋 Report History" styleClass="section-title" HBox.hgrow="ALWAYS"/>
                         <!-- Legend -->
-                        <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
                             <Label text="🔵 Vehicle" style="-fx-font-size: 11px; -fx-text-fill: #1e40af; -fx-font-weight: bold;"/>
                             <Label text="🟢 Daily" style="-fx-font-size: 11px; -fx-text-fill: #059669; -fx-font-weight: bold;"/>
                             <Label text="🟡 Weekly" style="-fx-font-size: 11px; -fx-text-fill: #b45309; -fx-font-weight: bold;"/>
                             <Label text="🟣 Monthly" style="-fx-font-size: 11px; -fx-text-fill: #6d28d9; -fx-font-weight: bold;"/>
+                            <Label text="💎 Revenue" style="-fx-font-size: 11px; -fx-text-fill: #0284c7; -fx-font-weight: bold;"/>
+                            <Label text="🚗 Usage" style="-fx-font-size: 11px; -fx-text-fill: #059669; -fx-font-weight: bold;"/>
+                            <Label text="⚠️ Damage" style="-fx-font-size: 11px; -fx-text-fill: #dc2626; -fx-font-weight: bold;"/>
+                            <Label text="🔧 Maint." style="-fx-font-size: 11px; -fx-text-fill: #b45309; -fx-font-weight: bold;"/>
                         </HBox>
                     </HBox>
                     <TableView fx:id="reportsTable" minHeight="380" maxWidth="Infinity"

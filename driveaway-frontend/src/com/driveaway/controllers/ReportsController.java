@@ -28,6 +28,9 @@ public class ReportsController {
     @FXML private Label availableVehiclesLabel;
     @FXML private Label totalRevenueLabel;
     @FXML private Label totalReportsLabel;
+    @FXML private Label totalBookingsLabel;
+    @FXML private Label maintenanceCostLabel;
+    @FXML private Label mostUsedVehicleLabel;
 
     private static final String BASE_URL = "http://localhost:8080";
 
@@ -123,6 +126,14 @@ public class ReportsController {
                     baseCell + "-fx-background-color: linear-gradient(to right, #b45309, #d97706);";
             case "MONTHLY" ->
                     baseCell + "-fx-background-color: linear-gradient(to right, #5b21b6, #7c3aed);";
+            case "REVENUE" ->
+                    baseCell + "-fx-background-color: linear-gradient(to right, #0c4a6e, #0284c7);";
+            case "VEHICLE_USAGE" ->
+                    baseCell + "-fx-background-color: linear-gradient(to right, #065f46, #059669);";
+            case "DAMAGE" ->
+                    baseCell + "-fx-background-color: linear-gradient(to right, #7f1d1d, #dc2626);";
+            case "MAINTENANCE" ->
+                    baseCell + "-fx-background-color: linear-gradient(to right, #78350f, #b45309);";
             default ->
                     "-fx-font-weight: bold; -fx-text-fill: #374151;";
         };
@@ -236,6 +247,74 @@ public class ReportsController {
             loadReports();
         } else {
             setStatus("❌ Failed to generate monthly report.");
+        }
+    }
+
+    @FXML
+    public void handleGenerateRevenueReport() {
+        setStatus("Generating revenue report...");
+        String response = reportService.generateRevenueReport(adminId);
+        if (response != null && response.contains("\"success\":true")) {
+            String rev = extractField(response, "totalRevenue");
+            String bookings = extractField(response, "totalBookings");
+            if (totalRevenueLabel != null && rev != null) {
+                try {
+                    totalRevenueLabel.setText("₹" + String.format("%.0f", Double.parseDouble(rev)));
+                } catch (NumberFormatException ignored) {}
+            }
+            if (totalBookingsLabel != null && bookings != null) totalBookingsLabel.setText(bookings);
+            setStatus("✅ Revenue report generated. Total revenue: ₹" + nvl(rev) + " | Bookings: " + nvl(bookings));
+            loadReports();
+        } else {
+            setStatus("❌ Failed to generate revenue report.");
+        }
+    }
+
+    @FXML
+    public void handleGenerateVehicleUsageReport() {
+        setStatus("Generating vehicle usage report...");
+        String response = reportService.generateVehicleUsageReport(adminId);
+        if (response != null && response.contains("\"success\":true")) {
+            String bookings = extractField(response, "totalBookings");
+            String mostUsed = extractField(response, "mostUsedVehicleId");
+            if (totalBookingsLabel != null && bookings != null) totalBookingsLabel.setText(bookings);
+            if (mostUsedVehicleLabel != null && mostUsed != null) mostUsedVehicleLabel.setText(mostUsed);
+            setStatus("✅ Vehicle usage report generated. Bookings: " + nvl(bookings) + " | Most used: " + nvl(mostUsed));
+            loadReports();
+        } else {
+            setStatus("❌ Failed to generate vehicle usage report.");
+        }
+    }
+
+    @FXML
+    public void handleGenerateDamageReport() {
+        setStatus("Generating damage report...");
+        String response = reportService.generateDamageReport(adminId);
+        if (response != null && response.contains("\"success\":true")) {
+            String incidents = extractField(response, "damageIncidents");
+            String charges = extractField(response, "totalDamageCharges");
+            setStatus("✅ Damage report generated. Incidents: " + nvl(incidents) + " | Total charges: ₹" + nvl(charges));
+            loadReports();
+        } else {
+            setStatus("❌ Failed to generate damage report.");
+        }
+    }
+
+    @FXML
+    public void handleGenerateMaintenanceReport() {
+        setStatus("Generating maintenance report...");
+        String response = reportService.generateMaintenanceReport(adminId);
+        if (response != null && response.contains("\"success\":true")) {
+            String cost = extractField(response, "maintenanceCost");
+            if (maintenanceCostLabel != null && cost != null) {
+                try {
+                    maintenanceCostLabel.setText("₹" + String.format("%.0f", Double.parseDouble(cost)));
+                } catch (NumberFormatException ignored) {}
+            }
+            setStatus("✅ Maintenance report generated. Total cost: ₹" + nvl(cost));
+            loadReports();
+        } else {
+            setStatus("❌ Failed to generate maintenance report.");
         }
     }
 
