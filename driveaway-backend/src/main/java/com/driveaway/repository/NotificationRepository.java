@@ -21,6 +21,8 @@ public interface NotificationRepository extends MongoRepository<Notification, St
     List<Notification> findByType(NotificationType type);
     
     List<Notification> findByUserIdAndIsReadFalse(String userId);
+
+    List<Notification> findByUserIdAndTypeAndIsReadFalse(String userId, NotificationType type);
     
     long countByUserIdAndIsReadFalse(String userId);
     

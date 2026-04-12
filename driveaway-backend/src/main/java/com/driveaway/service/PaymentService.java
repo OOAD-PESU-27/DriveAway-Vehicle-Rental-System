@@ -67,6 +67,7 @@ public class PaymentService {
         // Generate a simulated approval token
         String approvalToken = "APPR_" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
         payment.setApprovalToken(approvalToken);
+        payment.setApprovalTokenExpiresAt(LocalDateTime.now().plusHours(24));
 
         Payment savedPayment = paymentRepository.save(payment);
 
@@ -101,6 +102,9 @@ public class PaymentService {
         payment.setStatus(PaymentStatus.APPROVED);
         payment.setApprovedAt(LocalDateTime.now());
         payment.setApprovedBy(approvedBy);
+        payment.setApprovalTokenUsedAt(LocalDateTime.now());
+        payment.setApprovalToken(null);
+        payment.setApprovalTokenExpiresAt(null);
         payment.setUpdatedAt(LocalDateTime.now());
 
         Payment savedPayment = paymentRepository.save(payment);
@@ -117,8 +121,21 @@ public class PaymentService {
      * Approve payment via token (simulated email link acceptance).
      */
     public PaymentResponse approvePaymentByToken(String approvalToken) {
+        if (approvalToken == null || approvalToken.isBlank()) {
+            throw new PaymentException("Invalid or expired approval token");
+        }
         Payment payment = paymentRepository.findByApprovalToken(approvalToken)
                 .orElseThrow(() -> new PaymentException("Invalid or expired approval token"));
+        if (payment.getApprovalTokenUsedAt() != null ||
+                payment.getStatus() == PaymentStatus.APPROVED ||
+                payment.getStatus() == PaymentStatus.COMPLETED ||
+                payment.getStatus() == PaymentStatus.SUCCESS) {
+            throw new PaymentException("Approval token already used");
+        }
+        if (payment.getApprovalTokenExpiresAt() != null &&
+                LocalDateTime.now().isAfter(payment.getApprovalTokenExpiresAt())) {
+            throw new PaymentException("Invalid or expired approval token");
+        }
         return approvePayment(payment.getId(), "SYSTEM_TOKEN");
     }
 

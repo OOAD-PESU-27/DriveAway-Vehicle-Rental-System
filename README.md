@@ -120,6 +120,7 @@ The first user to log in can access all admin features.
 | GET | `/api/v1/bookings` | All bookings |
 | GET | `/api/v1/bookings?status=active` | Active bookings (CONFIRMED + ACTIVE) |
 | GET | `/api/v1/bookings?status=completed` | Completed bookings |
+| GET | `/api/v1/bookings?status=active&search=u123` | Filter + search by booking/user/vehicle/status |
 | GET | `/api/v1/bookings/user/{userId}` | User's bookings |
 | POST | `/api/v1/bookings/{id}/cancel` | Cancel booking |
 | POST | `/api/v1/bookings/{id}/complete` | Mark booking complete |
@@ -155,6 +156,16 @@ The first user to log in can access all admin features.
 | POST | `/auth/login` | Login (returns user ID) |
 | POST | `/auth/register` | Register new user |
 
+#### Notifications
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/notifications/user/{userId}` | User notifications |
+| GET | `/api/v1/notifications/user/{userId}/unread` | Unread notifications |
+| GET | `/api/v1/notifications/user/{userId}/unread/count` | Unread count |
+| GET | `/api/v1/notifications/user/{userId}/pending-approvals` | Pending payment-approval notifications |
+| POST | `/api/v1/notifications/{id}/read` | Mark one notification as read (stores `readAt`) |
+| POST | `/api/v1/notifications/user/{userId}/read-all` | Mark all unread notifications as read |
+
 ---
 
 ## 🔑 Key Features
@@ -176,6 +187,7 @@ In Admin Dashboard, scroll to **All Bookings** section:
 ### C. In-App Payment Approval Flow
 1. User submits payment via **PaymentView** → click "Submit Payment Request"
 2. System creates payment in `REQUESTED` state and generates an approval token
+   - Token has expiry window and is invalidated after single successful use
 3. The **Approval Section** appears in the payment form → click "🔒 Approve Payment (In-App)"
 4. Payment moves to `APPROVED` state; admin can also approve via Admin Dashboard
 5. Click "Complete Payment" → payment processed and booking status updated to `ACTIVE`
@@ -251,6 +263,7 @@ mvn test
 - Sensitive payment fields (CVV, card number) are **never logged**
 - All admin operations require the `X-Admin-ID` header
 - Payment approval tokens (`APPR_...`) are single-use and tied to the payment record
+- Expired or already-used approval tokens are rejected by the API
 - MongoDB URI is read from environment variable `MONGO_URI` (never hardcoded)
 
 ---

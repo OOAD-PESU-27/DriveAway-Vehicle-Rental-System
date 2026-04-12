@@ -41,6 +41,8 @@ public class Payment {
     private LocalDateTime approvedAt;
     private String approvedBy;
     private String approvalToken; // Simulated approval token for Option-B flow
+    private LocalDateTime approvalTokenExpiresAt;
+    private LocalDateTime approvalTokenUsedAt;
 
     // Email verification fields
     private boolean emailVerificationSent;

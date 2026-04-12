@@ -68,7 +68,7 @@ class NotificationServiceTest {
         Notification saved = captor.getValue();
         assertEquals("user-1", saved.getUserId());
         assertEquals("pay-test-001", saved.getPaymentId());
-        assertEquals(NotificationType.PAYMENT_REQUEST_SENT, saved.getType());
+        assertEquals(NotificationType.PAYMENT_APPROVAL_LINK_GENERATED, saved.getType());
         assertEquals(approvalToken, saved.getApprovalToken());
         assertEquals("EMAIL", saved.getNotificationChannel());
         assertEquals("SENT", saved.getStatus());
@@ -173,5 +173,28 @@ class NotificationServiceTest {
         ArgumentCaptor<Notification> captor = ArgumentCaptor.forClass(Notification.class);
         verify(notificationRepository).save(captor.capture());
         assertTrue(captor.getValue().isRead());
+        assertNotNull(captor.getValue().getReadAt());
+    }
+
+    @Test
+    void markAllAsRead_updatesUnreadNotifications() {
+        Notification n1 = new Notification("u1", "p1", NotificationType.PAYMENT_SUCCESS, "m1", "s1");
+        Notification n2 = new Notification("u1", "p2", NotificationType.PAYMENT_FAILED, "m2", "s2");
+        when(notificationRepository.findByUserIdAndIsReadFalse("u1")).thenReturn(java.util.List.of(n1, n2));
+
+        long updated = notificationService.markAllAsRead("u1");
+
+        assertEquals(2, updated);
+        verify(notificationRepository).saveAll(argThat(list ->
+                hasAllReadWithTimestamp(list)));
+    }
+
+    private boolean hasAllReadWithTimestamp(Iterable<Notification> notifications) {
+        for (Notification notification : notifications) {
+            if (!notification.isRead() || notification.getReadAt() == null) {
+                return false;
+            }
+        }
+        return true;
     }
 }

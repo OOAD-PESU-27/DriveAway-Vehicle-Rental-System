@@ -72,13 +72,9 @@ public class BookingController {
      */
     @GetMapping
     public ResponseEntity<List<Booking>> getAllBookings(
-            @RequestParam(value = "status", required = false) String status) {
-        if ("active".equalsIgnoreCase(status)) {
-            return ResponseEntity.ok(bookingService.getActiveBookings());
-        } else if ("completed".equalsIgnoreCase(status)) {
-            return ResponseEntity.ok(bookingService.getCompletedBookings());
-        }
-        return ResponseEntity.ok(bookingService.getAllBookings());
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "search", required = false) String search) {
+        return ResponseEntity.ok(bookingService.getBookingsForAdmin(status, search));
     }
 
     /**

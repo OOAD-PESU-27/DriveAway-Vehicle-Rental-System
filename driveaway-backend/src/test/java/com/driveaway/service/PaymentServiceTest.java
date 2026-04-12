@@ -255,6 +255,7 @@ class PaymentServiceTest {
         requested.setId("pay-007");
         requested.setStatus(PaymentStatus.REQUESTED);
         requested.setApprovalToken("APPR_VALIDTOKEN");
+        requested.setApprovalTokenExpiresAt(LocalDateTime.now().plusHours(1));
 
         when(paymentRepository.findByApprovalToken("APPR_VALIDTOKEN")).thenReturn(Optional.of(requested));
         when(paymentRepository.findById("pay-007")).thenReturn(Optional.of(requested));
@@ -263,6 +264,35 @@ class PaymentServiceTest {
         PaymentResponse response = paymentService.approvePaymentByToken("APPR_VALIDTOKEN");
         assertTrue(response.isSuccess());
         assertEquals(PaymentStatus.APPROVED, response.getStatus());
+    }
+
+    @Test
+    void approvePaymentByToken_withExpiredToken_throwsPaymentException() {
+        Payment requested = new Payment("r1", "u1", 1000.0, "CARD");
+        requested.setId("pay-expired");
+        requested.setStatus(PaymentStatus.REQUESTED);
+        requested.setApprovalToken("APPR_EXPIRED");
+        requested.setApprovalTokenExpiresAt(LocalDateTime.now().minusMinutes(1));
+
+        when(paymentRepository.findByApprovalToken("APPR_EXPIRED")).thenReturn(Optional.of(requested));
+
+        assertThrows(PaymentException.class,
+                () -> paymentService.approvePaymentByToken("APPR_EXPIRED"));
+    }
+
+    @Test
+    void approvePaymentByToken_whenAlreadyUsed_throwsPaymentException() {
+        Payment requested = new Payment("r1", "u1", 1000.0, "CARD");
+        requested.setId("pay-used");
+        requested.setStatus(PaymentStatus.APPROVED);
+        requested.setApprovalToken("APPR_USED");
+        requested.setApprovalTokenExpiresAt(LocalDateTime.now().plusHours(1));
+        requested.setApprovalTokenUsedAt(LocalDateTime.now().minusMinutes(2));
+
+        when(paymentRepository.findByApprovalToken("APPR_USED")).thenReturn(Optional.of(requested));
+
+        assertThrows(PaymentException.class,
+                () -> paymentService.approvePaymentByToken("APPR_USED"));
     }
 
     // -------------------------------------------------------------------------
