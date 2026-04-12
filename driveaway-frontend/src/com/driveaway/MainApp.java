@@ -18,12 +18,13 @@ public class MainApp extends Application {
 
         Scene scene = new Scene(loader.load(), 400, 500);
 
-        // ✅ Load CSS from css folder
+        // ✅ Load CSS from views/style folder
         scene.getStylesheets().add(
-            new java.io.File("src/com/driveaway/views/css/style.css")
-                .toURI().toString()
+            new java.io.File("src/com/driveaway/views/style/main.css")
+                .toURI()
+                .toString()
         );
-
+    
         stage.setTitle("🚗 DriveAway Vehicles");
         stage.setScene(scene);
         stage.show();

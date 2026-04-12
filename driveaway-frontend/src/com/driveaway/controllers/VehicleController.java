@@ -3,20 +3,16 @@ package com.driveaway.controllers;
 import javafx.scene.control.Label;
 import com.driveaway.services.VehicleService;
 import javafx.fxml.FXML;
+// ✅ CORRECT
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
-
-import javafx.scene.control.ListView;
-
-import org.json.JSONArray;
-import org.json.JSONObject;
+import javafx.scene.layout.FlowPane;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 public class VehicleController {
-
     @FXML
-    private ListView<VBox> vehicleList;
+    private FlowPane vehicleContainer;
 
     @FXML
     private DatePicker startDate;
@@ -28,17 +24,11 @@ public class VehicleController {
 
     @FXML
     public void initialize() {
-        vehicleList.setVisible(false);
+        
     }
 
-    public void searchVehicles() {
-
-        if (startDate.getValue() == null || endDate.getValue() == null) {
-            System.out.println("Select dates");
-            return;
-        }
-
-        vehicleList.setVisible(true);
+    @FXML
+    private void handleSearch() {
 
         String start = startDate.getValue().toString();
         String end = endDate.getValue().toString();
@@ -47,47 +37,56 @@ public class VehicleController {
 
         JSONArray vehicles = new JSONArray(response);
 
-        vehicleList.getItems().clear();
+        // ✅ clear previous results
+        vehicleContainer.getChildren().clear();
 
         for (int i = 0; i < vehicles.length(); i++) {
+
             JSONObject v = vehicles.getJSONObject(i);
-            vehicleList.getItems().add(createVehicleCard(v));
+
+            VBox card = createVehicleCard(v);
+
+            vehicleContainer.getChildren().add(card);
         }
     }
 
     private VBox createVehicleCard(JSONObject v) {
 
-        VBox card = new VBox(8);
-        card.setStyle("-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 10; -fx-border-color: #ddd;");
+        VBox card = new VBox();
+        card.getStyleClass().add("vehicle-card");
 
-        // Title
-        Label title = new Label("🚗 " + v.optString("name", "Vehicle"));
-        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        VBox body = new VBox(6);
+        body.getStyleClass().add("vehicle-card-body");
 
-        // Seating
-        Label seats = new Label("Seats: " + v.optInt("seatingCapacity", 0));
+        Label title = new Label(v.optString("name"));
+        title.getStyleClass().add("vehicle-name");
 
-        // Prices
-        double base = v.optDouble("pricePerDay", 0);
-        double weekend = v.optDouble("weekendPricePerDay", 0);
-        double holiday = v.optDouble("holidayPricePerDay", 0);
-        double total = v.optDouble("totalPrice", 0);
+        Label seats = new Label("Seats: " + v.optInt("seatingCapacity"));
+        seats.getStyleClass().add("spec-label");
 
-        Label baseLabel = new Label("Base: ₹" + base + "/day");
-        Label weekendLabel = new Label("Weekend: ₹" + weekend + "/day");
-        Label holidayLabel = new Label("Holiday: ₹" + holiday + "/day");
+        double base = v.optDouble("pricePerDay");
+        double weekend = v.optDouble("weekendPricePerDay");
+        double holiday = v.optDouble("holidayPricePerDay");
+        double total = Double.parseDouble(v.optString("totalPrice", "0"));
 
-        Label totalLabel = new Label("Total: ₹" + total);
-        totalLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: green;");
+        Label baseLabel = new Label("Base: ₹" + base);
+        baseLabel.getStyleClass().add("vehicle-price-label");
 
-        // Button
-        Button bookBtn = new Button("Book");
-        bookBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
+        Label weekendLabel = new Label("Weekend: ₹" + weekend);
+        weekendLabel.getStyleClass().add("vehicle-price-label");
+
+        Label holidayLabel = new Label("Holiday: ₹" + holiday);
+        holidayLabel.getStyleClass().add("vehicle-price-label");
+
+        Label totalLabel = new Label("₹" + total);
+        totalLabel.getStyleClass().add("vehicle-price");
+
+        Button bookBtn = new Button("Book Now");
+        bookBtn.getStyleClass().addAll("btn-primary", "btn-small");
 
         bookBtn.setOnAction(e -> bookVehicle(v.optString("id")));
 
-        // Add all to card
-        card.getChildren().addAll(
+        body.getChildren().addAll(
             title,
             seats,
             baseLabel,
@@ -96,6 +95,8 @@ public class VehicleController {
             totalLabel,
             bookBtn
         );
+
+        card.getChildren().add(body);
 
         return card;
     }
