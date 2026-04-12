@@ -2,9 +2,11 @@ package com.driveaway.service;
 
 import com.driveaway.dto.BookingRequest;
 import com.driveaway.entity.Booking;
+import com.driveaway.entity.Payment;
 import com.driveaway.entity.Vehicle;
 import com.driveaway.exception.PaymentException;
 import com.driveaway.repository.BookingRepository;
+import com.driveaway.repository.PaymentRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -34,6 +37,8 @@ class BookingServiceTest {
     private PricingService pricingService;
     @Mock
     private AuditLogService auditLogService;
+    @Mock
+    private PaymentRepository paymentRepository;
 
     @InjectMocks
     private BookingService bookingService;
@@ -165,6 +170,88 @@ class BookingServiceTest {
 
         assertEquals("CONFIRMED", result.getStatus());
         assertEquals(5000.0, result.getTotalPrice(), 0.001);
+    }
+
+    // ── processReturn ────────────────────────────────────────────────────────
+
+    @Test
+    void processReturn_confirmedBooking_setsReturnedStatus() {
+        Booking booking = buildBooking("bk-r01", "CONFIRMED");
+
+        when(bookingRepository.findById("bk-r01")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(vehicleService).markVehicleAsAvailable(any());
+        when(paymentRepository.findByRentalId("bk-r01")).thenReturn(List.of());
+
+        Booking result = bookingService.processReturn("bk-r01", "Minor scratch", 200.0, "staff-1");
+
+        assertEquals("RETURNED", result.getStatus());
+        assertEquals("Minor scratch", result.getDamageNotes());
+        assertEquals(200.0, result.getDamageCharge(), 0.001);
+        assertNotNull(result.getReturnDate());
+    }
+
+    @Test
+    void processReturn_withSecurityDeposit_noDamage_refundsFullDeposit() {
+        Booking booking = buildBooking("bk-r02", "ACTIVE");
+
+        Payment payment = new Payment("bk-r02", "user-1", 5000.0, "CARD");
+        payment.setId("pay-r02");
+        payment.setSecurityDeposit(1000.0);
+        payment.setSecurityDepositStatus("HELD");
+
+        when(bookingRepository.findById("bk-r02")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(vehicleService).markVehicleAsAvailable(any());
+        when(paymentRepository.findByRentalId("bk-r02")).thenReturn(List.of(payment));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Booking result = bookingService.processReturn("bk-r02", "", 0.0, "staff-1");
+
+        assertEquals("RETURNED", result.getStatus());
+        assertEquals(0.0, result.getDamageCharge(), 0.001);
+        verify(paymentRepository).save(argThat(p -> "REFUNDED".equals(p.getSecurityDepositStatus())));
+    }
+
+    @Test
+    void processReturn_withSecurityDeposit_damageExceedsDeposit_forfeit() {
+        Booking booking = buildBooking("bk-r03", "ACTIVE");
+
+        Payment payment = new Payment("bk-r03", "user-1", 5000.0, "CARD");
+        payment.setId("pay-r03");
+        payment.setSecurityDeposit(500.0);
+        payment.setSecurityDepositStatus("HELD");
+
+        when(bookingRepository.findById("bk-r03")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(vehicleService).markVehicleAsAvailable(any());
+        when(paymentRepository.findByRentalId("bk-r03")).thenReturn(List.of(payment));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Booking result = bookingService.processReturn("bk-r03", "Major damage", 800.0, "staff-1");
+
+        assertEquals("RETURNED", result.getStatus());
+        verify(paymentRepository).save(argThat(p -> "FORFEITED".equals(p.getSecurityDepositStatus())));
+    }
+
+    @Test
+    void processReturn_alreadyReturnedBooking_throwsPaymentException() {
+        Booking booking = buildBooking("bk-r04", "RETURNED");
+
+        when(bookingRepository.findById("bk-r04")).thenReturn(Optional.of(booking));
+
+        assertThrows(PaymentException.class,
+                () -> bookingService.processReturn("bk-r04", "", 0.0, "staff-1"));
+    }
+
+    @Test
+    void processReturn_cancelledBooking_throwsPaymentException() {
+        Booking booking = buildBooking("bk-r05", "CANCELLED");
+
+        when(bookingRepository.findById("bk-r05")).thenReturn(Optional.of(booking));
+
+        assertThrows(PaymentException.class,
+                () -> bookingService.processReturn("bk-r05", "", 0.0, "staff-1"));
     }
 
     // ── Helper ──────────────────────────────────────────────────────────────

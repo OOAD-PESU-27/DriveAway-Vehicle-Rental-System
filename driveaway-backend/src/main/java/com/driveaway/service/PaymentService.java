@@ -274,6 +274,15 @@ public class PaymentService {
                 if (request.getNetBankingBank() == null || request.getNetBankingBank().isEmpty()) {
                     throw new PaymentException("Bank selection is required for NetBanking");
                 }
+                if (request.getNetBankingAccountHolder() == null || request.getNetBankingAccountHolder().isBlank()) {
+                    throw new PaymentException("Account holder name is required for NetBanking");
+                }
+                if (request.getNetBankingAccountNumber() == null || request.getNetBankingAccountNumber().isBlank()) {
+                    throw new PaymentException("Account number is required for NetBanking");
+                }
+                if (request.getNetBankingIfscCode() == null || request.getNetBankingIfscCode().isBlank()) {
+                    throw new PaymentException("IFSC code is required for NetBanking");
+                }
                 break;
             default:
                 throw new PaymentException("Invalid payment method");
@@ -324,6 +333,45 @@ public class PaymentService {
         reportService.updateReportOnPaymentRefund(refundedPayment);
         
         return new PaymentResponse("Payment refunded successfully", true);
+    }
+
+    /**
+     * Refund (or forfeit) the security deposit after a vehicle return and damage check.
+     * @param bookingId    the booking/rental ID that was paid
+     * @param damageCharge the charge assessed for damage (0 = no damage)
+     * @param adminId      staff/admin performing the action
+     * @return response describing the deposit outcome
+     */
+    public PaymentResponse refundSecurityDeposit(String bookingId, double damageCharge, String adminId) {
+        List<Payment> payments = paymentRepository.findByRentalId(bookingId);
+        Payment payment = payments.stream()
+                .filter(p -> p.getSecurityDeposit() > 0 && "HELD".equals(p.getSecurityDepositStatus()))
+                .findFirst()
+                .orElseThrow(() -> new PaymentException(
+                        "No held security deposit found for booking: " + bookingId));
+
+        double deposit = payment.getSecurityDeposit();
+        double refundAmount = Math.max(0, deposit - damageCharge);
+
+        if (refundAmount <= 0) {
+            payment.setSecurityDepositStatus("FORFEITED");
+            payment.setUpdatedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+            auditLogService.logPaymentAction("DEPOSIT_FORFEITED", payment.getId(), adminId,
+                    "Security deposit forfeited due to damage charge: " + damageCharge);
+            return new PaymentResponse("Security deposit forfeited due to damage charges", true);
+        } else {
+            payment.setSecurityDepositStatus("REFUNDED");
+            payment.setUpdatedAt(LocalDateTime.now());
+            paymentRepository.save(payment);
+            auditLogService.logPaymentAction("DEPOSIT_REFUNDED", payment.getId(), adminId,
+                    "Security deposit refunded: " + refundAmount + " (damage: " + damageCharge + ")");
+            notificationService.sendRefundNotification(payment);
+            return new PaymentResponse(
+                    "Security deposit refunded: ₹" + String.format("%.2f", refundAmount) +
+                    (damageCharge > 0 ? " (₹" + String.format("%.2f", damageCharge) + " deducted for damage)" : ""),
+                    true);
+        }
     }
 
     private PaymentResponse buildResponse(Payment payment, String message, boolean success) {

@@ -48,7 +48,7 @@
                         <VBox styleClass="card" spacing="6" style="-fx-background-color: #eff6ff; -fx-padding: 12;">
                             <Label text="📋 Payment Approval Flow" styleClass="section-title"
                                    style="-fx-text-fill: #1e40af;"/>
-                            <Label text="1. Submit Request → 2. Approve via Email → 3. Complete Payment"
+                            <Label text="1. Submit Request → 2. Approve In-App → 3. Complete Payment"
                                    styleClass="text-muted" wrapText="true"/>
                         </VBox>
 
@@ -117,10 +117,31 @@
                         </VBox>
 
                         <!-- Net Banking Field -->
-                        <VBox fx:id="netBankingSection" spacing="6" visible="false" managed="false">
-                            <Label text="Select Bank" styleClass="form-label"/>
-                            <ComboBox fx:id="bankCombo" promptText="Choose your bank"
-                                      maxWidth="Infinity" styleClass="form-combo"/>
+                        <VBox fx:id="netBankingSection" spacing="12" visible="false" managed="false">
+                            <Label text="Net Banking Details" styleClass="section-title"/>
+                            <VBox spacing="6">
+                                <Label text="Select Bank" styleClass="form-label"/>
+                                <ComboBox fx:id="bankCombo" promptText="Choose your bank"
+                                          maxWidth="Infinity" styleClass="form-combo"/>
+                            </VBox>
+                            <VBox spacing="6">
+                                <Label text="Account Holder Name" styleClass="form-label"/>
+                                <TextField fx:id="netBankingAccountHolderField"
+                                           promptText="As per bank records"
+                                           styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="6">
+                                <Label text="Account Number" styleClass="form-label"/>
+                                <TextField fx:id="netBankingAccountNumberField"
+                                           promptText="10-18 digit account number"
+                                           styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="6">
+                                <Label text="IFSC Code" styleClass="form-label"/>
+                                <TextField fx:id="netBankingIfscField"
+                                           promptText="e.g. HDFC0001234"
+                                           styleClass="form-field" maxWidth="Infinity"/>
+                            </VBox>
                         </VBox>
 
                         <!-- Amount Summary -->
@@ -156,12 +177,18 @@
 
                         <!-- APPROVAL SECTION (shown after request submitted) -->
                         <VBox fx:id="approvalSection" spacing="12" visible="false" managed="false"
-                              style="-fx-background-color: #fefce8; -fx-padding: 16; -fx-border-color: #fbbf24; -fx-border-radius: 8; -fx-background-radius: 8;">
-                            <Label text="📧 Approval Email Sent" styleClass="section-title"
-                                   style="-fx-text-fill: #b45309;"/>
+                              style="-fx-background-color: #f0fdf4; -fx-padding: 16; -fx-border-color: #22c55e; -fx-border-radius: 8; -fx-background-radius: 8;">
+                            <Label text="✅ Payment Request Submitted" styleClass="section-title"
+                                   style="-fx-text-fill: #15803d;"/>
                             <Label fx:id="approvalTokenLabel"
-                                   text="An approval link has been sent to your email. Once approved, click Complete Payment below."
+                                   text="Click the button below to approve the payment in-app."
                                    wrapText="true" styleClass="text-muted"/>
+
+                            <!-- In-app approval button (admin/user clicks to approve without email) -->
+                            <Button text="🔒 Approve Payment (In-App)"
+                                    onAction="#handleApproveInApp"
+                                    styleClass="btn-primary" maxWidth="Infinity"
+                                    style="-fx-font-size: 13px; -fx-background-color: #15803d;"/>
 
                             <!-- Check approval status -->
                             <Button text="🔄 Refresh Approval Status"

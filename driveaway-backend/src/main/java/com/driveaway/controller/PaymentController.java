@@ -217,6 +217,23 @@ public class PaymentController {
         }
     }
 
+    /**
+     * Refund or forfeit security deposit after vehicle return and damage check.
+     * POST /api/v1/payments/refund-deposit?bookingId=...&damageCharge=...
+     */
+    @PostMapping("/refund-deposit")
+    public ResponseEntity<?> refundSecurityDeposit(
+            @RequestParam String bookingId,
+            @RequestParam(defaultValue = "0") double damageCharge,
+            @RequestHeader(value = "X-Admin-ID", required = false, defaultValue = "ADMIN") String adminId) {
+        try {
+            PaymentResponse response = paymentService.refundSecurityDeposit(bookingId, damageCharge, adminId);
+            return ResponseEntity.ok(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new PaymentResponse(e.getMessage(), false));
+        }
+    }
+
     // -------------------------------------------------------------------------
     // Email verification endpoints
     // -------------------------------------------------------------------------

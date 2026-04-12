@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Document(collection = "bookings")
 public class Booking {
@@ -18,6 +19,12 @@ public class Booking {
     private double totalPrice;
     private double paidAmount;
     private String status;
+
+    // Return and damage check fields
+    private LocalDateTime returnDate;
+    private String damageNotes;
+    private double damageCharge;
+    private boolean depositRefunded;
 
     public Booking() {}
 
@@ -83,5 +90,37 @@ public class Booking {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public LocalDateTime getReturnDate() {
+        return returnDate;
+    }
+
+    public void setReturnDate(LocalDateTime returnDate) {
+        this.returnDate = returnDate;
+    }
+
+    public String getDamageNotes() {
+        return damageNotes;
+    }
+
+    public void setDamageNotes(String damageNotes) {
+        this.damageNotes = damageNotes;
+    }
+
+    public double getDamageCharge() {
+        return damageCharge;
+    }
+
+    public void setDamageCharge(double damageCharge) {
+        this.damageCharge = damageCharge;
+    }
+
+    public boolean isDepositRefunded() {
+        return depositRefunded;
+    }
+
+    public void setDepositRefunded(boolean depositRefunded) {
+        this.depositRefunded = depositRefunded;
     }
 }

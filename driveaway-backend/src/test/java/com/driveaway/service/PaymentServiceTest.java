@@ -374,4 +374,159 @@ class PaymentServiceTest {
                 .save(argThat(b -> b.getPaidAmount() == 10000.0
                         && "ACTIVE".equals(b.getStatus())));
     }
+
+    // -------------------------------------------------------------------------
+    // Netbanking validation tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    void processPayment_netbanking_missingBank_throwsPaymentException() {
+        PaymentRequest req = new PaymentRequest();
+        req.setRentalId("r1");
+        req.setUserId("u1");
+        req.setAmount(3000.0);
+        req.setPaymentMethod("NETBANKING");
+        // bank, accountHolder, accountNumber, ifscCode all null
+
+        assertThrows(PaymentException.class,
+                () -> paymentService.processPayment(req, "u1"),
+                "Missing bank should throw PaymentException");
+    }
+
+    @Test
+    void processPayment_netbanking_missingAccountHolder_throwsPaymentException() {
+        PaymentRequest req = new PaymentRequest();
+        req.setRentalId("r1");
+        req.setUserId("u1");
+        req.setAmount(3000.0);
+        req.setPaymentMethod("NETBANKING");
+        req.setNetBankingBank("HDFC");
+        // accountHolder null
+
+        assertThrows(PaymentException.class,
+                () -> paymentService.processPayment(req, "u1"),
+                "Missing account holder should throw PaymentException");
+    }
+
+    @Test
+    void processPayment_netbanking_missingAccountNumber_throwsPaymentException() {
+        PaymentRequest req = new PaymentRequest();
+        req.setRentalId("r1");
+        req.setUserId("u1");
+        req.setAmount(3000.0);
+        req.setPaymentMethod("NETBANKING");
+        req.setNetBankingBank("HDFC");
+        req.setNetBankingAccountHolder("John Doe");
+        // accountNumber null
+
+        assertThrows(PaymentException.class,
+                () -> paymentService.processPayment(req, "u1"),
+                "Missing account number should throw PaymentException");
+    }
+
+    @Test
+    void processPayment_netbanking_missingIfsc_throwsPaymentException() {
+        PaymentRequest req = new PaymentRequest();
+        req.setRentalId("r1");
+        req.setUserId("u1");
+        req.setAmount(3000.0);
+        req.setPaymentMethod("NETBANKING");
+        req.setNetBankingBank("HDFC");
+        req.setNetBankingAccountHolder("John Doe");
+        req.setNetBankingAccountNumber("0012345678");
+        // ifscCode null
+
+        assertThrows(PaymentException.class,
+                () -> paymentService.processPayment(req, "u1"),
+                "Missing IFSC code should throw PaymentException");
+    }
+
+    @Test
+    void processPayment_netbanking_allFieldsProvided_proceeds() {
+        PaymentRequest req = new PaymentRequest();
+        req.setRentalId("r1");
+        req.setUserId("u1");
+        req.setAmount(3000.0);
+        req.setPaymentMethod("NETBANKING");
+        req.setNetBankingBank("HDFC");
+        req.setNetBankingAccountHolder("John Doe");
+        req.setNetBankingAccountNumber("0012345678");
+        req.setNetBankingIfscCode("HDFC0001234");
+
+        when(paymentRepository.save(any(Payment.class))).thenAnswer(inv -> {
+            Payment p = inv.getArgument(0);
+            p.setId("pay-nb-01");
+            return p;
+        });
+
+        // processPayment should not throw with all fields present
+        assertDoesNotThrow(() -> paymentService.processPayment(req, "u1"),
+                "Valid netbanking request should not throw");
+    }
+
+    // -------------------------------------------------------------------------
+    // Security deposit refund tests
+    // -------------------------------------------------------------------------
+
+    @Test
+    void refundSecurityDeposit_noDamage_refundsFullDeposit() {
+        Payment payment = new Payment("booking-dep1", "u1", 5000.0, "CARD");
+        payment.setId("pay-dep1");
+        payment.setSecurityDeposit(1000.0);
+        payment.setSecurityDepositStatus("HELD");
+
+        when(paymentRepository.findByRentalId("booking-dep1")).thenReturn(java.util.List.of(payment));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PaymentResponse response = paymentService.refundSecurityDeposit("booking-dep1", 0.0, "admin-1");
+
+        assertTrue(response.isSuccess());
+        assertTrue(response.getMessage().contains("1000") || response.getMessage().contains("refunded"),
+                "Response should confirm refund");
+        verify(paymentRepository).save(argThat(p -> "REFUNDED".equals(p.getSecurityDepositStatus())));
+    }
+
+    @Test
+    void refundSecurityDeposit_damageExceedsDeposit_forfeitsDeposit() {
+        Payment payment = new Payment("booking-dep2", "u1", 5000.0, "CARD");
+        payment.setId("pay-dep2");
+        payment.setSecurityDeposit(500.0);
+        payment.setSecurityDepositStatus("HELD");
+
+        when(paymentRepository.findByRentalId("booking-dep2")).thenReturn(java.util.List.of(payment));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PaymentResponse response = paymentService.refundSecurityDeposit("booking-dep2", 800.0, "admin-1");
+
+        assertTrue(response.isSuccess());
+        verify(paymentRepository).save(argThat(p -> "FORFEITED".equals(p.getSecurityDepositStatus())));
+    }
+
+    @Test
+    void refundSecurityDeposit_partialDamage_refundsPartial() {
+        Payment payment = new Payment("booking-dep3", "u1", 5000.0, "CARD");
+        payment.setId("pay-dep3");
+        payment.setSecurityDeposit(1000.0);
+        payment.setSecurityDepositStatus("HELD");
+
+        when(paymentRepository.findByRentalId("booking-dep3")).thenReturn(java.util.List.of(payment));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        PaymentResponse response = paymentService.refundSecurityDeposit("booking-dep3", 300.0, "admin-1");
+
+        assertTrue(response.isSuccess());
+        // Refund of 700 should be mentioned
+        assertTrue(response.getMessage().contains("700") || response.getMessage().contains("refunded"),
+                "Response should confirm partial refund of ₹700");
+        verify(paymentRepository).save(argThat(p -> "REFUNDED".equals(p.getSecurityDepositStatus())));
+    }
+
+    @Test
+    void refundSecurityDeposit_noHeldDeposit_throwsPaymentException() {
+        when(paymentRepository.findByRentalId("booking-dep4")).thenReturn(java.util.List.of());
+
+        assertThrows(PaymentException.class,
+                () -> paymentService.refundSecurityDeposit("booking-dep4", 0.0, "admin-1"),
+                "No held deposit should throw PaymentException");
+    }
 }
