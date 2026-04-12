@@ -1,5 +1,5 @@
 package com.driveaway.services;
 
-public class VehicleService {
+public class BookingService {
     
 }
