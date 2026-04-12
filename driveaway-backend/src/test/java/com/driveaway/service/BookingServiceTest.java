@@ -39,6 +39,8 @@ class BookingServiceTest {
     private AuditLogService auditLogService;
     @Mock
     private PaymentRepository paymentRepository;
+    @Mock
+    private NotificationService notificationService;
 
     @InjectMocks
     private BookingService bookingService;
@@ -170,6 +172,7 @@ class BookingServiceTest {
 
         assertEquals("CONFIRMED", result.getStatus());
         assertEquals(5000.0, result.getTotalPrice(), 0.001);
+        verify(notificationService).sendBookingConfirmedNotification(any(Booking.class));
     }
 
     // ── processReturn ────────────────────────────────────────────────────────
@@ -189,6 +192,8 @@ class BookingServiceTest {
         assertEquals("Minor scratch", result.getDamageNotes());
         assertEquals(200.0, result.getDamageCharge(), 0.001);
         assertNotNull(result.getReturnDate());
+        verify(notificationService).sendVehicleReturnCompletedNotification(any(Booking.class));
+        verify(notificationService).sendDamagePenaltyAppliedNotification(any(Booking.class));
     }
 
     @Test
@@ -211,6 +216,8 @@ class BookingServiceTest {
         assertEquals("RETURNED", result.getStatus());
         assertEquals(0.0, result.getDamageCharge(), 0.001);
         verify(paymentRepository).save(argThat(p -> "REFUNDED".equals(p.getSecurityDepositStatus())));
+        verify(notificationService).sendVehicleReturnCompletedNotification(any(Booking.class));
+        verify(notificationService, never()).sendDamagePenaltyAppliedNotification(any(Booking.class));
     }
 
     @Test

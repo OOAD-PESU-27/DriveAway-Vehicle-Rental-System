@@ -14,6 +14,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * BookingService - Contains business logic for vehicle bookings
@@ -30,6 +31,7 @@ public class BookingService {
     private final PricingService pricingService;
     private final AuditLogService auditLogService;
     private final PaymentRepository paymentRepository;
+    private final NotificationService notificationService;
 
     /**
      * Create a new booking
@@ -67,6 +69,7 @@ public class BookingService {
         Booking savedBooking = bookingRepository.save(booking);
 
         vehicleService.markVehicleAsBooked(request.getVehicleId());
+        notificationService.sendBookingConfirmedNotification(savedBooking);
 
         auditLogService.logPaymentAction("BOOKING_CREATED", savedBooking.getId(), userId,
                 "Booking created for vehicle: " + request.getVehicleId()
@@ -216,6 +219,41 @@ public class BookingService {
         auditLogService.logPaymentAction("BOOKING_RETURNED", bookingId, staffId,
                 "Vehicle returned. Damage: " + (damageCharge > 0 ? "₹" + damageCharge : "None"));
 
+        notificationService.sendVehicleReturnCompletedNotification(saved);
+        if (saved.getDamageCharge() > 0) {
+            notificationService.sendDamagePenaltyAppliedNotification(saved);
+        }
+
         return saved;
+    }
+
+    /**
+     * Get bookings for admin with status filtering and simple search support.
+     */
+    public List<Booking> getBookingsForAdmin(String status, String search) {
+        List<Booking> result;
+        if ("active".equalsIgnoreCase(status)) {
+            result = getActiveBookings();
+        } else if ("completed".equalsIgnoreCase(status)) {
+            result = getCompletedBookings();
+        } else {
+            result = getAllBookings();
+        }
+
+        if (search == null || search.isBlank()) {
+            return result;
+        }
+
+        String q = search.trim().toLowerCase(Locale.ROOT);
+        return result.stream().filter(b ->
+                        containsIgnoreCase(b.getId(), q) ||
+                        containsIgnoreCase(b.getUserId(), q) ||
+                        containsIgnoreCase(b.getVehicleId(), q) ||
+                        containsIgnoreCase(b.getStatus(), q))
+                .toList();
+    }
+
+    private boolean containsIgnoreCase(String value, String query) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(query);
     }
 }

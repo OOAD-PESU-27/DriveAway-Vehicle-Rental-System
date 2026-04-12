@@ -11,8 +11,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * NotificationService - Contains business logic for notifications.
@@ -45,7 +47,7 @@ public class NotificationService {
             Notification notification = new Notification(
                     payment.getUserId(),
                     payment.getId(),
-                    NotificationType.PAYMENT_REQUEST_SENT,
+                    NotificationType.PAYMENT_APPROVAL_LINK_GENERATED,
                     "Payment request of ₹" + payment.getAmount() + " has been submitted and is pending approval. " +
                     "Click the link to approve: " + approveUrl,
                     "Payment Request Submitted – Awaiting Your Approval"
@@ -253,6 +255,67 @@ public class NotificationService {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new PaymentException("Notification not found"));
         notification.setRead(true);
+        notification.setReadAt(LocalDateTime.now());
+        notificationRepository.save(notification);
+    }
+
+    public long getUnreadCount(String userId) {
+        return notificationRepository.countByUserIdAndIsReadFalse(userId);
+    }
+
+    public long markAllAsRead(String userId) {
+        List<Notification> unread = notificationRepository.findByUserIdAndIsReadFalse(userId);
+        if (unread.isEmpty()) {
+            return 0;
+        }
+        LocalDateTime now = LocalDateTime.now();
+        for (Notification n : unread) {
+            n.setRead(true);
+            n.setReadAt(now);
+        }
+        notificationRepository.saveAll(unread);
+        return unread.size();
+    }
+
+    public List<Notification> getPendingApprovalNotificationsForUser(String userId) {
+        return notificationRepository.findByUserIdAndTypeInAndIsReadFalse(
+                userId,
+                Set.of(NotificationType.PAYMENT_APPROVAL_LINK_GENERATED, NotificationType.PAYMENT_REQUEST_SENT));
+    }
+
+    public void sendBookingConfirmedNotification(com.driveaway.entity.Booking booking) {
+        Notification notification = new Notification(
+                booking.getUserId(),
+                null,
+                NotificationType.BOOKING_CONFIRMED,
+                "Booking " + booking.getId() + " is confirmed for vehicle " + booking.getVehicleId() + ".",
+                "Booking Confirmed"
+        );
+        notification.setReferenceEntityId(booking.getId());
+        notificationRepository.save(notification);
+    }
+
+    public void sendVehicleReturnCompletedNotification(com.driveaway.entity.Booking booking) {
+        Notification notification = new Notification(
+                booking.getUserId(),
+                null,
+                NotificationType.VEHICLE_RETURN_COMPLETED,
+                "Vehicle return completed for booking " + booking.getId() + ".",
+                "Vehicle Return Completed"
+        );
+        notification.setReferenceEntityId(booking.getId());
+        notificationRepository.save(notification);
+    }
+
+    public void sendDamagePenaltyAppliedNotification(com.driveaway.entity.Booking booking) {
+        Notification notification = new Notification(
+                booking.getUserId(),
+                null,
+                NotificationType.DAMAGE_PENALTY_APPLIED,
+                "Damage penalty of ₹" + booking.getDamageCharge() + " applied for booking " + booking.getId() + ".",
+                "Damage Penalty Applied"
+        );
+        notification.setReferenceEntityId(booking.getId());
         notificationRepository.save(notification);
     }
 }
