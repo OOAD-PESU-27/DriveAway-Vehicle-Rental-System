@@ -135,7 +135,11 @@ public class BookingController {
                 if (notes != null) damageNotes = notes.toString();
                 Object charge = body.get("damageCharge");
                 if (charge != null) {
-                    try { damageCharge = Double.parseDouble(charge.toString()); } catch (NumberFormatException ignored) {}
+                    try {
+                        damageCharge = Double.parseDouble(charge.toString());
+                    } catch (NumberFormatException e) {
+                        return ResponseEntity.badRequest().body("Invalid damageCharge: must be a numeric value");
+                    }
                 }
             }
             Booking booking = bookingService.processReturn(bookingId, damageNotes, damageCharge, staffId);

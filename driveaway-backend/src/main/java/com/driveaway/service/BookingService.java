@@ -8,6 +8,7 @@ import com.driveaway.repository.PaymentRepository;
 import com.driveaway.exception.ResourceNotFoundException;
 import com.driveaway.exception.PaymentException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,6 +20,7 @@ import java.util.List;
  * GRASP: Information Expert - Handles booking-related business logic
  * SOLID: SRP - Only handles booking operations
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookingService {
@@ -205,7 +207,7 @@ public class BookingService {
                 }
             }
         } catch (Exception e) {
-            // Deposit processing failure should not block the return
+            log.warn("[BOOKING] Could not process security deposit for booking={}: {}", bookingId, e.getMessage(), e);
         }
 
         saved.setDepositRefunded(depositProcessed);

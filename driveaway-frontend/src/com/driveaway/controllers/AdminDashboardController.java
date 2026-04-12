@@ -167,9 +167,7 @@ public class AdminDashboardController {
             return;
         }
 
-        String json = String.format(
-                "{\"brand\":\"%s\",\"model\":\"%s\",\"vehicleType\":\"%s\",\"pricePerDay\":%.2f}",
-                escape(brand), escape(model), escape(type), parsedPrice);
+        String json = buildVehicleJson(brand, model, type, parsedPrice);
         String response = HttpUtil.sendPostWithHeader(
                 BASE_URL + "/api/v1/admin/fleet", json, "X-Admin-ID", adminId);
         if (response != null && !response.isBlank()) {
@@ -202,9 +200,7 @@ public class AdminDashboardController {
             return;
         }
 
-        String json = String.format(
-                "{\"brand\":\"%s\",\"model\":\"%s\",\"vehicleType\":\"%s\",\"pricePerDay\":%.2f}",
-                escape(brand), escape(model), escape(type), parsedPrice);
+        String json = buildVehicleJson(brand, model, type, parsedPrice);
         String response = HttpUtil.sendPutWithHeader(
                 BASE_URL + "/api/v1/admin/fleet/" + selectedVehicleId, json, "X-Admin-ID", adminId);
         if (response != null && !response.isBlank()) {
@@ -214,6 +210,12 @@ public class AdminDashboardController {
         } else {
             setVehicleFormStatus("❌ Failed to update vehicle.", false);
         }
+    }
+
+    private String buildVehicleJson(String brand, String model, String type, double pricePerDay) {
+        return String.format(
+                "{\"brand\":\"%s\",\"model\":\"%s\",\"vehicleType\":\"%s\",\"pricePerDay\":%.2f}",
+                escape(brand), escape(model), escape(type), pricePerDay);
     }
 
     @FXML
@@ -440,7 +442,12 @@ public class AdminDashboardController {
     }
 
     private String escape(String s) {
-        return s == null ? "" : s.replace("\\", "\\\\").replace("\"", "\\\"");
+        if (s == null) return "";
+        return s.replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 
     private String extractField(String json, String field) {
