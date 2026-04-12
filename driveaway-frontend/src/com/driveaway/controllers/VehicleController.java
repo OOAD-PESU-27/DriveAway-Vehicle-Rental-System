@@ -1,14 +1,17 @@
 package com.driveaway.controllers;
 
+import javafx.scene.control.Label;
 import com.driveaway.services.VehicleService;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 
+import javafx.scene.control.ListView;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.time.temporal.ChronoUnit;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class VehicleController {
 
@@ -40,7 +43,7 @@ public class VehicleController {
         String start = startDate.getValue().toString();
         String end = endDate.getValue().toString();
 
-        String response = service.getAvailableVehicles(start, end);
+        String response = service.getVehiclesWithPricing(start, end);
 
         JSONArray vehicles = new JSONArray(response);
 
@@ -55,30 +58,49 @@ public class VehicleController {
     private VBox createVehicleCard(JSONObject v) {
 
         VBox card = new VBox(8);
-        card.setStyle("-fx-background-color: white; -fx-padding: 10; -fx-border-radius: 10;");
+        card.setStyle("-fx-background-color: white; -fx-padding: 12; -fx-border-radius: 10; -fx-border-color: #ddd;");
 
-        Label title = new Label("🚗 " + v.getString("brand") + " " + v.getString("model"));
-        Label type = new Label("Type: " + v.getString("vehicleType"));
-        Label seats = new Label("Seats: " + v.getInt("seatingCapacity"));
+        // Title
+        Label title = new Label("🚗 " + v.optString("name", "Vehicle"));
+        title.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
 
-        double price = v.getDouble("pricePerDay");
-        Label priceLabel = new Label("₹" + price + "/day");
+        // Seating
+        Label seats = new Label("Seats: " + v.optInt("seatingCapacity", 0));
 
-        long days = ChronoUnit.DAYS.between(startDate.getValue(), endDate.getValue()) + 1;
-        double total = days * price;
+        // Prices
+        double base = v.optDouble("pricePerDay", 0);
+        double weekend = v.optDouble("weekendPricePerDay", 0);
+        double holiday = v.optDouble("holidayPricePerDay", 0);
+        double total = v.optDouble("totalPrice", 0);
+
+        Label baseLabel = new Label("Base: ₹" + base + "/day");
+        Label weekendLabel = new Label("Weekend: ₹" + weekend + "/day");
+        Label holidayLabel = new Label("Holiday: ₹" + holiday + "/day");
 
         Label totalLabel = new Label("Total: ₹" + total);
+        totalLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: green;");
 
+        // Button
         Button bookBtn = new Button("Book");
+        bookBtn.setStyle("-fx-background-color: #4CAF50; -fx-text-fill: white;");
 
-        bookBtn.setOnAction(e -> bookVehicle(v.getString("id")));
+        bookBtn.setOnAction(e -> bookVehicle(v.optString("id")));
 
-        card.getChildren().addAll(title, type, seats, priceLabel, totalLabel, bookBtn);
+        // Add all to card
+        card.getChildren().addAll(
+            title,
+            seats,
+            baseLabel,
+            weekendLabel,
+            holidayLabel,
+            totalLabel,
+            bookBtn
+        );
 
         return card;
     }
 
-    private void bookVehicle(String vehicleId) {
+       private void bookVehicle(String vehicleId) {
 
         JSONObject data = new JSONObject();
         data.put("vehicleId", vehicleId);

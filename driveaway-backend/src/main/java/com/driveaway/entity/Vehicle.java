@@ -13,7 +13,6 @@ public class Vehicle {
     private String model;
     private String vehicleType;
     private double pricePerDay;
-    private boolean available;
     private String fuelType;
     private String transmission;
     private int seatingCapacity;
@@ -25,8 +24,8 @@ public class Vehicle {
     public String getModel() { return model; }
     public String getVehicleType() { return vehicleType; }
     public double getPricePerDay() { return pricePerDay; }
-    public boolean isAvailable() { return available; }
     public String getFuelType() { return fuelType; }
     public String getTransmission() { return transmission; }
     public int getSeatingCapacity() { return seatingCapacity; }
+    
 }

@@ -1,5 +1,8 @@
 package com.driveaway.services;
 
+import java.time.LocalDate;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import com.driveaway.utils.ApiClient;
 
 public class VehicleService {
@@ -20,10 +23,22 @@ public class VehicleService {
         );
     }
 
-    public String getAvailableVehicles(String start, String end) {
-    return ApiClient.get(
-        "/vehicles/available?startDate=" + start + "&endDate=" + end
-    );
+    public String getVehiclesWithPricing(String start, String end) {
+
+        LocalDate startDate = LocalDate.parse(start);
+        LocalDate endDate = LocalDate.parse(end);
+
+        JSONArray datesArray = new JSONArray();
+
+        while (!startDate.isAfter(endDate)) {
+            datesArray.put(startDate.toString());
+            startDate = startDate.plusDays(1);
+        }
+
+        JSONObject body = new JSONObject();
+        body.put("dates", datesArray);
+
+        return ApiClient.post("/vehicles/search", body.toString());
     }
 
     public String bookVehicle(String json) {
