@@ -17,4 +17,8 @@ public class NotificationService {
     public String markAsRead(String notificationId) {
         return HttpUtil.sendPost(BASE_URL + "/api/v1/notifications/" + notificationId + "/read", "{}");
     }
+
+    public String markAllAsRead(String userId) {
+        return HttpUtil.sendPost(BASE_URL + "/api/v1/notifications/user/" + userId + "/read-all", "{}");
+    }
 }

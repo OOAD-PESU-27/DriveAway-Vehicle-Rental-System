@@ -16,10 +16,10 @@
                 <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
             </VBox>
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
-            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
-            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
-            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
+            <Button text="🏠 Home"          onAction="#goToDashboard" styleClass="nav-button"/>
+            <Button text="🚘 Vehicles"      onAction="#goToVehicles"  styleClass="nav-button"/>
+            <Button text="📅 Bookings"      onAction="#goToBookings"  styleClass="nav-button"/>
+            <Button text="👤 Profile"       onAction="#goToProfile"   styleClass="nav-button"/>
             <Button text="🔔 Notifications" onAction="#goToDashboard" styleClass="nav-button, nav-button-active"/>
             <Separator orientation="VERTICAL"/>
             <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
@@ -28,33 +28,78 @@
 
     <center>
         <ScrollPane fitToWidth="true" styleClass="scroll-pane">
-            <VBox spacing="24" style="-fx-padding: 28 32 28 32;">
+            <VBox spacing="20" style="-fx-padding: 28 32 28 32;">
 
-                <HBox alignment="CENTER_LEFT">
-                    <Label text="🔔 Notifications" styleClass="page-title" HBox.hgrow="ALWAYS"/>
-                    <Button text="🔄 Refresh" onAction="#handleRefresh" styleClass="btn-outline"/>
+                <!-- Page Header -->
+                <VBox style="-fx-background-color: linear-gradient(to right, #0c1445, #1e3a8a, #2563eb);
+                             -fx-background-radius: 16; -fx-padding: 20 28 20 28;
+                             -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.35), 16, 0, 0, 5);"
+                      spacing="6">
+                    <HBox alignment="CENTER_LEFT" spacing="16">
+                        <Label text="🔔" style="-fx-font-size: 36px;"/>
+                        <VBox spacing="2">
+                            <Label text="Notifications" styleClass="report-summary-title"/>
+                            <Label text="Stay up-to-date with booking, payment, and vehicle events"
+                                   styleClass="report-summary-sub"/>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="unreadCountLabel" text=""
+                               style="-fx-text-fill: white; -fx-font-size: 13px;"/>
+                        <Button text="✅ Mark All Read" onAction="#handleMarkAllRead"
+                                style="-fx-background-color: rgba(255,255,255,0.18); -fx-text-fill: white;
+                                       -fx-background-radius: 8; -fx-padding: 6 14 6 14; -fx-cursor: hand;
+                                       -fx-font-size: 13px; -fx-border-color: rgba(255,255,255,0.4);
+                                       -fx-border-radius: 8; -fx-border-width: 1;"/>
+                        <Button text="🔄 Refresh" onAction="#handleRefresh"
+                                style="-fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: white;
+                                       -fx-background-radius: 8; -fx-padding: 6 14 6 14; -fx-cursor: hand;
+                                       -fx-font-size: 13px;"/>
+                    </HBox>
+                </VBox>
+
+                <!-- Type Legend -->
+                <HBox spacing="12" alignment="CENTER_LEFT"
+                      style="-fx-background-color: white; -fx-background-radius: 10;
+                             -fx-padding: 12 18 12 18;
+                             -fx-effect: dropshadow(gaussian,rgba(30,64,175,0.08),8,0,0,2);">
+                    <Label text="Type legend:" style="-fx-font-weight: bold; -fx-text-fill: #374151; -fx-font-size: 12px;"/>
+                    <Label text="✅ Booking" style="-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 2 8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Label text="💳 Payment" style="-fx-background-color: #2563eb; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 2 8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Label text="🚗 Return"  style="-fx-background-color: #0891b2; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 2 8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Label text="🔧 Damage"  style="-fx-background-color: #b45309; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 2 8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Label text="💰 Refund"  style="-fx-background-color: #7c3aed; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 2 8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Label text="⚠️ Failed"  style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 2 8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                 </HBox>
 
                 <Label fx:id="statusLabel" text="" styleClass="text-muted"/>
 
+                <!-- Notifications Table -->
                 <VBox styleClass="card" spacing="0">
-                    <TableView fx:id="notificationsTable" minHeight="400" maxWidth="Infinity">
+                    <TableView fx:id="notificationsTable" minHeight="420" maxWidth="Infinity">
                         <columns>
-                            <TableColumn fx:id="typeCol" text="Type" minWidth="160"/>
-                            <TableColumn fx:id="subjectCol" text="Subject" minWidth="200"/>
-                            <TableColumn fx:id="messageCol" text="Message" minWidth="300"/>
-                            <TableColumn fx:id="statusCol" text="Status" minWidth="80"/>
-                            <TableColumn fx:id="sentAtCol" text="Sent At" minWidth="160"/>
+                            <TableColumn fx:id="typeCol"    text="Type"     minWidth="180" prefWidth="190"/>
+                            <TableColumn fx:id="subjectCol" text="Subject"  minWidth="200" prefWidth="220"/>
+                            <TableColumn fx:id="messageCol" text="Message"  minWidth="320" prefWidth="380"/>
+                            <TableColumn fx:id="statusCol"  text="Status"   minWidth="90"  prefWidth="90"/>
+                            <TableColumn fx:id="sentAtCol"  text="Sent At"  minWidth="140" prefWidth="150"/>
                         </columns>
                         <placeholder>
-                            <Label text="No notifications found." styleClass="text-muted"/>
+                            <VBox alignment="CENTER" spacing="10" style="-fx-padding: 60;">
+                                <Label text="🔔" style="-fx-font-size: 52px;"/>
+                                <Label text="No notifications yet" styleClass="text-muted"
+                                       style="-fx-font-size: 15px; -fx-font-weight: bold;"/>
+                                <Label text="Notifications will appear here after you book a vehicle, complete a payment, return a vehicle, or receive a damage report."
+                                       styleClass="text-muted" wrapText="true"
+                                       style="-fx-font-size: 12px; -fx-max-width: 400; -fx-text-alignment: center;"/>
+                            </VBox>
                         </placeholder>
                     </TableView>
                 </VBox>
 
                 <HBox spacing="12">
-                    <Button text="💳 Make Payment" onAction="#goToPayment" styleClass="btn-primary"/>
-                    <Button text="← Back to Dashboard" onAction="#goToDashboard" styleClass="btn-outline"/>
+                    <Button text="💳 Make Payment"      onAction="#goToPayment"    styleClass="btn-primary"/>
+                    <Button text="📅 My Bookings"       onAction="#goToBookings"   styleClass="btn-outline"/>
+                    <Button text="← Back to Dashboard"  onAction="#goToDashboard"  styleClass="btn-outline"/>
                 </HBox>
 
             </VBox>
@@ -62,3 +107,4 @@
     </center>
 
 </BorderPane>
+

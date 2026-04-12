@@ -25,4 +25,20 @@ public class ReportService {
     public String generateVehicleReport(String adminId) {
         return HttpUtil.sendGetWithHeader(BASE_URL + "/api/v1/admin/reports/vehicles", "X-Admin-ID", adminId);
     }
+
+    public String generateRevenueReport(String adminId) {
+        return HttpUtil.sendGetWithHeader(BASE_URL + "/api/v1/admin/reports/revenue", "X-Admin-ID", adminId);
+    }
+
+    public String generateVehicleUsageReport(String adminId) {
+        return HttpUtil.sendGetWithHeader(BASE_URL + "/api/v1/admin/reports/vehicle-usage", "X-Admin-ID", adminId);
+    }
+
+    public String generateDamageReport(String adminId) {
+        return HttpUtil.sendGetWithHeader(BASE_URL + "/api/v1/admin/reports/damage", "X-Admin-ID", adminId);
+    }
+
+    public String generateMaintenanceReport(String adminId) {
+        return HttpUtil.sendGetWithHeader(BASE_URL + "/api/v1/admin/reports/maintenance", "X-Admin-ID", adminId);
+    }
 }

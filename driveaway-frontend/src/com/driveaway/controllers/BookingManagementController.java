@@ -84,7 +84,8 @@ public class BookingManagementController {
                 cancelBtn.getStyleClass().addAll("btn-danger", "btn-small");
                 cancelBtn.setOnAction(e -> {
                     String[] row = getTableView().getItems().get(getIndex());
-                    handleCancel(row[0], row[4]);
+                    // Pass startDate (index 2) so refund policy can be displayed
+                    handleCancel(row[0], row[4], row[2]);
                 });
             }
 
@@ -168,30 +169,70 @@ public class BookingManagementController {
         updateTable(allBookings);
     }
 
-    private void handleCancel(String bookingId, String status) {
+    private void handleCancel(String bookingId, String status, String startDateStr) {
         if (!"ACTIVE".equalsIgnoreCase(status) && !"CONFIRMED".equalsIgnoreCase(status)
                 && !"PENDING".equalsIgnoreCase(status)) {
             setStatus("This booking cannot be cancelled.");
             return;
         }
 
+        // Compute days until pickup to show the refund policy prominently
+        long daysUntilPickup = computeDaysUntilPickup(startDateStr);
+        String policyMessage;
+        if (daysUntilPickup > 7) {
+            policyMessage = "✅ Full refund (100%) – more than 7 days before pickup.";
+        } else if (daysUntilPickup >= 2) {
+            policyMessage = "⚠️ Partial refund (50%) – cancellation is 2–7 days before pickup.";
+        } else if (daysUntilPickup >= 0) {
+            policyMessage = "❌ No refund – cancellation within 2 days of pickup is non-refundable.";
+        } else {
+            policyMessage = "ℹ️ Refund policy will be determined by the booking dates.";
+        }
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Cancel Booking");
-        confirm.setHeaderText("Cancel Booking");
-        confirm.setContentText("Are you sure you want to cancel booking " + shorten(bookingId, 16) + "?");
+        confirm.setHeaderText("Cancel Booking " + shorten(bookingId, 16));
+        confirm.setContentText("Are you sure you want to cancel this booking?\n\n"
+                + "📋 Refund Policy:\n" + policyMessage);
 
         confirm.showAndWait().ifPresent(btn -> {
             if (btn == ButtonType.OK) {
                 String userId = LoginController.getUserId();
                 String result = bookingService.cancelBooking(bookingId, userId);
                 if (result != null) {
-                    setStatus("✅ Booking cancelled successfully.");
+                    // Build a helpful status message based on the policy
+                    String successMsg;
+                    if (daysUntilPickup > 7) {
+                        successMsg = "✅ Booking cancelled. Full refund will be processed within 3–5 business days.";
+                    } else if (daysUntilPickup >= 2) {
+                        successMsg = "✅ Booking cancelled. 50% partial refund will be processed within 3–5 business days.";
+                    } else if (daysUntilPickup >= 0) {
+                        successMsg = "✅ Booking cancelled. No refund is applicable per our policy.";
+                    } else {
+                        successMsg = "✅ Booking cancelled successfully.";
+                    }
+                    setStatus(successMsg);
                     loadBookings();
                 } else {
                     setStatus("❌ Failed to cancel booking. Please try again.");
                 }
             }
         });
+    }
+
+    /** Parse start-date from booking row (format: "YYYY-MM-DD" or array "[2024,4,15,...]")
+     *  and compute how many days remain until pickup. Returns -1 if unparsable. */
+    private long computeDaysUntilPickup(String startDateStr) {
+        if (startDateStr == null || "-".equals(startDateStr)) return -1;
+        try {
+            // Numeric date string: "2024-04-15"
+            String clean = startDateStr.trim();
+            if (clean.matches("\\d{4}-\\d{2}-\\d{2}")) {
+                java.time.LocalDate start = java.time.LocalDate.parse(clean);
+                return java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.now(), start);
+            }
+        } catch (Exception ignored) {}
+        return -1;
     }
 
     @FXML public void filterAll() { updateTable(allBookings); resetFilterButtons(allBtn); }
