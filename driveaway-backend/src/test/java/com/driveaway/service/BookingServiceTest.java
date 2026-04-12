@@ -4,6 +4,7 @@ import com.driveaway.dto.BookingRequest;
 import com.driveaway.entity.Booking;
 import com.driveaway.entity.Payment;
 import com.driveaway.entity.Vehicle;
+import com.driveaway.PaymentStatus;
 import com.driveaway.exception.PaymentException;
 import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.PaymentRepository;
@@ -142,6 +143,86 @@ class BookingServiceTest {
 
         assertThrows(PaymentException.class,
                 () -> bookingService.cancelBooking("bk-013", "user-1"));
+    }
+
+    // ── cancelBooking – refund policy ─────────────────────────────────────────
+
+    @Test
+    void cancelBooking_moreThan7DaysBeforePickup_fullRefund() {
+        Booking booking = buildBookingWithStartDate("bk-r10", "ACTIVE", LocalDate.now().plusDays(10));
+
+        Payment payment = new Payment("bk-r10", "user-1", 6000.0, "CARD");
+        payment.setId("pay-r10");
+        payment.setStatus(PaymentStatus.COMPLETED);
+
+        when(bookingRepository.findById("bk-r10")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(vehicleService).markVehicleAsAvailable(any());
+        when(paymentRepository.findByRentalId("bk-r10")).thenReturn(List.of(payment));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        Booking result = bookingService.cancelBooking("bk-r10", "user-1");
+
+        assertEquals("CANCELLED", result.getStatus());
+        // Full refund: payment status set to REFUNDED
+        verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REFUNDED));
+        verify(notificationService).sendCancellationNotification(any(), eq(6000.0), eq("FULL_REFUND"));
+    }
+
+    @Test
+    void cancelBooking_between2And7DaysBeforePickup_halfRefund() {
+        Booking booking = buildBookingWithStartDate("bk-r11", "ACTIVE", LocalDate.now().plusDays(4));
+
+        Payment payment = new Payment("bk-r11", "user-1", 4000.0, "CARD");
+        payment.setId("pay-r11");
+        payment.setStatus(PaymentStatus.COMPLETED);
+
+        when(bookingRepository.findById("bk-r11")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(vehicleService).markVehicleAsAvailable(any());
+        when(paymentRepository.findByRentalId("bk-r11")).thenReturn(List.of(payment));
+        when(paymentRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        bookingService.cancelBooking("bk-r11", "user-1");
+
+        verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REFUNDED));
+        verify(notificationService).sendCancellationNotification(any(), eq(2000.0), eq("PARTIAL_REFUND_50"));
+    }
+
+    @Test
+    void cancelBooking_lessThan2DaysBeforePickup_noRefund() {
+        Booking booking = buildBookingWithStartDate("bk-r12", "ACTIVE", LocalDate.now().plusDays(1));
+
+        Payment payment = new Payment("bk-r12", "user-1", 3000.0, "CARD");
+        payment.setId("pay-r12");
+        payment.setStatus(PaymentStatus.COMPLETED);
+
+        when(bookingRepository.findById("bk-r12")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(vehicleService).markVehicleAsAvailable(any());
+        when(paymentRepository.findByRentalId("bk-r12")).thenReturn(List.of(payment));
+
+        bookingService.cancelBooking("bk-r12", "user-1");
+
+        // No refund: payment status must NOT change to REFUNDED
+        verify(paymentRepository, never()).save(argThat(p -> p.getStatus() == PaymentStatus.REFUNDED));
+        verify(notificationService).sendCancellationNotification(any(), eq(0.0), eq("NO_REFUND"));
+    }
+
+    @Test
+    void cancelBooking_noPaymentFound_noRefundAttempted() {
+        Booking booking = buildBookingWithStartDate("bk-r13", "CONFIRMED", LocalDate.now().plusDays(10));
+
+        when(bookingRepository.findById("bk-r13")).thenReturn(Optional.of(booking));
+        when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> inv.getArgument(0));
+        doNothing().when(vehicleService).markVehicleAsAvailable(any());
+        when(paymentRepository.findByRentalId("bk-r13")).thenReturn(List.of());
+
+        bookingService.cancelBooking("bk-r13", "user-1");
+
+        // No eligible payment → no refund payment save
+        verify(paymentRepository, never()).save(any());
+        verify(notificationService).sendCancellationNotification(any(), eq(0.0), eq("NO_REFUND"));
     }
 
     // ── createBooking ────────────────────────────────────────────────────────
@@ -333,6 +414,18 @@ class BookingServiceTest {
         b.setVehicleId("v-1");
         b.setStartDate(LocalDate.now());
         b.setEndDate(LocalDate.now().plusDays(3));
+        b.setTotalPrice(5000.0);
+        b.setStatus(status);
+        return b;
+    }
+
+    private Booking buildBookingWithStartDate(String id, String status, LocalDate startDate) {
+        Booking b = new Booking();
+        b.setId(id);
+        b.setUserId("user-1");
+        b.setVehicleId("v-1");
+        b.setStartDate(startDate);
+        b.setEndDate(startDate.plusDays(3));
         b.setTotalPrice(5000.0);
         b.setStatus(status);
         return b;

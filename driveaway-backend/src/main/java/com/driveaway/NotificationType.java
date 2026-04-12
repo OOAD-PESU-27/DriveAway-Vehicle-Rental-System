@@ -13,6 +13,8 @@ public enum NotificationType {
     REFUND_COMPLETED("Refund Completed"),
     RENTAL_CONFIRMATION("Rental Confirmation"),
     BOOKING_CONFIRMED("Booking Confirmed"),
+    BOOKING_CANCELLED("Booking Cancelled"),
+    CANCELLATION_REFUND_PROCESSED("Cancellation Refund Processed"),
     VEHICLE_RETURN_COMPLETED("Vehicle Return Completed"),
     DAMAGE_PENALTY_APPLIED("Damage Penalty Applied"),
     PAYMENT_APPROVAL_LINK_GENERATED("Payment Approval Link Generated"),

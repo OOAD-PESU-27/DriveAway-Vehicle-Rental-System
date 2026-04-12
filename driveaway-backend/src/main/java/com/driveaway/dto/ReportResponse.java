@@ -39,6 +39,13 @@ public class ReportResponse {
     // Security deposit summary
     private double totalSecurityDeposit;
     private double releasedSecurityDeposit;
+
+    // Extended analytics fields
+    private String mostUsedVehicleId;
+    private long totalBookings;
+    private double maintenanceCost;
+    private long damageIncidents;
+    private double totalDamageCharges;
     
     public ReportResponse(String message, boolean success) {
         this.message = message;

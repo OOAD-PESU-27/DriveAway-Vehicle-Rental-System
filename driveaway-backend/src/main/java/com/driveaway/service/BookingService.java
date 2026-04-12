@@ -2,7 +2,9 @@ package com.driveaway.service;
 
 import com.driveaway.dto.BookingRequest;
 import com.driveaway.entity.Booking;
+import com.driveaway.entity.Payment;
 import com.driveaway.entity.Vehicle;
+import com.driveaway.PaymentStatus;
 import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.PaymentRepository;
 import com.driveaway.exception.ResourceNotFoundException;
@@ -119,7 +121,14 @@ public class BookingService {
     }
 
     /**
-     * Cancel a booking
+     * Cancel a booking with partial-refund policy.
+     *
+     * Refund tiers (based on days remaining until pickup):
+     *  > 7 days  → FULL refund (100 %)
+     *  2–7 days  → PARTIAL refund (50 %)
+     *  < 2 days  → NO refund (0 %)
+     *
+     * A refund is only issued when an associated completed/successful payment is found.
      */
     public Booking cancelBooking(String bookingId, String userId) {
         Booking booking = getBookingById(bookingId);
@@ -138,6 +147,49 @@ public class BookingService {
 
         auditLogService.logPaymentAction("BOOKING_CANCELLED", bookingId, userId,
                 "Booking cancelled: " + bookingId);
+
+        // ── Cancellation refund policy ────────────────────────────────────
+        double refundAmount = 0.0;
+        String refundPolicy = "NO_REFUND";
+        try {
+            long daysUntilPickup = booking.getStartDate() != null
+                    ? ChronoUnit.DAYS.between(LocalDate.now(), booking.getStartDate())
+                    : -1;
+
+            List<Payment> payments = paymentRepository.findByRentalId(bookingId);
+            Payment eligiblePayment = payments.stream()
+                    .filter(p -> p.getStatus() == PaymentStatus.COMPLETED
+                              || p.getStatus() == PaymentStatus.SUCCESS)
+                    .findFirst()
+                    .orElse(null);
+
+            if (eligiblePayment != null && daysUntilPickup >= 0) {
+                double paidAmount = eligiblePayment.getAmount();
+                if (daysUntilPickup > 7) {
+                    refundAmount = paidAmount;          // 100 %
+                    refundPolicy = "FULL_REFUND";
+                } else if (daysUntilPickup >= 2) {
+                    refundAmount = paidAmount * 0.5;    // 50 %
+                    refundPolicy = "PARTIAL_REFUND_50";
+                } else {
+                    refundAmount = 0.0;                 // 0 %
+                    refundPolicy = "NO_REFUND";
+                }
+
+                if (refundAmount > 0) {
+                    eligiblePayment.setStatus(PaymentStatus.REFUNDED);
+                    eligiblePayment.setUpdatedAt(LocalDateTime.now());
+                    paymentRepository.save(eligiblePayment);
+                    log.info("[BOOKING] Refund {} applied for booking={} policy={} daysLeft={}",
+                            refundAmount, bookingId, refundPolicy, daysUntilPickup);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("[BOOKING] Could not process cancellation refund for booking={}: {}",
+                    bookingId, e.getMessage(), e);
+        }
+
+        notificationService.sendCancellationNotification(saved, refundAmount, refundPolicy);
 
         return saved;
     }

@@ -288,11 +288,52 @@ public class NotificationService {
                 booking.getUserId(),
                 null,
                 NotificationType.BOOKING_CONFIRMED,
-                "Booking " + booking.getId() + " is confirmed for vehicle " + booking.getVehicleId() + ".",
-                "Booking Confirmed"
+                "Your booking " + booking.getId() + " for vehicle " + booking.getVehicleId()
+                + " is confirmed. Rental total: ₹" + String.format("%.2f", booking.getTotalPrice()) + ".",
+                "Booking Confirmed 🎉"
         );
         notification.setReferenceEntityId(booking.getId());
         notificationRepository.save(notification);
+    }
+
+    public void sendCancellationNotification(com.driveaway.entity.Booking booking,
+                                              double refundAmount, String refundPolicy) {
+        String refundMsg;
+        switch (refundPolicy) {
+            case "FULL_REFUND" ->
+                refundMsg = "A full refund of ₹" + String.format("%.2f", refundAmount)
+                        + " will be credited to your account within 3–5 business days.";
+            case "PARTIAL_REFUND_50" ->
+                refundMsg = "A partial refund (50%) of ₹" + String.format("%.2f", refundAmount)
+                        + " will be credited within 3–5 business days "
+                        + "(cancellation policy: 50% refund for 2–7 days before pickup).";
+            default ->
+                refundMsg = "No refund is applicable per our cancellation policy "
+                        + "(cancellations within 2 days of pickup are non-refundable).";
+        }
+        Notification notification = new Notification(
+                booking.getUserId(),
+                null,
+                NotificationType.BOOKING_CANCELLED,
+                "Your booking " + booking.getId() + " has been cancelled. " + refundMsg,
+                "Booking Cancelled"
+        );
+        notification.setReferenceEntityId(booking.getId());
+        notificationRepository.save(notification);
+
+        if (refundAmount > 0) {
+            Notification refundNotification = new Notification(
+                    booking.getUserId(),
+                    null,
+                    NotificationType.CANCELLATION_REFUND_PROCESSED,
+                    "Refund of ₹" + String.format("%.2f", refundAmount)
+                            + " has been initiated for cancelled booking " + booking.getId()
+                            + ". It will reflect in 3–5 business days.",
+                    "Refund Initiated 💰"
+            );
+            refundNotification.setReferenceEntityId(booking.getId());
+            notificationRepository.save(refundNotification);
+        }
     }
 
     public void sendVehicleReturnCompletedNotification(com.driveaway.entity.Booking booking) {
@@ -300,8 +341,9 @@ public class NotificationService {
                 booking.getUserId(),
                 null,
                 NotificationType.VEHICLE_RETURN_COMPLETED,
-                "Vehicle return completed for booking " + booking.getId() + ".",
-                "Vehicle Return Completed"
+                "Vehicle return for booking " + booking.getId() + " has been completed successfully. "
+                + "Thank you for choosing DriveAway! 🚗",
+                "Vehicle Return Completed ✅"
         );
         notification.setReferenceEntityId(booking.getId());
         notificationRepository.save(notification);
@@ -312,8 +354,10 @@ public class NotificationService {
                 booking.getUserId(),
                 null,
                 NotificationType.DAMAGE_PENALTY_APPLIED,
-                "Damage penalty of ₹" + booking.getDamageCharge() + " applied for booking " + booking.getId() + ".",
-                "Damage Penalty Applied"
+                "A damage penalty of ₹" + String.format("%.2f", booking.getDamageCharge())
+                + " has been applied for booking " + booking.getId()
+                + ". Notes: " + (booking.getDamageNotes() != null ? booking.getDamageNotes() : "See booking details") + ".",
+                "Damage Penalty Applied ⚠️"
         );
         notification.setReferenceEntityId(booking.getId());
         notificationRepository.save(notification);

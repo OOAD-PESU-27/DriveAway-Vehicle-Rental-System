@@ -196,6 +196,74 @@ public class AdminController {
             );
         }
     }
+
+    /**
+     * Generate revenue report – all-time revenue summary
+     * GET /api/v1/admin/reports/revenue
+     */
+    @GetMapping("/reports/revenue")
+    public ResponseEntity<?> generateRevenueReport(
+            @RequestHeader(value = "X-Admin-ID", required = true) String adminId) {
+        try {
+            ReportResponse response = reportService.generateRevenueReport(adminId);
+            return response.isSuccess()
+                    ? ResponseEntity.ok(response)
+                    : ResponseEntity.badRequest().body(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new ReportResponse(e.getMessage(), false));
+        }
+    }
+
+    /**
+     * Generate vehicle usage report – fleet utilisation
+     * GET /api/v1/admin/reports/vehicle-usage
+     */
+    @GetMapping("/reports/vehicle-usage")
+    public ResponseEntity<?> generateVehicleUsageReport(
+            @RequestHeader(value = "X-Admin-ID", required = true) String adminId) {
+        try {
+            ReportResponse response = reportService.generateVehicleUsageReport(adminId);
+            return response.isSuccess()
+                    ? ResponseEntity.ok(response)
+                    : ResponseEntity.badRequest().body(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new ReportResponse(e.getMessage(), false));
+        }
+    }
+
+    /**
+     * Generate damage report – incidents and penalties
+     * GET /api/v1/admin/reports/damage
+     */
+    @GetMapping("/reports/damage")
+    public ResponseEntity<?> generateDamageReport(
+            @RequestHeader(value = "X-Admin-ID", required = true) String adminId) {
+        try {
+            ReportResponse response = reportService.generateDamageReport(adminId);
+            return response.isSuccess()
+                    ? ResponseEntity.ok(response)
+                    : ResponseEntity.badRequest().body(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new ReportResponse(e.getMessage(), false));
+        }
+    }
+
+    /**
+     * Generate maintenance report – service records and costs
+     * GET /api/v1/admin/reports/maintenance
+     */
+    @GetMapping("/reports/maintenance")
+    public ResponseEntity<?> generateMaintenanceReport(
+            @RequestHeader(value = "X-Admin-ID", required = true) String adminId) {
+        try {
+            ReportResponse response = reportService.generateMaintenanceReport(adminId);
+            return response.isSuccess()
+                    ? ResponseEntity.ok(response)
+                    : ResponseEntity.badRequest().body(response);
+        } catch (PaymentException e) {
+            return ResponseEntity.badRequest().body(new ReportResponse(e.getMessage(), false));
+        }
+    }
     
     /**
      * Get report by ID

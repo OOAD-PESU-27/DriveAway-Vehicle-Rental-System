@@ -42,6 +42,13 @@ public class Report {
     // Security deposit summary
     private double totalSecurityDeposit;
     private double releasedSecurityDeposit;
+
+    // Extended analytics fields
+    private String mostUsedVehicleId;
+    private long totalBookings;
+    private double maintenanceCost;
+    private long damageIncidents;
+    private double totalDamageCharges;
     
     public Report(String reportType, LocalDateTime startDate, LocalDateTime endDate) {
         this.reportType = reportType;
