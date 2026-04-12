@@ -254,6 +254,69 @@ class BookingServiceTest {
                 () -> bookingService.processReturn("bk-r05", "", 0.0, "staff-1"));
     }
 
+    // ── booking status filtering ──────────────────────────────────────────────
+
+    @Test
+    void getActiveBookings_returnsConfirmedAndActiveStatuses() {
+        Booking confirmed = buildBooking("bk-a01", "CONFIRMED");
+        Booking active    = buildBooking("bk-a02", "ACTIVE");
+
+        when(bookingRepository.findByStatus("CONFIRMED")).thenReturn(List.of(confirmed));
+        when(bookingRepository.findByStatus("ACTIVE")).thenReturn(List.of(active));
+
+        List<Booking> result = bookingService.getActiveBookings();
+
+        assertEquals(2, result.size(), "Active bookings should include CONFIRMED and ACTIVE");
+        assertTrue(result.stream().anyMatch(b -> "CONFIRMED".equals(b.getStatus())));
+        assertTrue(result.stream().anyMatch(b -> "ACTIVE".equals(b.getStatus())));
+    }
+
+    @Test
+    void getActiveBookings_whenNoConfirmedOrActive_returnsEmptyList() {
+        when(bookingRepository.findByStatus("CONFIRMED")).thenReturn(List.of());
+        when(bookingRepository.findByStatus("ACTIVE")).thenReturn(List.of());
+
+        List<Booking> result = bookingService.getActiveBookings();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getCompletedBookings_returnsOnlyCompletedStatus() {
+        Booking completed = buildBooking("bk-c01", "COMPLETED");
+
+        when(bookingRepository.findByStatus("COMPLETED")).thenReturn(List.of(completed));
+
+        List<Booking> result = bookingService.getCompletedBookings();
+
+        assertEquals(1, result.size());
+        assertEquals("COMPLETED", result.get(0).getStatus());
+    }
+
+    @Test
+    void getCompletedBookings_whenNone_returnsEmptyList() {
+        when(bookingRepository.findByStatus("COMPLETED")).thenReturn(List.of());
+
+        List<Booking> result = bookingService.getCompletedBookings();
+
+        assertNotNull(result);
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void getAllBookings_delegatesToRepository() {
+        Booking b1 = buildBooking("bk-all01", "CONFIRMED");
+        Booking b2 = buildBooking("bk-all02", "COMPLETED");
+        Booking b3 = buildBooking("bk-all03", "CANCELLED");
+
+        when(bookingRepository.findAll()).thenReturn(List.of(b1, b2, b3));
+
+        List<Booking> result = bookingService.getAllBookings();
+
+        assertEquals(3, result.size(), "getAllBookings must return all bookings regardless of status");
+    }
+
     // ── Helper ──────────────────────────────────────────────────────────────
 
     private Booking buildBooking(String id, String status) {
