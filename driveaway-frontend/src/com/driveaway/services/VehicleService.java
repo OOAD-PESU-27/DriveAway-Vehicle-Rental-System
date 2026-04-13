@@ -1,20 +1,50 @@
 package com.driveaway.services;
 
-import com.driveaway.utils.HttpUtil;
+import java.time.LocalDate;
+import com.driveaway.utils.ApiClient;
 
 public class VehicleService {
 
-    private static final String BASE_URL = "http://localhost:8080";
+    public String getVehicles() {
+        return ApiClient.get("/vehicles");
+    }
 
     public String getAvailableVehicles() {
-        return HttpUtil.sendGet(BASE_URL + "/api/v1/vehicles/available");
+        return ApiClient.get("/vehicles/available");
     }
 
-    public String getAvailableVehiclesByType(String type) {
-        return HttpUtil.sendGet(BASE_URL + "/api/v1/vehicles/available?type=" + type);
+    public String getPrice(double basePrice, int days, String date) {
+        return ApiClient.get(
+            "/vehicles/price?basePrice=" + basePrice +
+            "&days=" + days +
+            "&date=" + date
+        );
     }
 
-    public String getAllVehicles() {
-        return HttpUtil.sendGet(BASE_URL + "/api/v1/vehicles");
+    // ---- NEW: supports date-ranged vehicle search for pricing cards ----
+    public String getVehiclesWithPricing(String start, String end) {
+
+        LocalDate startDate = LocalDate.parse(start);
+        LocalDate endDate = LocalDate.parse(end);
+
+        // Build JSON array of dates manually
+        StringBuilder datesArray = new StringBuilder("[");
+        
+        while (!startDate.isAfter(endDate)) {
+            if (datesArray.length() > 1) datesArray.append(",");
+            datesArray.append("\"").append(startDate.toString()).append("\"");
+            startDate = startDate.plusDays(1);
+        }
+        datesArray.append("]");
+
+        // Build JSON body manually
+        String body = "{\"dates\":" + datesArray.toString() + "}";
+
+        return ApiClient.post("/vehicles/search", body);
+    }
+
+    // ---- NEW: for booking ----
+    public String bookVehicle(String json) {
+        return ApiClient.post("/dates/create", json);
     }
 }

@@ -1,10 +1,17 @@
 package com.driveaway.service;
 
+import com.driveaway.dto.VehicleResponse;
 import com.driveaway.entity.Vehicle;
-import com.driveaway.repository.VehicleRepository;
 import com.driveaway.exception.ResourceNotFoundException;
+import com.driveaway.repository.HolidayRepository;
+import com.driveaway.repository.VehicleRepository;
+import com.driveaway.service.pricing.PricingFactory;
+import com.driveaway.service.pricing.PricingStrategy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -12,11 +19,13 @@ import java.util.List;
  * GRASP: Information Expert - Handles vehicle-related business logic
  * SOLID: SRP - Only handles vehicle operations
  */
+
 @Service
 @RequiredArgsConstructor
 public class VehicleService {
 
     private final VehicleRepository vehicleRepository;
+    private final HolidayRepository holidayRepository;
     private final AuditLogService auditLogService;
 
     /**
@@ -113,5 +122,51 @@ public class VehicleService {
         vehicleRepository.delete(vehicle);
         auditLogService.logPaymentAction("VEHICLE_DELETED", vehicleId, adminId,
                 "Vehicle deleted: " + vehicleId);
+    }
+
+    // ===================== NEW FEATURE FOR DYNAMIC PRICING =====================
+
+    /**
+     * Vehicle search with holiday/weekend/weekday dynamic pricing and breakdown.
+     */
+    public List<VehicleResponse> getAvailableVehiclesWithPrice(List<LocalDate> dates) {
+        List<Vehicle> vehicles = vehicleRepository.findAll();
+
+        List<String> holidays = holidayRepository.findAll()
+                .stream()
+                .map(h -> h.getDate())
+                .toList();
+
+        int holidayCount = DateService.countHolidays(dates, holidays);
+        int weekendCount = DateService.countWeekends(dates);
+        int weekdayCount = DateService.countWeekdays(dates, holidays);
+
+        PricingStrategy strategy = PricingFactory.getStrategy(holidayCount, weekendCount);
+
+        List<VehicleResponse> responseList = new ArrayList<>();
+
+        for (Vehicle v : vehicles) {
+            double basePrice = v.getPricePerDay();
+            double total = strategy.calculate(basePrice, dates, holidays);
+            String breakdown =
+                    "Base: " + weekdayCount + " × ₹" + basePrice + "\n" +
+                    "Weekend: " + weekendCount + " × ₹" + (basePrice * 1.3) + "\n" +
+                    "Holiday: " + holidayCount + " × ₹" + (basePrice * 1.5);
+
+            VehicleResponse res = new VehicleResponse();
+            res.setId(v.getId());
+            res.setName(v.getBrand() + " " + v.getModel());
+            res.setSeatingCapacity(v.getSeatingCapacity());
+            res.setPricePerDay(basePrice);
+            res.setWeekendPricePerDay(basePrice * 1.3);
+            res.setHolidayPricePerDay(basePrice * 1.5);
+
+            res.setTotalPrice(total);
+            res.setPriceBreakdown(breakdown);
+
+            responseList.add(res);
+        }
+
+        return responseList;
     }
 }

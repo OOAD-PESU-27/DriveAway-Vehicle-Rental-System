@@ -5,13 +5,14 @@ import com.driveaway.entity.Booking;
 import com.driveaway.entity.Payment;
 import com.driveaway.entity.Vehicle;
 import com.driveaway.PaymentStatus;
-import com.driveaway.exception.PaymentException;
 import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.PaymentRepository;
+import com.driveaway.repository.HolidayRepository;
+import com.driveaway.service.pricing.PricingService;
+import com.driveaway.exception.PaymentException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -24,30 +25,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit tests for BookingService – covers booking lifecycle state transitions.
- */
 @ExtendWith(MockitoExtension.class)
 class BookingServiceTest {
 
-    @Mock
-    private BookingRepository bookingRepository;
-    @Mock
-    private VehicleService vehicleService;
-    @Mock
-    private PricingService pricingService;
-    @Mock
-    private AuditLogService auditLogService;
-    @Mock
-    private PaymentRepository paymentRepository;
-    @Mock
-    private NotificationService notificationService;
+    @Mock private BookingRepository bookingRepository;
+    @Mock private VehicleService vehicleService;
+    @Mock private PricingService pricingService;
+    @Mock private AuditLogService auditLogService;
+    @Mock private PaymentRepository paymentRepository;
+    @Mock private NotificationService notificationService;
+    @Mock private HolidayRepository holidayRepository; // NEW
 
     @InjectMocks
     private BookingService bookingService;
 
-    // ── completeBooking – CONFIRMED status ───────────────────────────────────
-
+    // ── completeBooking – CONFIRMED status ──────────────────────────────
     @Test
     void completeBooking_confirmedStatus_setsCompleted() {
         Booking booking = buildBooking("bk-001", "CONFIRMED");
@@ -64,7 +56,6 @@ class BookingServiceTest {
 
     @Test
     void completeBooking_activeStatus_setsCompleted() {
-        // ACTIVE = CONFIRMED + payment made; staff should still be able to complete it.
         Booking booking = buildBooking("bk-002", "ACTIVE");
 
         when(bookingRepository.findById("bk-002")).thenReturn(Optional.of(booking));
@@ -79,25 +70,18 @@ class BookingServiceTest {
     @Test
     void completeBooking_alreadyCompletedStatus_throwsPaymentException() {
         Booking booking = buildBooking("bk-003", "COMPLETED");
-
         when(bookingRepository.findById("bk-003")).thenReturn(Optional.of(booking));
-
-        assertThrows(PaymentException.class,
-                () -> bookingService.completeBooking("bk-003", "staff-1"));
+        assertThrows(PaymentException.class, () -> bookingService.completeBooking("bk-003", "staff-1"));
     }
 
     @Test
     void completeBooking_cancelledStatus_throwsPaymentException() {
         Booking booking = buildBooking("bk-004", "CANCELLED");
-
         when(bookingRepository.findById("bk-004")).thenReturn(Optional.of(booking));
-
-        assertThrows(PaymentException.class,
-                () -> bookingService.completeBooking("bk-004", "staff-1"));
+        assertThrows(PaymentException.class, () -> bookingService.completeBooking("bk-004", "staff-1"));
     }
 
-    // ── cancelBooking ────────────────────────────────────────────────────────
-
+    // ── cancelBooking ─────────────────────────────────────────────────
     @Test
     void cancelBooking_confirmedStatus_setsCancelled() {
         Booking booking = buildBooking("bk-010", "CONFIRMED");
@@ -113,7 +97,6 @@ class BookingServiceTest {
 
     @Test
     void cancelBooking_activeStatus_setsCancelled() {
-        // ACTIVE (paid) bookings can still be cancelled (refund handled separately)
         Booking booking = buildBooking("bk-011", "ACTIVE");
 
         when(bookingRepository.findById("bk-011")).thenReturn(Optional.of(booking));
@@ -128,25 +111,18 @@ class BookingServiceTest {
     @Test
     void cancelBooking_alreadyCancelled_throwsPaymentException() {
         Booking booking = buildBooking("bk-012", "CANCELLED");
-
         when(bookingRepository.findById("bk-012")).thenReturn(Optional.of(booking));
-
-        assertThrows(PaymentException.class,
-                () -> bookingService.cancelBooking("bk-012", "user-1"));
+        assertThrows(PaymentException.class, () -> bookingService.cancelBooking("bk-012", "user-1"));
     }
 
     @Test
     void cancelBooking_completed_throwsPaymentException() {
         Booking booking = buildBooking("bk-013", "COMPLETED");
-
         when(bookingRepository.findById("bk-013")).thenReturn(Optional.of(booking));
-
-        assertThrows(PaymentException.class,
-                () -> bookingService.cancelBooking("bk-013", "user-1"));
+        assertThrows(PaymentException.class, () -> bookingService.cancelBooking("bk-013", "user-1"));
     }
 
-    // ── cancelBooking – refund policy ─────────────────────────────────────────
-
+    // ── cancelBooking – refund policy ──────────────────────────────────
     @Test
     void cancelBooking_moreThan7DaysBeforePickup_fullRefund() {
         Booking booking = buildBookingWithStartDate("bk-r10", "ACTIVE", LocalDate.now().plusDays(10));
@@ -164,7 +140,6 @@ class BookingServiceTest {
         Booking result = bookingService.cancelBooking("bk-r10", "user-1");
 
         assertEquals("CANCELLED", result.getStatus());
-        // Full refund: payment status set to REFUNDED
         verify(paymentRepository).save(argThat(p -> p.getStatus() == PaymentStatus.REFUNDED));
         verify(notificationService).sendCancellationNotification(any(), eq(6000.0), eq("FULL_REFUND"));
     }
@@ -204,7 +179,6 @@ class BookingServiceTest {
 
         bookingService.cancelBooking("bk-r12", "user-1");
 
-        // No refund: payment status must NOT change to REFUNDED
         verify(paymentRepository, never()).save(argThat(p -> p.getStatus() == PaymentStatus.REFUNDED));
         verify(notificationService).sendCancellationNotification(any(), eq(0.0), eq("NO_REFUND"));
     }
@@ -220,23 +194,34 @@ class BookingServiceTest {
 
         bookingService.cancelBooking("bk-r13", "user-1");
 
-        // No eligible payment → no refund payment save
         verify(paymentRepository, never()).save(any());
         verify(notificationService).sendCancellationNotification(any(), eq(0.0), eq("NO_REFUND"));
     }
 
-    // ── createBooking ────────────────────────────────────────────────────────
-
+    // ── createBooking ──────────────────────────────────────────────
     @Test
     void createBooking_setsConfirmedStatus() {
         Vehicle vehicle = new Vehicle();
         vehicle.setId("v-1");
         vehicle.setAvailable(true);
+        vehicle.setPricePerDay(1000.0); // ensure base price is set
 
+        // Simulate holidays (could be empty)
+        when(holidayRepository.findAll()).thenReturn(List.of());
+
+        // Simulate price calculation
         when(vehicleService.getVehicleById("v-1")).thenReturn(vehicle);
-        when(bookingRepository.existsByVehicleIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                any(), any(), any(), any())).thenReturn(false);
-        when(pricingService.calculateTotalPrice(any(), anyLong())).thenReturn(5000.0);
+        when(bookingRepository.existsByVehicleIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(any(), any(), any(), any())).thenReturn(false);
+
+        // Simulate the rental days list
+        doAnswer(inv -> {
+            double basePrice = inv.getArgument(0);
+            List<LocalDate> rentalDays = inv.getArgument(1);
+            List<String> holidays = inv.getArgument(2);
+            // We fake the pricing calculation result here, or do your own logic
+            return 5000.0;
+        }).when(pricingService).calculateTotalPrice(anyDouble(), anyList(), anyList());
+
         when(bookingRepository.save(any(Booking.class))).thenAnswer(inv -> {
             Booking b = inv.getArgument(0);
             b.setId("bk-new");
@@ -256,7 +241,8 @@ class BookingServiceTest {
         verify(notificationService).sendBookingConfirmedNotification(any(Booking.class));
     }
 
-    // ── processReturn ────────────────────────────────────────────────────────
+    // ── processReturn, status filtering, helpers remain UNCHANGED from your code ──
+    // (copy the rest as in your original test, no change needed!)
 
     @Test
     void processReturn_confirmedBooking_setsReturnedStatus() {
@@ -342,8 +328,6 @@ class BookingServiceTest {
                 () -> bookingService.processReturn("bk-r05", "", 0.0, "staff-1"));
     }
 
-    // ── booking status filtering ──────────────────────────────────────────────
-
     @Test
     void getActiveBookings_returnsConfirmedAndActiveStatuses() {
         Booking confirmed = buildBooking("bk-a01", "CONFIRMED");
@@ -405,8 +389,7 @@ class BookingServiceTest {
         assertEquals(3, result.size(), "getAllBookings must return all bookings regardless of status");
     }
 
-    // ── Helper ──────────────────────────────────────────────────────────────
-
+    // ── Helper ─────────────────────��───────────────────────────────
     private Booking buildBooking(String id, String status) {
         Booking b = new Booking();
         b.setId(id);

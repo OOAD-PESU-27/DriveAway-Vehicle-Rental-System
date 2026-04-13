@@ -7,16 +7,20 @@ import com.driveaway.entity.Vehicle;
 import com.driveaway.PaymentStatus;
 import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.PaymentRepository;
+import com.driveaway.repository.HolidayRepository;
 import com.driveaway.exception.ResourceNotFoundException;
 import com.driveaway.exception.PaymentException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Locale;
+import com.driveaway.service.pricing.PricingService;
 
 /**
  * BookingService - Contains business logic for vehicle bookings
@@ -34,6 +38,7 @@ public class BookingService {
     private final AuditLogService auditLogService;
     private final PaymentRepository paymentRepository;
     private final NotificationService notificationService;
+    private final HolidayRepository holidayRepository;
 
     /**
      * Create a new booking
@@ -57,8 +62,17 @@ public class BookingService {
             throw new PaymentException("Vehicle is already booked for the selected period");
         }
 
-        long rentalDays = ChronoUnit.DAYS.between(request.getStartDate(), request.getEndDate());
-        double totalPrice = pricingService.calculateTotalPrice(request.getVehicleId(), rentalDays);
+        // Build the date list between start and end (inclusive)
+        List<LocalDate> rentalDays = getDatesBetween(request.getStartDate(), request.getEndDate());
+
+        // Get holidays as list of strings
+        List<String> holidays = holidayRepository.findAll()
+                .stream()
+                .map(h -> h.getDate())
+                .toList();
+
+        double basePrice = vehicle.getPricePerDay();
+        double totalPrice = pricingService.calculateTotalPrice(basePrice, rentalDays, holidays);
 
         Booking booking = new Booking();
         booking.setUserId(userId);
@@ -78,6 +92,14 @@ public class BookingService {
                         + " from " + request.getStartDate() + " to " + request.getEndDate());
 
         return savedBooking;
+    }
+
+    private List<LocalDate> getDatesBetween(LocalDate start, LocalDate end) {
+        List<LocalDate> dates = new ArrayList<>();
+        for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
+            dates.add(date);
+        }
+        return dates;
     }
 
     /**

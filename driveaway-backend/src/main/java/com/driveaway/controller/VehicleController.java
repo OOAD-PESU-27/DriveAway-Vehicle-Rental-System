@@ -1,12 +1,15 @@
 package com.driveaway.controller;
 
+import com.driveaway.dto.ConfirmRequest;
+import com.driveaway.dto.VehicleResponse;
 import com.driveaway.entity.Vehicle;
-import com.driveaway.service.VehicleService;
 import com.driveaway.exception.ResourceNotFoundException;
+import com.driveaway.service.VehicleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 /**
@@ -98,5 +101,17 @@ public class VehicleController {
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    /**
+     * Vehicle search with holiday/weekend/weekday dynamic pricing and breakdown.
+     * POST /api/v1/vehicles/search
+     */
+    @PostMapping("/search")
+    public ResponseEntity<List<VehicleResponse>> searchVehiclesWithPricing(
+            @RequestBody ConfirmRequest confirmRequest
+    ) {
+        List<VehicleResponse> results = vehicleService.getAvailableVehiclesWithPrice(confirmRequest.getDates());
+        return ResponseEntity.ok(results);
     }
 }
