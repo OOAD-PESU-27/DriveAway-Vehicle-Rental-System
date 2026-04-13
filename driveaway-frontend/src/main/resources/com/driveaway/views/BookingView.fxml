@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+ROOT CAUSE OF YOUR CRASH:
+  "Content is not allowed in prolog" at row 1, col 1
+  This means the file had INVISIBLE characters (BOM = Byte Order Mark)
+  BEFORE the <?xml ...?> declaration.
+  Windows Notepad/some editors add BOM automatically to UTF-8 files.
+  Java's XML parser rejects any character before the <?xml tag.
+
+FIX: This file is saved as pure UTF-8 WITHOUT BOM.
+  If you edit this in Notepad, use "Save As" → Encoding → "UTF-8" (NOT "UTF-8 with BOM").
+  VS Code: bottom-right shows encoding. Click it → "Save with Encoding" → "UTF-8".
+-->
+
+<ScrollPane fitToWidth="true"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.BookingController">
+
+    <VBox spacing="16" alignment="TOP_CENTER"
+          style="-fx-padding: 24; -fx-background-color: #f0f4f8;">
+
+        <!-- ═══ HEADER ════════════════════════════════════ -->
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <Label text="🚗 DriveAway"
+                   style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1a237e;"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button text="Logout" onAction="#handleLogout"
+                    style="-fx-background-color: #e53935; -fx-text-fill: white;
+                           -fx-font-size: 12px; -fx-padding: 6 14; -fx-background-radius: 6;
+                           -fx-cursor: hand;"/>
+        </HBox>
+
+        <!-- ═══ SECTION 1: CUSTOMER BOOKING ══════════════ -->
+        <VBox spacing="10"
+              style="-fx-background-color: white; -fx-padding: 20;
+                     -fx-background-radius: 10;
+                     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 2);">
+
+            <Label text="📅 Customer — Book a Vehicle"
+                   style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1a237e;"/>
+
+            <Label text="Vehicle ID:" style="-fx-font-weight: bold;"/>
+            <TextField fx:id="vehicleIdField"
+                       promptText="Enter Vehicle ID (e.g. from database)"
+                       style="-fx-font-size: 13px;"/>
+
+            <HBox spacing="20">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Start Date:" style="-fx-font-weight: bold;"/>
+                    <DatePicker fx:id="startDatePicker" maxWidth="Infinity"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="End Date:" style="-fx-font-weight: bold;"/>
+                    <DatePicker fx:id="endDatePicker" maxWidth="Infinity"/>
+                </VBox>
+            </HBox>
+
+            <CheckBox fx:id="licenseVerifiedCheckBox"
+                      text="✅ I confirm my driving license is verified"/>
+
+            <Button text="Book Vehicle →"
+                    onAction="#handleBookVehicle"
+                    style="-fx-background-color: #1a237e; -fx-text-fill: white;
+                           -fx-font-size: 14px; -fx-font-weight: bold;
+                           -fx-padding: 10 28; -fx-background-radius: 8;
+                           -fx-cursor: hand;"/>
+
+            <Label fx:id="resultLabel"
+                   text=""
+                   wrapText="true"
+                   style="-fx-font-size: 13px; -fx-text-fill: #2e7d32;"/>
+        </VBox>
+
+        <!-- ═══ SECTION 2: STAFF RETURN + INSPECTION ═════ -->
+        <VBox fx:id="staffInspectionSection"
+              spacing="10"
+              style="-fx-background-color: white; -fx-padding: 20;
+                     -fx-background-radius: 10;
+                     -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.08), 8, 0, 0, 2);">
+
+            <Label text="🔍 Staff — Return and Inspection"
+                   style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #4a148c;"/>
+
+            <HBox spacing="16">
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Booking ID:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="bookingIdField"
+                               promptText="Paste booking ID here"
+                               style="-fx-font-size: 13px;"/>
+                </VBox>
+                <VBox spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Vehicle ID:" style="-fx-font-weight: bold;"/>
+                    <TextField fx:id="returnVehicleIdField"
+                               promptText="Vehicle ID"
+                               style="-fx-font-size: 13px;"/>
+                </VBox>
+            </HBox>
+
+            <CheckBox fx:id="hasDamageCheckBox" text="⚠ Damage Found on Vehicle"/>
+
+            <VBox fx:id="damageSection" spacing="8"
+                  style="-fx-background-color: #fce4ec; -fx-padding: 12;
+                         -fx-background-radius: 8;">
+                <Label text="Damage Details:" style="-fx-font-weight: bold; -fx-text-fill: #b71c1c;"/>
+                <TextField fx:id="damageDescriptionField"
+                           promptText="Describe the damage (e.g. scratched bumper)"
+                           style="-fx-font-size: 13px;"/>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label text="Severity:" style="-fx-font-weight: bold;"/>
+                    <ChoiceBox fx:id="damageSeverityChoice" prefWidth="160"/>
+                    <Label text="(LOW=₹2000 / MEDIUM=₹6000 / HIGH=₹15000)"
+                           style="-fx-font-size: 11px; -fx-text-fill: #666;"/>
+                </HBox>
+            </VBox>
+
+            <Button text="Submit Return Inspection →"
+                    onAction="#handleReturnInspection"
+                    style="-fx-background-color: #4a148c; -fx-text-fill: white;
+                           -fx-font-size: 14px; -fx-font-weight: bold;
+                           -fx-padding: 10 28; -fx-background-radius: 8;
+                           -fx-cursor: hand;"/>
+
+            <TextArea fx:id="inspectionResultArea"
+                      prefHeight="90"
+                      wrapText="true"
+                      editable="false"
+                      promptText="Inspection result will appear here..."
+                      style="-fx-font-size: 13px;"/>
+        </VBox>
+
+    </VBox>
+</ScrollPane>

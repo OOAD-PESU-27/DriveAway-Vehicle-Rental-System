@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.driveaway</groupId>
+    <artifactId>driveaway-frontend</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
+        <!--
+            JavaFX 21.0.2 works with Java 21.
+            This FIXES the "class file version 67" error you saw —
+            that error happened because javafx-sdk-25 needs Java 23,
+            but your machine runs Java 21.
+            This pom pulls JavaFX 21 from Maven Central automatically.
+            No need to download or point to the SDK folder manually.
+        -->
+        <javafx.version>21.0.2</javafx.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+
+        <!-- JavaFX — Maven downloads the right version automatically -->
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-controls</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjfx</groupId>
+            <artifactId>javafx-fxml</artifactId>
+            <version>${javafx.version}</version>
+        </dependency>
+
+        <!--
+            Gson — used by BookingService / frontend services to convert
+            Java objects to JSON strings and parse JSON responses from backend.
+            Simpler than Jackson for this project.
+        -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <!-- Tell Maven where our source files are -->
+        <sourceDirectory>src</sourceDirectory>
+
+        <!-- Include FXML files in the build output so JavaFX can find them -->
+        <resources>
+            <resource>
+                <directory>src</directory>
+                <includes>
+                    <include>**/*.fxml</include>
+                    <include>**/*.css</include>
+                    
+                </includes>
+            </resource>
+        </resources>
+
+        <plugins>
+
+            <!-- Standard Java compiler plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.11.0</version>
+                <configuration>
+                    <source>21</source>
+                    <target>21</target>
+                </configuration>
+            </plugin>
+
+            <!--
+                JavaFX Maven Plugin — lets you run the app with:
+                    mvn javafx:run   (or .\mvnw javafx:run)
+                No need for long javac/java commands anymore.
+            -->
+            <plugin>
+                <groupId>org.openjfx</groupId>
+                <artifactId>javafx-maven-plugin</artifactId>
+                <version>0.0.8</version>
+                <configuration>
+                    <!-- This must match the class that has your main() method -->
+                    <mainClass>com.driveaway.MainApp</mainClass>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>

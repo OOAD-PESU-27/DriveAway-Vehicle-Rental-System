@@ -1,12 +1,66 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<VBox spacing="10"
-      xmlns:fx="http://javafx.com/fxml">
-
-    <Label text="Vehicle Booking"/>
-
-    <TextField promptText="Vehicle ID"/>
-
-    <Button text="Book Vehicle"/>
-
-</VBox>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+<ScrollPane fitToWidth="true" xmlns:fx="http://javafx.com/fxml" fx:controller="com.driveaway.controllers.BookingController">
+  <VBox spacing="0" style="-fx-background-color: #1a1a2e;">
+    <HBox style="-fx-background-color: #16213e; -fx-padding: 16;" alignment="CENTER_LEFT" spacing="16">
+      <Label text="DriveAway" style="-fx-font-size: 22; -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
+      <Label text="Vehicle Rental System" style="-fx-font-size: 14; -fx-text-fill: #a8a8b3;"/>
+      <Region HBox.hgrow="ALWAYS"/>
+      <Label fx:id="welcomeLabel" text="Welcome!" style="-fx-text-fill: #e2e2e2; -fx-font-size: 13;"/>
+      <Button text="Logout" onAction="#handleLogout" style="-fx-background-color: #e94560; -fx-text-fill: white; -fx-background-radius: 6; -fx-padding: 6 16; -fx-cursor: hand; -fx-font-weight: bold;"/>
+    </HBox>
+    <VBox spacing="20" style="-fx-padding: 24;">
+      <VBox spacing="14" style="-fx-background-color: #16213e; -fx-background-radius: 12; -fx-padding: 20;">
+        <Label text="Book a Vehicle" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
+        <HBox spacing="12">
+          <VBox spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="Vehicle" style="-fx-text-fill: #a8a8b3; -fx-font-size: 12;"/>
+            <ComboBox fx:id="vehicleComboBox" maxWidth="Infinity" style="-fx-background-color: #0f3460; -fx-text-fill: white;"/>
+          </VBox>
+        </HBox>
+        <HBox spacing="12">
+          <VBox spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="Start Date" style="-fx-text-fill: #a8a8b3; -fx-font-size: 12;"/>
+            <DatePicker fx:id="startDatePicker" maxWidth="Infinity"/>
+          </VBox>
+          <VBox spacing="6" HBox.hgrow="ALWAYS">
+            <Label text="End Date" style="-fx-text-fill: #a8a8b3; -fx-font-size: 12;"/>
+            <DatePicker fx:id="endDatePicker" maxWidth="Infinity"/>
+          </VBox>
+        </HBox>
+        <CheckBox fx:id="licenseVerifiedCheckBox" text="I confirm my driving license is verified" style="-fx-text-fill: #e2e2e2;"/>
+        <HBox spacing="12">
+          <Button text="Book Vehicle" onAction="#handleBookVehicle" style="-fx-background-color: #e94560; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 28; -fx-font-weight: bold; -fx-font-size: 13; -fx-cursor: hand;"/>
+          <Button text="My Bookings" onAction="#handleViewMyBookings" style="-fx-background-color: #0f3460; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 20; -fx-cursor: hand;"/>
+        </HBox>
+        <Label fx:id="bookingResultLabel" wrapText="true" style="-fx-text-fill: #4ecca3; -fx-font-size: 13;"/>
+      </VBox>
+      <VBox fx:id="myBookingsSection" spacing="10" style="-fx-background-color: #16213e; -fx-background-radius: 12; -fx-padding: 20;">
+        <Label text="My Bookings" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #4ecca3;"/>
+        <ListView fx:id="myBookingsList" prefHeight="150" style="-fx-background-color: #0f3460; -fx-text-fill: white;"/>
+        <HBox spacing="12">
+          <Button text="Request Handover" onAction="#handleRequestHandover" style="-fx-background-color: #533483; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 20; -fx-cursor: hand;"/>
+          <Label fx:id="handoverResultLabel" style="-fx-text-fill: #4ecca3;"/>
+        </HBox>
+      </VBox>
+      <VBox fx:id="staffInspectionSection" spacing="14" style="-fx-background-color: #16213e; -fx-background-radius: 12; -fx-padding: 20;">
+        <Label text="Staff — Return and Inspection" style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #533483;"/>
+        <ListView fx:id="handoverRequestsList" prefHeight="120" style="-fx-background-color: #0f3460; -fx-text-fill: white;"/>
+        <Label text="Select a booking above then fill inspection:" style="-fx-text-fill: #a8a8b3; -fx-font-size: 12;"/>
+        <TextField fx:id="bookingIdField" promptText="Booking ID (auto-filled when you select above)" style="-fx-background-color: #0f3460; -fx-text-fill: white; -fx-prompt-text-fill: #666;"/>
+        <TextField fx:id="returnVehicleIdField" promptText="Vehicle ID" style="-fx-background-color: #0f3460; -fx-text-fill: white; -fx-prompt-text-fill: #666;"/>
+        <CheckBox fx:id="hasDamageCheckBox" text="Damage Found on Vehicle" style="-fx-text-fill: #e2e2e2;"/>
+        <TextField fx:id="damageDescriptionField" promptText="Damage description" style="-fx-background-color: #0f3460; -fx-text-fill: white; -fx-prompt-text-fill: #666;"/>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+          <Label text="Severity:" style="-fx-text-fill: #a8a8b3;"/>
+          <ChoiceBox fx:id="damageSeverityChoice" style="-fx-background-color: #0f3460;"/>
+          <Label text="LOW=Rs.2000  MEDIUM=Rs.6000  HIGH=Rs.15000" style="-fx-text-fill: #666; -fx-font-size: 11;"/>
+        </HBox>
+        <Button text="Submit Return Inspection" onAction="#handleReturnInspection" style="-fx-background-color: #533483; -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 10 28; -fx-font-weight: bold; -fx-font-size: 13; -fx-cursor: hand;"/>
+        <TextArea fx:id="inspectionResultArea" prefHeight="80" editable="false" wrapText="true" style="-fx-background-color: #0f3460; -fx-text-fill: #4ecca3;"/>
+      </VBox>
+    </VBox>
+  </VBox>
+</ScrollPane>

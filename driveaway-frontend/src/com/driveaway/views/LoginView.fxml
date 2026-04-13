@@ -1,24 +1,49 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.control.*?>
 
-<VBox spacing="15" alignment="CENTER"
+<VBox spacing="16" alignment="CENTER"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.driveaway.controllers.LoginController"
-      style="-fx-background-color: #2c3e50;">
+      style="-fx-background-color: #1a237e; -fx-padding: 50;">
 
-    <padding>
-        <Insets top="40" bottom="40"/>
-    </padding>
+    <Label text="🚗 DriveAway"
+           style="-fx-text-fill: white; -fx-font-size: 28px; -fx-font-weight: bold;"/>
+    <Label text="Vehicle Rental System"
+           style="-fx-text-fill: #90caf9; -fx-font-size: 14px;"/>
 
-    <Label text="DriveAway Login"
-           style="-fx-text-fill: white; -fx-font-size: 20px;"/>
+    <VBox spacing="12" style="-fx-background-color: white; -fx-padding: 28;
+          -fx-background-radius: 12;
+          -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 16, 0, 0, 4);">
 
-    <TextField fx:id="emailField" promptText="Email"/>
-    <PasswordField fx:id="passwordField" promptText="Password"/>
+        <Label text="Sign In" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1a237e;"/>
 
-    <Button text="Login" onAction="#handleLogin"/>
-    <Button text="Go to Register" onAction="#goToRegister"/>
+        <Label text="Email:" style="-fx-font-weight: bold;"/>
+        <TextField fx:id="emailField"
+                   promptText="Enter your email"
+                   style="-fx-font-size: 14px; -fx-padding: 8;"/>
+
+        <Label text="Password:" style="-fx-font-weight: bold;"/>
+        <PasswordField fx:id="passwordField"
+                       promptText="Enter your password"
+                       style="-fx-font-size: 14px; -fx-padding: 8;"/>
+
+        <Label fx:id="errorLabel" text=""
+               style="-fx-text-fill: #c62828; -fx-font-size: 12px;" wrapText="true"/>
+
+        <Button text="Login →"
+                onAction="#handleLogin"
+                maxWidth="Infinity"
+                style="-fx-background-color: #1a237e; -fx-text-fill: white;
+                       -fx-font-size: 14px; -fx-font-weight: bold;
+                       -fx-padding: 10; -fx-background-radius: 8; -fx-cursor: hand;"/>
+
+        <Button text="New user? Register here"
+                onAction="#goToRegister"
+                maxWidth="Infinity"
+                style="-fx-background-color: transparent; -fx-text-fill: #1a237e;
+                       -fx-font-size: 13px; -fx-cursor: hand; -fx-border-color: #1a237e;
+                       -fx-border-radius: 8; -fx-padding: 8;"/>
+    </VBox>
 </VBox>

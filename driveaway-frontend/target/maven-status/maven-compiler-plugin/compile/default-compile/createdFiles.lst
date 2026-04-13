@@ -1,0 +1,17 @@
+com\driveaway\controllers\RegisterController.class
+com\driveaway\controllers\VehicleController.class
+com\driveaway\utils\SceneNavigator.class
+com\driveaway\controllers\PaymentController.class
+com\driveaway\models\Vehicle.class
+com\driveaway\models\Booking.class
+com\driveaway\controllers\StaffController.class
+com\driveaway\services\VehicleService.class
+com\driveaway\controllers\LicenseController.class
+com\driveaway\services\AuthService.class
+com\driveaway\MainApp.class
+com\driveaway\models\User.class
+com\driveaway\controllers\BookingController.class
+com\driveaway\services\BookingService.class
+com\driveaway\controllers\LoginController.class
+com\driveaway\utils\HttpUtil.class
+com\driveaway\services\LicenseService.class
