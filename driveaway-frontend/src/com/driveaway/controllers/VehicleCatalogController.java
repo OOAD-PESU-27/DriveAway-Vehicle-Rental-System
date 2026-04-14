@@ -2,7 +2,10 @@ package com.driveaway.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import com.driveaway.services.BookingService;
 import com.driveaway.services.VehicleService;
 import com.driveaway.utils.SceneNavigator;
 
@@ -33,6 +36,8 @@ public class VehicleCatalogController {
     @FXML private DatePicker endDatePicker;
 
     private final VehicleService vehicleService = new VehicleService();
+    private final BookingService bookingService = new BookingService();
+    private static final Logger logger = Logger.getLogger(VehicleCatalogController.class.getName());
     private List<String[]> allVehicles = new ArrayList<>();
 
     @FXML
@@ -494,10 +499,106 @@ public class VehicleCatalogController {
     }
 
     private void bookVehicle(String[] v) {
-        VehicleController.SelectedVehicleHolder.setSelectedVehicleId(v[0]);
+        String userId = LoginController.getUserId();
+        if (userId == null) {
+            setStatus("Please log in to book a vehicle.");
+            return;
+        }
+
+        String vehicleId = v[0];
+        String start = startDatePicker.getValue() != null ? startDatePicker.getValue().toString() : null;
+        String end   = endDatePicker.getValue()   != null ? endDatePicker.getValue().toString()   : null;
+
+        if (start == null || end == null) {
+            setStatus("Please select start and end dates before booking.");
+            return;
+        }
+        if (!endDatePicker.getValue().isAfter(startDatePicker.getValue())) {
+            setStatus("End date must be after start date.");
+            return;
+        }
+
+        // Store vehicle context so PaymentView / PaymentController can reference it
+        VehicleController.SelectedVehicleHolder.setSelectedVehicleId(vehicleId);
         VehicleController.SelectedVehicleHolder.setSelectedVehicleData(v);
-        // Changed to navigate to BookingView directly when Book Now is clicked
-        SceneNavigator.load("views/BookingView.fxml");
+
+        setStatus("⏳ Creating booking, please wait...");
+
+        String response = bookingService.createBooking(userId, vehicleId, start, end);
+
+        if (response != null && response.contains("\"id\"")) {
+            // Store booking ID
+            String bookingId = extractBookingField(response, "id");
+            if (bookingId != null) {
+                BookingManagementController.setLastBookingId(bookingId);
+            }
+
+            // Store totalPrice from booking response (preferred) or fall back to catalog price
+            String totalPriceStr = extractNumericField(response, "totalPrice");
+            if (totalPriceStr != null) {
+                try {
+                    BookingManagementController.setLastBookingTotalPrice(Double.parseDouble(totalPriceStr));
+                } catch (NumberFormatException e) {
+                    logger.log(Level.WARNING, "Could not parse totalPrice ''{0}'' from booking response", totalPriceStr);
+                }
+            } else if (v.length > 11 && v[11] != null) {
+                // Fall back to pre-computed catalog total (v[11] = totalPrice from pricing endpoint)
+                try {
+                    BookingManagementController.setLastBookingTotalPrice(Double.parseDouble(v[11]));
+                } catch (NumberFormatException ignored) {}
+            }
+
+            setStatus("✅ Booking confirmed! Redirecting to payment...");
+            SceneNavigator.load("views/PaymentView.fxml");
+        } else {
+            // FIX: Show the actual error message returned by the backend instead of a
+            // generic message. This surfaces real reasons like "Vehicle is already booked
+            // for the selected period" or "End date must be after start date".
+            String errorDetail = "";
+            if (response != null && !response.isBlank()) {
+                // Strip JSON quotes/braces if the backend returned a plain string body
+                errorDetail = response.trim()
+                        .replaceAll("^\"", "").replaceAll("\"$", "")  // unwrap bare quoted string
+                        .replaceAll("^\\{\\.\\*\\}$", response); // leave JSON objects as-is
+                // Truncate very long responses for display
+                if (errorDetail.length() > 200) errorDetail = errorDetail.substring(0, 200) + "...";
+                errorDetail = ": " + errorDetail;
+            }
+            setStatus("❌ Booking failed" + errorDetail);
+        }
+    }
+
+    /** Extracts a quoted string field from a JSON response. */
+    private String extractBookingField(String json, String field) {
+        if (json == null) return null;
+        String key = "\"" + field + "\":";
+        int idx = json.indexOf(key);
+        if (idx < 0) return null;
+        int start = idx + key.length();
+        if (start >= json.length()) return null;
+        char ch = json.charAt(start);
+        if (ch == '"') {
+            int end = json.indexOf('"', start + 1);
+            return end > start ? json.substring(start + 1, end) : null;
+        }
+        return null;
+    }
+
+    /** Extracts a numeric (unquoted) field from a JSON response. */
+    private String extractNumericField(String json, String field) {
+        if (json == null) return null;
+        String key = "\"" + field + "\":";
+        int idx = json.indexOf(key);
+        if (idx < 0) return null;
+        int start = idx + key.length();
+        if (start >= json.length()) return null;
+        char ch = json.charAt(start);
+        if (ch != '"') {
+            int end = json.indexOf(',', start);
+            if (end < 0) end = json.indexOf('}', start);
+            return end > start ? json.substring(start, end).trim() : null;
+        }
+        return null;
     }
 
     private String getVehicleEmoji(String type) {

@@ -7,10 +7,9 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.driveaway.dto.VehicleResponse;
-import com.driveaway.entity.DateSelectionEntity;
 import com.driveaway.entity.Vehicle;
 import com.driveaway.exception.ResourceNotFoundException;
-import com.driveaway.repository.DateSelectionRepository;
+import com.driveaway.repository.BookingRepository;
 import com.driveaway.repository.HolidayRepository;
 import com.driveaway.repository.VehicleRepository;
 import com.driveaway.service.pricing.PricingFactory;
@@ -22,6 +21,11 @@ import lombok.RequiredArgsConstructor;
  * VehicleService - Contains business logic for vehicle management
  * GRASP: Information Expert - Handles vehicle-related business logic
  * SOLID: SRP - Only handles vehicle operations
+ *
+ * FIX: getAvailableVehiclesWithPrice() now uses BookingRepository to check
+ * real date-range conflicts instead of DateSelectionRepository, which was
+ * never populated by the normal booking flow. This ensures the "available"
+ * flag shown on the vehicle catalog correctly reflects actual bookings.
  */
 
 @Service
@@ -31,7 +35,7 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final HolidayRepository holidayRepository;
     private final AuditLogService auditLogService;
-    private final DateSelectionRepository dateRepo;
+    private final BookingRepository bookingRepository; // FIX: injected to check real booking conflicts
 
     /**
      * Get all vehicles
@@ -129,10 +133,14 @@ public class VehicleService {
                 "Vehicle deleted: " + vehicleId);
     }
 
-    // ===================== NEW FEATURE FOR DYNAMIC PRICING =====================
+    // ===================== DYNAMIC PRICING SEARCH =====================
 
     /**
      * Vehicle search with holiday/weekend/weekday dynamic pricing and breakdown.
+     *
+     * FIX: Now checks real booking conflicts using BookingRepository instead of
+     * DateSelectionRepository. DateSelectionRepository was always empty for bookings
+     * made through the normal flow, so all vehicles incorrectly showed as available.
      */
     public List<VehicleResponse> getAvailableVehiclesWithPrice(List<LocalDate> dates) {
         List<Vehicle> vehicles = vehicleRepository.findAll();
@@ -151,8 +159,8 @@ public class VehicleService {
         int weekendCount = DateService.countWeekends(dates);
         int weekdayCount = DateService.countWeekdays(dates, holidays);
 
-        System.out.println("📊 Days — weekday:" + weekdayCount + 
-                        " weekend:" + weekendCount + 
+        System.out.println("📊 Days — weekday:" + weekdayCount +
+                        " weekend:" + weekendCount +
                         " holiday:" + holidayCount);
 
         PricingStrategy strategy = PricingFactory.getStrategy(holidayCount, weekendCount);
@@ -160,18 +168,17 @@ public class VehicleService {
         List<VehicleResponse> responseList = new ArrayList<>();
 
         for (Vehicle v : vehicles) {
-            System.out.println("🚗 Checking vehicle: " + v.getId());  // ← MOVED INSIDE
+            System.out.println("🚗 Checking vehicle: " + v.getId());
 
-            List<DateSelectionEntity> conflicts = dateRepo.findOverlappingDates(
-                v.getId(),
-                startDate.toString(),
-                endDate.toString()
-            );
+            // FIX: Use BookingRepository to check for CONFIRMED booking overlaps.
+            // Previously used DateSelectionRepository.findOverlappingDates() which
+            // was never populated by the normal booking flow, so isAvailable was
+            // always true regardless of existing bookings.
+            boolean isAvailable = !bookingRepository
+                    .existsByVehicleIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
+                            v.getId(), "CONFIRMED", endDate, startDate);
 
-            boolean isAvailable = conflicts.isEmpty();
-
-            System.out.println("   Conflicts found: " + conflicts.size());  // ← MOVED INSIDE
-            System.out.println("   Available: " + isAvailable);             // ← MOVED INSIDE
+            System.out.println("   Available: " + isAvailable);
 
             double basePrice = v.getPricePerDay();
             double total = strategy.calculate(basePrice, dates, holidays);
@@ -194,8 +201,8 @@ public class VehicleService {
             res.setTotalPrice(total);
             res.setPriceBreakdown(breakdown);
 
-            System.out.println("   ✅ Added: " + v.getBrand() + " " + v.getModel() + 
-                            " | available=" + isAvailable + 
+            System.out.println("   ✅ Added: " + v.getBrand() + " " + v.getModel() +
+                            " | available=" + isAvailable +
                             " | total=₹" + total);
 
             responseList.add(res);

@@ -42,18 +42,25 @@ public class BookingService {
 
     /**
      * Create a new booking
+     *
+     * FIX: Removed the vehicle.isAvailable() flag check.
+     * That flag is a persistent DB flag that stays false after any booking,
+     * causing ALL future booking attempts on that vehicle to fail with
+     * "Vehicle is not available". The correct availability check is the
+     * date-range overlap query against confirmed bookings (below), which
+     * correctly allows re-booking after cancellation or completion.
      */
     public Booking createBooking(BookingRequest request, String userId) {
         if (!request.getEndDate().isAfter(request.getStartDate())) {
             throw new PaymentException("End date must be after start date");
         }
 
+        // Verify vehicle exists
         Vehicle vehicle = vehicleService.getVehicleById(request.getVehicleId());
 
-        if (!vehicle.isAvailable()) {
-            throw new PaymentException("Vehicle is not available for the selected dates");
-        }
-
+        // FIX: Only use date-range overlap check — NOT vehicle.isAvailable().
+        // The isAvailable() flag is unreliable: it stays false permanently after
+        // the first booking and blocks all subsequent bookings on the same vehicle.
         boolean overlapping = bookingRepository
                 .existsByVehicleIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
                         request.getVehicleId(), "CONFIRMED",
@@ -239,11 +246,6 @@ public class BookingService {
 
     /**
      * Process vehicle return with damage check.
-     * Records the return, captures damage details, and triggers security deposit refund/forfeiture.
-     * @param bookingId    the booking being returned
-     * @param damageNotes  description of any damage (can be blank if no damage)
-     * @param damageCharge charge for damage (0 = no damage, full deposit refunded)
-     * @param staffId      staff member processing the return
      */
     public Booking processReturn(String bookingId, String damageNotes, double damageCharge, String staffId) {
         Booking booking = getBookingById(bookingId);
@@ -264,7 +266,6 @@ public class BookingService {
 
         vehicleService.markVehicleAsAvailable(booking.getVehicleId());
 
-        // Process security deposit refund/forfeiture based on damage check
         boolean depositProcessed = false;
         try {
             List<com.driveaway.entity.Payment> payments = paymentRepository.findByRentalId(bookingId);

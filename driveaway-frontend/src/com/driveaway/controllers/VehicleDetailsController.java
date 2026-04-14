@@ -290,7 +290,7 @@ System.out.println("=====================================================\n");
         }
 
         LocalDate start = startDatePicker != null ? startDatePicker.getValue() : null;
-        LocalDate end = endDatePicker != null ? endDatePicker.getValue() : null;
+        LocalDate end   = endDatePicker   != null ? endDatePicker.getValue()   : null;
 
         if (start == null || end == null) {
             setStatus("Please select pick-up and drop-off dates.");
@@ -308,19 +308,54 @@ System.out.println("=====================================================\n");
             return;
         }
 
-        setStatus("Processing booking...");
+        setStatus("⏳ Processing booking...");
         String response = bookingService.createBooking(userId, vehicleId,
                 start.toString(), end.toString());
 
         if (response != null && (response.contains("\"id\"") || response.contains("id"))) {
-            setStatus("✅ Booking confirmed! Redirecting to payment...");
-            // Extract booking ID for payment
+            // Store booking ID
             String bookingId = extractField(response, "id");
             BookingManagementController.setLastBookingId(bookingId);
+
+            // Store totalPrice — try booking response first, then fall back to catalog/details price
+            String totalPriceStr = extractNumericField(response, "totalPrice");
+            if (totalPriceStr != null) {
+                try {
+                    BookingManagementController.setLastBookingTotalPrice(Double.parseDouble(totalPriceStr));
+                } catch (NumberFormatException ignored) {}
+            } else if (vehicleData != null && vehicleData.length > 11 && vehicleData[11] != null) {
+                try {
+                    BookingManagementController.setLastBookingTotalPrice(Double.parseDouble(vehicleData[11]));
+                } catch (NumberFormatException ignored) {}
+            } else if (pricePerDay > 0 && start != null && end != null) {
+                long days = java.time.temporal.ChronoUnit.DAYS.between(start, end);
+                if (days > 0) {
+                    BookingManagementController.setLastBookingTotalPrice(days * pricePerDay);
+                }
+            }
+
+            setStatus("✅ Booking confirmed! Redirecting to payment...");
             SceneNavigator.load("views/PaymentView.fxml");
         } else {
             setStatus("❌ Booking failed. Please try again or check if backend is running.");
         }
+    }
+
+    /** Extracts a numeric (unquoted) JSON field value. */
+    private String extractNumericField(String json, String field) {
+        if (json == null) return null;
+        String key = "\"" + field + "\":";
+        int idx = json.indexOf(key);
+        if (idx < 0) return null;
+        int start = idx + key.length();
+        if (start >= json.length()) return null;
+        char ch = json.charAt(start);
+        if (ch != '"') {
+            int end = json.indexOf(',', start);
+            if (end < 0) end = json.indexOf('}', start);
+            return end > start ? json.substring(start, end).trim() : null;
+        }
+        return null;
     }
 
     private String getVehicleEmoji(String type) {

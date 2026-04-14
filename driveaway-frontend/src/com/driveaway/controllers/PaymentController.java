@@ -55,21 +55,29 @@ public class PaymentController {
             bankCombo.getItems().addAll("SBI", "HDFC", "ICICI", "Axis Bank",
                     "Kotak", "PNB", "Bank of Baroda");
         }
+
         // Pre-fill booking ID if available
         String bookingId = BookingManagementController.getLastBookingId();
         if (bookingId != null && rentalIdField != null) {
             rentalIdField.setText(bookingId);
         }
+
         // Pre-fill amount from booking's totalPrice
         double totalPrice = BookingManagementController.getLastBookingTotalPrice();
         if (totalPrice > 0 && amountField != null) {
             amountField.setText(String.format("%.2f", totalPrice));
             updateSummary();
         }
+
         showCardSection();
         if (approvalSection != null) {
             approvalSection.setVisible(false);
             approvalSection.setManaged(false);
+        }
+
+        // Auto-submit payment request if booking ID and amount are ready
+        if (bookingId != null && totalPrice > 0) {
+            setStatus("✅ Booking confirmed! Choose a payment method and click \"Submit Payment Request\" to proceed.", true);
         }
     }
 
