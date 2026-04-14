@@ -57,10 +57,6 @@
                           styleClass="form-combo"/>
 
                 <!-- Availability Filter -->
-                <Label text="AVAILABILITY" styleClass="filter-label"/>
-                <ComboBox fx:id="availabilityFilter" promptText="All"
-                          maxWidth="Infinity" onAction="#applyFilters"
-                          styleClass="form-combo"/>
 
                 <Region VBox.vgrow="ALWAYS"/>
 
@@ -84,6 +80,14 @@
                     </VBox>
                     <TextField fx:id="searchField" promptText="🔍  Search vehicles..."
                                styleClass="search-field" onKeyReleased="#handleSearch"/>
+                </HBox>
+
+                <HBox spacing="10" alignment="CENTER_LEFT">
+                    <DatePicker fx:id="startDatePicker" promptText="Start Date"/>
+                    <DatePicker fx:id="endDatePicker" promptText="End Date"/>
+                    <Button text="Check Availability"
+                            onAction="#handleCheckAvailability"
+                            styleClass="btn-primary"/>
                 </HBox>
 
                 <!-- Status Label -->

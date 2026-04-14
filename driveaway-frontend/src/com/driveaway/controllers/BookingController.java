@@ -8,6 +8,7 @@ import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -100,7 +101,13 @@ public class BookingController {
         }
 
         setStatus("Processing booking...");
-        String response = bookingService.createBooking(userId, vehicleId, start.toString(), end.toString());
+        
+        // 👇 THE FIX: Force the date format to be exactly YYYY-MM-DD so the backend doesn't crash!
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        String formattedStart = start.format(formatter);
+        String formattedEnd = end.format(formatter);
+
+        String response = bookingService.createBooking(userId, vehicleId, formattedStart, formattedEnd);
 
         if (response != null && response.contains("\"id\"")) {
             String bookingId = extractField(response, "id");
@@ -169,4 +176,3 @@ public class BookingController {
         }
     }
 }
-

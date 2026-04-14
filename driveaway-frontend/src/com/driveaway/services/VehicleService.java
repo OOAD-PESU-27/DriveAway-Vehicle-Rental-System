@@ -1,33 +1,35 @@
 package com.driveaway.services;
 
 import java.time.LocalDate;
+
 import com.driveaway.utils.ApiClient;
 
 public class VehicleService {
 
     public String getVehicles() {
-        return ApiClient.get("/vehicles");
+        return ApiClient.get("/api/v1/vehicles");
+    }
+
+    public String getAllVehicles() {
+        return ApiClient.get("/api/v1/vehicles");
     }
 
     public String getAvailableVehicles() {
-        return ApiClient.get("/vehicles/available");
+        return ApiClient.get("/api/v1/vehicles/available");
     }
 
     public String getPrice(double basePrice, int days, String date) {
         return ApiClient.get(
-            "/vehicles/price?basePrice=" + basePrice +
+            "/api/v1/vehicles/price?basePrice=" + basePrice +
             "&days=" + days +
             "&date=" + date
         );
     }
 
-    // ---- NEW: supports date-ranged vehicle search for pricing cards ----
     public String getVehiclesWithPricing(String start, String end) {
-
         LocalDate startDate = LocalDate.parse(start);
         LocalDate endDate = LocalDate.parse(end);
 
-        // Build JSON array of dates manually
         StringBuilder datesArray = new StringBuilder("[");
         
         while (!startDate.isAfter(endDate)) {
@@ -37,14 +39,12 @@ public class VehicleService {
         }
         datesArray.append("]");
 
-        // Build JSON body manually
         String body = "{\"dates\":" + datesArray.toString() + "}";
-
-        return ApiClient.post("/vehicles/search", body);
+        System.out.println("➡ Calling backend /vehicles/search");
+        return ApiClient.post("/api/v1/vehicles/search", body);
     }
 
-    // ---- NEW: for booking ----
     public String bookVehicle(String json) {
-        return ApiClient.post("/dates/create", json);
+        return ApiClient.post("/api/v1/dates/create", json);
     }
 }

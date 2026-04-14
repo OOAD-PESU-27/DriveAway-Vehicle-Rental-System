@@ -26,7 +26,6 @@ public class VehicleController {
 
     @FXML
     public void initialize() {
-        // Optional: can automatically load vehicles, or leave blank
     }
 
     @FXML
@@ -128,7 +127,8 @@ public class VehicleController {
 
         bookBtn.setOnAction(e -> {
             String breakdown = v.priceBreakdown.isEmpty() ? "No details available" : v.priceBreakdown;
-            breakdown = breakdown.replace("\\n", "\n");
+            // 👉 RESTORED YOUR WINDOWS SYMBOL FIX
+            breakdown = breakdown.replace("? ?", "× ₹").replace("?", "₹").replace("\\n", "\n");
             Alert alert = new Alert(Alert.AlertType.NONE);
             alert.setTitle("Price Breakdown");
 
@@ -170,8 +170,8 @@ public class VehicleController {
     }
 
     private void bookVehicle(String vehicleId) {
-        // If you have login functionality, fetch userId accordingly. Here it's just a placeholder string.
-        String currentUserId = "demoUser"; // Replace with actual logic if you have authentication
+        // 👉 RESTORED PERSON 1 BRIDGE: Put your dynamic login ID back!
+        String currentUserId = LoginController.getUserId(); 
 
         String json = "{" +
                 "\"userId\":\"" + currentUserId + "\"," +
@@ -199,5 +199,21 @@ public class VehicleController {
         double holidayPricePerDay;
         String totalPrice;
         String priceBreakdown;
+    }
+
+    // 👉 PERSON 4'S MISSING STORAGE BOX ADDED HERE!
+    public static class SelectedVehicleHolder {
+        private static String selectedVehicleId;
+        private static String selectedVehicleInfo;
+        private static String[] selectedVehicleData;
+
+        public static String getSelectedVehicleId() { return selectedVehicleId; }
+        public static void setSelectedVehicleId(String id) { selectedVehicleId = id; }
+
+        public static String getSelectedVehicleInfo() { return selectedVehicleInfo; }
+        public static void setSelectedVehicleInfo(String info) { selectedVehicleInfo = info; }
+
+        public static String[] getSelectedVehicleData() { return selectedVehicleData; }
+        public static void setSelectedVehicleData(String[] data) { selectedVehicleData = data; }
     }
 }

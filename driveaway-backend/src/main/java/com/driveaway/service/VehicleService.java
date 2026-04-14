@@ -1,18 +1,22 @@
 package com.driveaway.service;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.driveaway.dto.VehicleResponse;
+import com.driveaway.entity.DateSelectionEntity;
 import com.driveaway.entity.Vehicle;
 import com.driveaway.exception.ResourceNotFoundException;
+import com.driveaway.repository.DateSelectionRepository;
 import com.driveaway.repository.HolidayRepository;
 import com.driveaway.repository.VehicleRepository;
 import com.driveaway.service.pricing.PricingFactory;
 import com.driveaway.service.pricing.PricingStrategy;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
 /**
  * VehicleService - Contains business logic for vehicle management
@@ -27,6 +31,7 @@ public class VehicleService {
     private final VehicleRepository vehicleRepository;
     private final HolidayRepository holidayRepository;
     private final AuditLogService auditLogService;
+    private final DateSelectionRepository dateRepo;
 
     /**
      * Get all vehicles
@@ -131,6 +136,11 @@ public class VehicleService {
      */
     public List<VehicleResponse> getAvailableVehiclesWithPrice(List<LocalDate> dates) {
         List<Vehicle> vehicles = vehicleRepository.findAll();
+        LocalDate startDate = dates.get(0);
+        LocalDate endDate = dates.get(dates.size() - 1);
+
+        System.out.println("📅 Date range: " + startDate + " to " + endDate);
+        System.out.println("📦 Total vehicles in DB: " + vehicles.size());
 
         List<String> holidays = holidayRepository.findAll()
                 .stream()
@@ -141,11 +151,28 @@ public class VehicleService {
         int weekendCount = DateService.countWeekends(dates);
         int weekdayCount = DateService.countWeekdays(dates, holidays);
 
+        System.out.println("📊 Days — weekday:" + weekdayCount + 
+                        " weekend:" + weekendCount + 
+                        " holiday:" + holidayCount);
+
         PricingStrategy strategy = PricingFactory.getStrategy(holidayCount, weekendCount);
 
         List<VehicleResponse> responseList = new ArrayList<>();
 
         for (Vehicle v : vehicles) {
+            System.out.println("🚗 Checking vehicle: " + v.getId());  // ← MOVED INSIDE
+
+            List<DateSelectionEntity> conflicts = dateRepo.findOverlappingDates(
+                v.getId(),
+                startDate.toString(),
+                endDate.toString()
+            );
+
+            boolean isAvailable = conflicts.isEmpty();
+
+            System.out.println("   Conflicts found: " + conflicts.size());  // ← MOVED INSIDE
+            System.out.println("   Available: " + isAvailable);             // ← MOVED INSIDE
+
             double basePrice = v.getPricePerDay();
             double total = strategy.calculate(basePrice, dates, holidays);
             String breakdown =
@@ -157,16 +184,25 @@ public class VehicleService {
             res.setId(v.getId());
             res.setName(v.getBrand() + " " + v.getModel());
             res.setSeatingCapacity(v.getSeatingCapacity());
+            res.setVehicleType(v.getVehicleType());
+            res.setFuelType(v.getFuelType() != null ? v.getFuelType() : "PETROL");
+            res.setTransmission(v.getTransmission() != null ? v.getTransmission() : "AUTOMATIC");
             res.setPricePerDay(basePrice);
             res.setWeekendPricePerDay(basePrice * 1.3);
             res.setHolidayPricePerDay(basePrice * 1.5);
-
+            res.setAvailable(isAvailable);
             res.setTotalPrice(total);
             res.setPriceBreakdown(breakdown);
+
+            System.out.println("   ✅ Added: " + v.getBrand() + " " + v.getModel() + 
+                            " | available=" + isAvailable + 
+                            " | total=₹" + total);
 
             responseList.add(res);
         }
 
+        System.out.println("✅ Returning " + responseList.size() + " vehicles");
         return responseList;
     }
+
 }

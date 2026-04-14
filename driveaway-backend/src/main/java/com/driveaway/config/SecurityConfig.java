@@ -29,6 +29,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/**").permitAll()        // all API v1 endpoints
                 .requestMatchers("/user/**").permitAll()          // user profile endpoint
                 .requestMatchers("/license/**").permitAll()       // license endpoint
+                // 👇 THE FIX: Person 4's endpoints are back on the VIP list!
+                .requestMatchers("/vehicles/**", "/dates/**").permitAll() 
                 .anyRequest().authenticated()
             );
         

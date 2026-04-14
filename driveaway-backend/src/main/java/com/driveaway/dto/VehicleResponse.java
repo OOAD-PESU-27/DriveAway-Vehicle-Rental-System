@@ -4,12 +4,26 @@ public class VehicleResponse {
 
     private String id;
     private String name;
+
+    // Vehicle details
+    private String vehicleType;
+    private String fuelType;
+    private String transmission;
     private int seatingCapacity;
+
+    // Availability
+    private boolean available;
+
+    // Pricing
     private double pricePerDay;
     private double weekendPricePerDay;
     private double holidayPricePerDay;
-    private String priceBreakdown;
     private double totalPrice;
+    private String priceBreakdown;
+
+
+    public boolean isAvailable() { return available; }
+    public void setAvailable(boolean available) { this.available = available; }
 
     public int getSeatingCapacity() {
         return seatingCapacity;
@@ -25,6 +39,14 @@ public class VehicleResponse {
     public void setPriceBreakdown(String priceBreakdown) {
         this.priceBreakdown = priceBreakdown;
     }
+    public String getVehicleType() { return vehicleType; }
+    public void setVehicleType(String vehicleType) { this.vehicleType = vehicleType; }
+
+    public String getFuelType() { return fuelType; }
+    public void setFuelType(String fuelType) { this.fuelType = fuelType; }
+
+    public String getTransmission() { return transmission; }
+    public void setTransmission(String transmission) { this.transmission = transmission; }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getName() { return name; }

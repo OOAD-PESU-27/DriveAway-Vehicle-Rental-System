@@ -1,12 +1,18 @@
 package com.driveaway.controllers;
 
-import com.driveaway.services.BookingService;
-import com.driveaway.utils.SceneNavigator;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+
+import com.driveaway.services.BookingService;
+import com.driveaway.utils.SceneNavigator;
+
+import javafx.fxml.FXML;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
+import javafx.scene.layout.VBox;
 
 /**
  * VehicleDetailsController - Shows full vehicle details and booking form
@@ -42,9 +48,11 @@ public class VehicleDetailsController {
 
     @FXML
     public void initialize() {
+        System.out.println("🔥 VehicleDetailsController initialize() called");
         vehicleData = VehicleController.SelectedVehicleHolder.getSelectedVehicleData();
         setupLocationCombo();
         setupDateDefaults();
+        System.out.println("👉 Calling populateVehicleDetails()");
         populateVehicleDetails();
         // Hide the accepted label initially
         if (termsAcceptedLabel != null) {
@@ -65,63 +73,149 @@ public class VehicleDetailsController {
     }
 
     private void setupDateDefaults() {
-        if (startDatePicker != null) {
-            startDatePicker.setValue(LocalDate.now());
-        }
-        if (endDatePicker != null) {
-            endDatePicker.setValue(LocalDate.now().plusDays(1));
-        }
-        calculateTotal();
+    String savedStart = VehicleController.SelectedVehicleHolder.getSelectedStartDate();
+    String savedEnd = VehicleController.SelectedVehicleHolder.getSelectedEndDate();
+
+    if (savedStart != null && startDatePicker != null) {
+        startDatePicker.setValue(java.time.LocalDate.parse(savedStart));
+        System.out.println("📅 Restored start date: " + savedStart);
+    } else if (startDatePicker != null) {
+        startDatePicker.setValue(LocalDate.now());
     }
 
-    private void populateVehicleDetails() {
-        if (vehicleData == null) {
-            // Fallback: try from the info string
-            String info = VehicleController.SelectedVehicleHolder.getSelectedVehicleInfo();
-            if (info != null && vehicleNameLabel != null) {
-                vehicleNameLabel.setText(info);
+    if (savedEnd != null && endDatePicker != null) {
+        endDatePicker.setValue(java.time.LocalDate.parse(savedEnd));
+        System.out.println("📅 Restored end date: " + savedEnd);
+    } else if (endDatePicker != null) {
+        endDatePicker.setValue(LocalDate.now().plusDays(1));
+    }
+
+    calculateTotal();
+    }
+
+  private void populateVehicleDetails() {
+
+
+
+    vehicleData = VehicleController.SelectedVehicleHolder.getSelectedVehicleData();
+
+    System.out.println("\n\n\n\n================ VEHICLE DETAILS DEBUG ================");
+
+if (vehicleData == null) {
+    System.out.println("❌ vehicleData is NULL");
+    return;
+}
+
+System.out.println("📦 vehicleData length = " + vehicleData.length);
+
+for (int i = 0; i < vehicleData.length; i++) {
+    System.out.println("v[" + i + "] = " + vehicleData[i]);
+}
+
+System.out.println("=====================================================\n");
+    if (vehicleData == null) {
+        System.out.println("❌ vehicleData is NULL");
+        return;
+    }
+
+    // 🔍 DEBUG: print full array
+    System.out.println("📦 vehicleData length = " + vehicleData.length);
+    for (int i = 0; i < vehicleData.length; i++) {
+        System.out.println("   v[" + i + "] = " + vehicleData[i]);
+    }
+
+    // Extract fields
+    String brand = vehicleData.length > 1 ? vehicleData[1] : "";
+    String model = vehicleData.length > 2 ? vehicleData[2] : "";
+    String type = vehicleData.length > 3 ? vehicleData[3] : "";
+    String price = vehicleData.length > 4 ? vehicleData[4] : "0";
+    String fuel = vehicleData.length > 5 ? vehicleData[5] : "-";
+    String trans = vehicleData.length > 6 ? vehicleData[6] : "-";
+    String seats = vehicleData.length > 7 ? vehicleData[7] : "-";
+    String avail = vehicleData.length > 8 ? vehicleData[8] : "true";
+
+    String weekendPrice = vehicleData.length > 9 ? vehicleData[9] : null;
+    String holidayPrice = vehicleData.length > 10 ? vehicleData[10] : null;
+    String totalPrice = vehicleData.length > 11 ? vehicleData[11] : null;
+    String breakdown = vehicleData.length > 12 ? vehicleData[12] : null;
+
+    // 🔍 DEBUG PRINTS (IMPORTANT)
+    System.out.println("💰 Base Price = " + price);
+    System.out.println("📅 Weekend Price = " + weekendPrice);
+    System.out.println("🎉 Holiday Price = " + holidayPrice);
+    System.out.println("💳 Total Price = " + totalPrice);
+    System.out.println("📋 Breakdown Raw = " + breakdown);
+
+    // Set basic UI
+    if (vehicleNameLabel != null) vehicleNameLabel.setText(brand + " " + model);
+    if (vehicleEmojiLabel != null) vehicleEmojiLabel.setText(getVehicleEmoji(type));
+    if (vehicleTypeLabel != null) vehicleTypeLabel.setText(type);
+
+    if (brandLabel != null) brandLabel.setText(brand);
+    if (modelLabel != null) modelLabel.setText(model);
+    if (yearLabel != null) yearLabel.setText(String.valueOf(java.time.LocalDate.now().getYear()));
+    if (fuelLabel != null) fuelLabel.setText(fuel);
+    if (transmissionLabel != null) transmissionLabel.setText(trans);
+    if (seatsLabel != null) seatsLabel.setText(seats + " seats");
+
+    // 🎨 Card styling
+    if (vehicleImageBox != null) {
+        vehicleImageBox.setStyle(getVehicleImageStyle(type));
+    }
+
+    // 💰 Base price display
+    try {
+        pricePerDay = Double.parseDouble(price);
+    } catch (Exception e) {
+        pricePerDay = 0;
+    }
+
+    if (priceLabel != null) {
+        priceLabel.setText("₹" + String.format("%.0f", pricePerDay));
+    }
+
+    // 📋 BREAKDOWN (FROM BACKEND ONLY)
+    if (breakdown != null && rateLabel != null) {
+
+        String cleanBreakdown = breakdown
+                .replace("? ?", "× ₹")
+                .replace("?", "₹")
+                .replace("\\n", "\n");
+
+        System.out.println("✅ Clean Breakdown:\n" + cleanBreakdown);
+
+        rateLabel.setText(cleanBreakdown);
+        rateLabel.setWrapText(true);
+    }
+
+    // 💳 TOTAL (FROM BACKEND ONLY — NO CALCULATION)
+    if (totalPrice != null && totalLabel != null) {
+        System.out.println("✅ Using backend total: ₹" + totalPrice);
+        totalLabel.setText("₹" + totalPrice);
+    }
+
+    // Availability
+    boolean isAvailable = !"false".equalsIgnoreCase(avail);
+    if (availabilityLabel != null) {
+        availabilityLabel.setText(isAvailable ? "✅ Available" : "❌ Unavailable");
+        availabilityLabel.getStyleClass().setAll(
+                isAvailable ? "badge-active" : "badge-cancelled"
+        );
+    }
+
+    // Duration (only display, NOT pricing)
+    if (startDatePicker != null && endDatePicker != null) {
+        LocalDate start = startDatePicker.getValue();
+        LocalDate end = endDatePicker.getValue();
+
+        if (start != null && end != null) {
+            long days = ChronoUnit.DAYS.between(start, end);
+            if (durationLabel != null) {
+                durationLabel.setText(days + " day" + (days != 1 ? "s" : ""));
             }
-            return;
         }
-
-        // vehicleData: [id, brand, model, type, price, fuel, transmission, seats, available]
-        String brand = vehicleData.length > 1 ? vehicleData[1] : "";
-        String model = vehicleData.length > 2 ? vehicleData[2] : "";
-        String type = vehicleData.length > 3 ? vehicleData[3] : "";
-        String price = vehicleData.length > 4 ? vehicleData[4] : "0";
-        String fuel = vehicleData.length > 5 ? vehicleData[5] : "-";
-        String trans = vehicleData.length > 6 ? vehicleData[6] : "-";
-        String seats = vehicleData.length > 7 ? vehicleData[7] : "-";
-        String avail = vehicleData.length > 8 ? vehicleData[8] : "true";
-
-        if (vehicleNameLabel != null) vehicleNameLabel.setText(brand + " " + model);
-        if (vehicleEmojiLabel != null) vehicleEmojiLabel.setText(getVehicleEmoji(type));
-        if (vehicleTypeLabel != null) vehicleTypeLabel.setText(type != null ? type : "Vehicle");
-        if (brandLabel != null) brandLabel.setText(brand != null ? brand : "-");
-        if (modelLabel != null) modelLabel.setText(model != null ? model : "-");
-        if (yearLabel != null) yearLabel.setText(String.valueOf(java.time.LocalDate.now().getYear()));
-        if (fuelLabel != null) fuelLabel.setText(fuel != null ? fuel : "-");
-        if (transmissionLabel != null) transmissionLabel.setText(trans != null ? trans : "-");
-        if (seatsLabel != null) seatsLabel.setText(seats != null ? seats + " seats" : "-");
-
-        // Apply type-specific gradient background to vehicle image box
-        if (vehicleImageBox != null) {
-            vehicleImageBox.setStyle(getVehicleImageStyle(type));
-        }
-
-        try { pricePerDay = Double.parseDouble(price); } catch (Exception e) { pricePerDay = 0; }
-        if (priceLabel != null) priceLabel.setText("₹" + String.format("%.0f", pricePerDay));
-        if (rateLabel != null) rateLabel.setText("₹" + String.format("%.0f", pricePerDay));
-
-        boolean isAvailable = !"false".equalsIgnoreCase(avail);
-        if (availabilityLabel != null) {
-            availabilityLabel.setText(isAvailable ? "✅ Available" : "❌ Unavailable");
-            availabilityLabel.getStyleClass().setAll(isAvailable ? "badge-active" : "badge-cancelled");
-        }
-
-        calculateTotal();
     }
-
+}
     /** Returns a vehicle-type-specific gradient background style string. */
     private String getVehicleImageStyle(String type) {
         if (type == null) return getDefaultImageStyle();

@@ -13,10 +13,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 
-/**
- * DashboardController - Controls the main dashboard/home page
- * Shows stats, recent bookings, and featured vehicles
- */
 public class DashboardController {
 
     @FXML private Label userNameLabel;
@@ -78,7 +74,6 @@ public class DashboardController {
     }
 
     private void loadDashboardData(String userId) {
-        // Load vehicles count
         String vehiclesJson = vehicleService.getAvailableVehicles();
         int vehicleCount = countEntries(vehiclesJson);
         vehiclesLabel.setText(String.valueOf(vehicleCount));
@@ -92,7 +87,6 @@ public class DashboardController {
             return;
         }
 
-        // Load bookings
         String bookingsJson = bookingService.getUserBookings(userId);
         if (bookingsJson == null || bookingsJson.isBlank() || bookingsJson.equals("[]")) {
             totalBookingsLabel.setText("0");
@@ -113,7 +107,6 @@ public class DashboardController {
             String end = extract(entry, "endDate");
             String status = extract(entry, "status");
 
-            // Prefer paidAmount (set after payment) over totalPrice (estimated at booking time)
             String paidAmountStr = extract(entry, "paidAmount");
             String totalPriceStr = extract(entry, "totalPrice");
             String amount = "0";
@@ -146,7 +139,6 @@ public class DashboardController {
         activeBookingsLabel.setText(String.valueOf(active));
         totalSpentLabel.setText("₹" + String.format("%.0f", totalSpent));
 
-        // Show max 5 recent bookings
         ObservableList<String[]> recent = FXCollections.observableArrayList(
                 rows.subList(0, Math.min(5, rows.size())));
         recentBookingsTable.setItems(recent);
@@ -175,14 +167,12 @@ public class DashboardController {
         vehiclesStatusLabel.setText(count > 0 ? "" : "No vehicles available currently.");
     }
 
-    private VBox createMiniVehicleCard(String id, String brand, String model,
-                                       String type, String price) {
+    private VBox createMiniVehicleCard(String id, String brand, String model, String type, String price) {
         VBox card = new VBox(0);
         card.getStyleClass().add("vehicle-card");
         card.setMinWidth(195);
         card.setMaxWidth(195);
 
-        // Coloured header
         VBox header = new VBox(5);
         header.setAlignment(javafx.geometry.Pos.CENTER);
         header.setPadding(new Insets(16, 8, 14, 8));
@@ -198,7 +188,6 @@ public class DashboardController {
                 + "-fx-background-radius: 12; -fx-padding: 2 8 2 8;");
         header.getChildren().addAll(icon, typeLabel);
 
-        // Body
         VBox body = new VBox(6);
         body.setPadding(new Insets(10, 12, 12, 12));
 
@@ -261,7 +250,6 @@ public class DashboardController {
         };
     }
 
-    // Navigation methods
     @FXML public void goToDashboard() { SceneNavigator.load("views/DashboardView.fxml"); }
     @FXML public void goToVehicles() { SceneNavigator.load("views/VehicleCatalogView.fxml"); }
     @FXML public void goToBookings() { SceneNavigator.load("views/BookingManagementView.fxml"); }

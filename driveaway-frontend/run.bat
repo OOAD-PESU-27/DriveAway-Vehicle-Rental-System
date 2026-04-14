@@ -23,3 +23,4 @@ echo ===============================
 java --module-path "javafx-sdk-25.0.2/lib" --add-modules javafx.controls,javafx.fxml -cp out com.driveaway.MainApp
 
 pause
+
