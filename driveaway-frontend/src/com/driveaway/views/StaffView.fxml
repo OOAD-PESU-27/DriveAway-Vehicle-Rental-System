@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<!--
+StaffView.fxml — Dedicated Staff Dashboard.
+
+SHOWN ONLY when login role = STAFF or ADMIN.
+Customers NEVER see this screen.
+
+Sections:
+  1. Header (staff name, logout)
+  2. Pending Handover Requests (HANDED_OVER bookings — customers waiting)
+  3. Return and Inspection Form (log damage, submit)
+  4. Maintenance Records (view scheduled)
+-->
+<ScrollPane fitToWidth="true"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.driveaway.controllers.StaffController"
+            style="-fx-background: #0d0d1a;">
+
+    <VBox spacing="0" style="-fx-background-color: #0d0d1a;">
+
+        <!-- ═══ HEADER ═════════════════════════════════════════════════════ -->
+        <HBox style="-fx-background-color: #12122a; -fx-padding: 16 24;"
+              alignment="CENTER_LEFT" spacing="16">
+
+            <Label text="DriveAway"
+                   style="-fx-font-size: 24; -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
+            <Label text="Staff Dashboard"
+                   style="-fx-font-size: 13; -fx-text-fill: #a8a8b3;
+                          -fx-background-color: #533483; -fx-padding: 3 10;
+                          -fx-background-radius: 12;"/>
+
+            <Region HBox.hgrow="ALWAYS"/>
+
+            <Label fx:id="staffNameLabel"
+                   text="Staff"
+                   style="-fx-text-fill: #4ecca3; -fx-font-size: 13; -fx-font-weight: bold;"/>
+            <Button text="Logout"
+                    onAction="#handleLogout"
+                    style="-fx-background-color: #e94560; -fx-text-fill: white;
+                           -fx-background-radius: 6; -fx-padding: 6 16;
+                           -fx-cursor: hand; -fx-font-weight: bold;"/>
+        </HBox>
+
+        <VBox spacing="20" style="-fx-padding: 24;">
+
+            <!-- ═══ SECTION 1: PENDING HANDOVER REQUESTS ════════════════════ -->
+            <VBox spacing="12"
+                  style="-fx-background-color: #16213e; -fx-background-radius: 14;
+                         -fx-padding: 20;
+                         -fx-effect: dropshadow(three-pass-box, rgba(233,69,96,0.15), 12, 0, 0, 3);">
+
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="🚗 Pending Handover Requests"
+                           style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #e94560;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="⟳ Refresh"
+                            onAction="#handleRefresh"
+                            style="-fx-background-color: #0f3460; -fx-text-fill: #4ecca3;
+                                   -fx-background-radius: 6; -fx-padding: 6 14;
+                                   -fx-cursor: hand; -fx-font-size: 12;"/>
+                </HBox>
+
+                <Label text="These bookings are in HANDED_OVER state — customer has the vehicle. Select one to inspect on return."
+                       wrapText="true"
+                       style="-fx-text-fill: #a8a8b3; -fx-font-size: 12;"/>
+
+                <ListView fx:id="handoverList"
+                          prefHeight="160"
+                          style="-fx-background-color: #0a0a1a; -fx-background-radius: 8;
+                                 -fx-border-color: #533483; -fx-border-width: 1;
+                                 -fx-border-radius: 8;"/>
+
+                <Label fx:id="handoverStatusLabel"
+                       text=""
+                       style="-fx-text-fill: #4ecca3; -fx-font-size: 12;" wrapText="true"/>
+            </VBox>
+
+            <!-- ═══ SECTION 2: RETURN + INSPECTION FORM ════════════════════ -->
+            <VBox spacing="12"
+                  style="-fx-background-color: #16213e; -fx-background-radius: 14;
+                         -fx-padding: 20;
+                         -fx-effect: dropshadow(three-pass-box, rgba(83,52,131,0.2), 12, 0, 0, 3);">
+
+                <Label text="🔍 Return and Inspection"
+                       style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #533483;"/>
+
+                <Label text="Select a booking from above OR manually enter IDs below."
+                       style="-fx-text-fill: #a8a8b3; -fx-font-size: 12;"/>
+
+                <HBox spacing="12">
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="BOOKING ID" style="-fx-text-fill: #a8a8b3; -fx-font-size: 11;"/>
+                        <TextField fx:id="bookingIdField"
+                                   promptText="Auto-filled when you select above"
+                                   style="-fx-background-color: #0f3460; -fx-text-fill: white;
+                                          -fx-background-radius: 6; -fx-padding: 8;
+                                          -fx-prompt-text-fill: #555;"/>
+                    </VBox>
+                    <VBox spacing="6" HBox.hgrow="ALWAYS">
+                        <Label text="VEHICLE ID" style="-fx-text-fill: #a8a8b3; -fx-font-size: 11;"/>
+                        <TextField fx:id="vehicleIdField"
+                                   promptText="Auto-filled when you select above"
+                                   style="-fx-background-color: #0f3460; -fx-text-fill: white;
+                                          -fx-background-radius: 6; -fx-padding: 8;
+                                          -fx-prompt-text-fill: #555;"/>
+                    </VBox>
+                </HBox>
+
+                <!-- Damage toggle -->
+                <CheckBox fx:id="hasDamageCheckBox"
+                          text="⚠  Damage Found on Vehicle"
+                          style="-fx-text-fill: #e94560; -fx-font-weight: bold; -fx-font-size: 13;"/>
+
+                <!-- Damage details — shown only when checkbox ticked -->
+                <VBox fx:id="damageDetailsBox" spacing="10"
+                      style="-fx-background-color: #1a0a1a; -fx-padding: 14;
+                             -fx-background-radius: 10; -fx-border-color: #e94560;
+                             -fx-border-width: 1; -fx-border-radius: 10;">
+
+                    <Label text="DAMAGE DESCRIPTION"
+                           style="-fx-text-fill: #a8a8b3; -fx-font-size: 11;"/>
+                    <TextField fx:id="damageDescriptionField"
+                               promptText="e.g. Scratched rear bumper, cracked windshield..."
+                               style="-fx-background-color: #0f3460; -fx-text-fill: white;
+                                      -fx-background-radius: 6; -fx-padding: 8;
+                                      -fx-prompt-text-fill: #555;"/>
+
+                    <HBox spacing="20" alignment="CENTER_LEFT">
+                        <VBox spacing="4">
+                            <Label text="SEVERITY" style="-fx-text-fill: #a8a8b3; -fx-font-size: 11;"/>
+                            <ChoiceBox fx:id="damageSeverityChoice"
+                                       prefWidth="140"
+                                       style="-fx-background-color: #0f3460;"/>
+                        </VBox>
+                        <VBox spacing="4">
+                            <Label text="PENALTY GUIDE" style="-fx-text-fill: #a8a8b3; -fx-font-size: 11;"/>
+                            <Label text="LOW = Rs.2,000   MEDIUM = Rs.6,000   HIGH = Rs.15,000"
+                                   style="-fx-text-fill: #e94560; -fx-font-size: 12;
+                                          -fx-font-weight: bold;"/>
+                        </VBox>
+                    </HBox>
+                </VBox>
+
+                <Button text="✔  Submit Return Inspection"
+                        onAction="#handleSubmitInspection"
+                        style="-fx-background-color: #533483; -fx-text-fill: white;
+                               -fx-font-size: 14; -fx-font-weight: bold;
+                               -fx-background-radius: 10; -fx-padding: 12 32;
+                               -fx-cursor: hand;"/>
+
+                <!-- Result area -->
+                <TextArea fx:id="inspectionResultArea"
+                          prefHeight="90"
+                          editable="false"
+                          wrapText="true"
+                          style="-fx-background-color: #0a1a0a; -fx-text-fill: #4ecca3;
+                                 -fx-font-size: 13; -fx-background-radius: 8;
+                                 -fx-border-color: #4ecca3; -fx-border-width: 1;
+                                 -fx-border-radius: 8;"/>
+            </VBox>
+
+            <!-- ═══ SECTION 3: MAINTENANCE RECORDS ═════════════════════════ -->
+            <VBox spacing="12"
+                  style="-fx-background-color: #16213e; -fx-background-radius: 14;
+                         -fx-padding: 20;
+                         -fx-effect: dropshadow(three-pass-box, rgba(78,204,163,0.1), 12, 0, 0, 3);">
+
+                <HBox alignment="CENTER_LEFT" spacing="12">
+                    <Label text="🔧 Maintenance Records"
+                           style="-fx-font-size: 16; -fx-font-weight: bold; -fx-text-fill: #4ecca3;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="Load Scheduled"
+                            onAction="#handleLoadMaintenance"
+                            style="-fx-background-color: #0f3460; -fx-text-fill: #4ecca3;
+                                   -fx-background-radius: 6; -fx-padding: 6 14;
+                                   -fx-cursor: hand; -fx-font-size: 12;"/>
+                </HBox>
+
+                <ListView fx:id="maintenanceList"
+                          prefHeight="130"
+                          style="-fx-background-color: #0a0a1a; -fx-background-radius: 8;
+                                 -fx-border-color: #4ecca3; -fx-border-width: 1;
+                                 -fx-border-radius: 8;"/>
+
+                <HBox spacing="12">
+                    <Button text="✔ Mark Selected as Completed"
+                            onAction="#handleCompleteMaintenance"
+                            style="-fx-background-color: #1b4332; -fx-text-fill: #4ecca3;
+                                   -fx-font-size: 13; -fx-font-weight: bold;
+                                   -fx-background-radius: 8; -fx-padding: 10 24;
+                                   -fx-cursor: hand;"/>
+                    <Label fx:id="maintenanceStatusLabel"
+                           text=""
+                           style="-fx-text-fill: #4ecca3; -fx-font-size: 12;"
+                           wrapText="true"/>
+                </HBox>
+            </VBox>
+
+        </VBox>
+    </VBox>
+</ScrollPane>

@@ -15,60 +15,126 @@
                 <Label text="🚗 DriveAway" styleClass="nav-logo"/>
                 <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
             </VBox>
+
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
-            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
-            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button, nav-button-active"/>
+
+            <Button text="🏠 Home"
+                    onAction="#goToDashboard"
+                    styleClass="nav-button"/>
+
+            <Button text="🚘 Vehicles"
+                    onAction="#goToVehicles"
+                    styleClass="nav-button"/>
+
+            <Button text="📅 Bookings"
+                    onAction="#goToBookings"
+                    styleClass="nav-button, nav-button-active"/>
+
             <Separator orientation="VERTICAL"/>
-            <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
+
+            <Button text="Logout"
+                    onAction="#handleLogout"
+                    styleClass="nav-logout-button"/>
         </HBox>
     </top>
 
     <center>
         <HBox alignment="CENTER" style="-fx-padding: 32;">
-            <VBox spacing="16" styleClass="card" maxWidth="500" HBox.hgrow="ALWAYS">
-                <Label text="📅 Book a Vehicle" styleClass="page-title"/>
+            <VBox spacing="16"
+                  styleClass="card"
+                  maxWidth="500"
+                  HBox.hgrow="ALWAYS">
+
+                <Label text="📅 Book a Vehicle"
+                       styleClass="page-title"/>
+
                 <Separator/>
 
-                <Label text="Vehicle ID" styleClass="form-label"/>
-                <TextField fx:id="vehicleIdField" promptText="Vehicle ID"
-                           styleClass="form-field" maxWidth="Infinity"/>
+                <Label text="Vehicle ID"
+                       styleClass="form-label"/>
+
+                <TextField fx:id="vehicleIdField"
+                           promptText="Vehicle ID"
+                           styleClass="form-field"
+                           maxWidth="Infinity"/>
 
                 <HBox spacing="16">
                     <VBox spacing="6" HBox.hgrow="ALWAYS">
-                        <Label text="Start Date" styleClass="form-label"/>
-                        <DatePicker fx:id="startDatePicker" maxWidth="Infinity"
+                        <Label text="Start Date"
+                               styleClass="form-label"/>
+
+                        <DatePicker fx:id="startDatePicker"
+                                    maxWidth="Infinity"
                                     styleClass="date-picker"/>
                     </VBox>
+
                     <VBox spacing="6" HBox.hgrow="ALWAYS">
-                        <Label text="End Date" styleClass="form-label"/>
-                        <DatePicker fx:id="endDatePicker" maxWidth="Infinity"
+                        <Label text="End Date"
+                               styleClass="form-label"/>
+
+                        <DatePicker fx:id="endDatePicker"
+                                    maxWidth="Infinity"
                                     styleClass="date-picker"/>
                     </VBox>
                 </HBox>
 
-                <Label fx:id="statusLabel" styleClass="text-danger" wrapText="true"/>
+                <Label fx:id="statusLabel"
+                       styleClass="text-danger"
+                       wrapText="true"/>
 
-                <!-- Terms and Conditions with hyperlink -->
+                <!-- Terms and Conditions -->
                 <VBox styleClass="terms-box" spacing="8">
+
                     <HBox alignment="CENTER_LEFT" spacing="8">
                         <CheckBox fx:id="termsCheckBox"
                                   onAction="#handleTermsCheckBox"/>
-                        <Label text="I accept the" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+
+                        <Label text="I accept the"
+                               style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+
                         <Hyperlink text="Terms and Conditions"
                                    onAction="#handleOpenTerms"
                                    styleClass="terms-link"/>
-                        <Label text="of DriveAway rental service" style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
+
+                        <Label text="of DriveAway rental service"
+                               style="-fx-font-size: 13px; -fx-text-fill: #334155;"/>
                     </HBox>
+
                     <Label fx:id="termsAcceptedLabel"
                            text="✅ I accept the Terms and Conditions of DriveAway rental service"
-                           styleClass="terms-accepted-label" wrapText="true"/>
+                           styleClass="terms-accepted-label"
+                           wrapText="true"/>
                 </VBox>
 
+                <!-- Buttons -->
                 <HBox spacing="12">
-                    <Button text="Book Now 🚀" onAction="#handleBook" styleClass="btn-primary"/>
-                    <Button text="← Back" onAction="#goToVehicles" styleClass="btn-outline"/>
+                    <Button text="Book Now 🚀"
+                            onAction="#handleBook"
+                            styleClass="btn-primary"/>
+
+                    <Button text="← Back"
+                            onAction="#goToVehicles"
+                            styleClass="btn-outline"/>
                 </HBox>
+
+                <Separator/>
+
+                <!-- View My Bookings Button -->
+                <Button text="📄 View My Bookings"
+                        onAction="#handleViewMyBookings"
+                        styleClass="btn-outline"/>
+
+                <!-- Booking Cards Container -->
+                <ScrollPane fitToWidth="true"
+                            prefHeight="250">
+
+                    <content>
+                        <VBox fx:id="myBookingsContainer"
+                              spacing="10"/>
+                    </content>
+
+                </ScrollPane>
+
             </VBox>
         </HBox>
     </center>

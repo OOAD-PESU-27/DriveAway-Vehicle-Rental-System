@@ -11,6 +11,10 @@ import javafx.scene.control.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import javafx.scene.control.TableView;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableCell;
+
 /**
  * BookingManagementController - Manages the bookings list page
  * Displays user bookings with filter and cancel options
@@ -79,32 +83,81 @@ public class BookingManagementController {
 
         // Action column with Cancel button
         actionCol.setCellFactory(col -> new TableCell<>() {
-            private final Button cancelBtn = new Button("Cancel");
-            {
-                cancelBtn.getStyleClass().addAll("btn-danger", "btn-small");
-                cancelBtn.setOnAction(e -> {
-                    String[] row = getTableView().getItems().get(getIndex());
-                    // Pass startDate (index 2) so refund policy can be displayed
-                    handleCancel(row[0], row[4], row[2]);
-                });
-            }
 
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty) {
-                    setGraphic(null);
+             private final Button cancelBtn = new Button("Cancel");
+             private final Button handoverBtn = new Button("🚀 Request Handover");
+             private final Label statusLabel = new Label();
+
+            {
+            cancelBtn.getStyleClass().addAll("btn-danger", "btn-small");
+
+            cancelBtn.setOnAction(e -> {
+                String[] row = getTableView().getItems().get(getIndex());
+                handleCancel(row[0], row[4], row[2]);
+            });
+
+            handoverBtn.getStyleClass().addAll("btn-primary", "btn-small");
+
+            handoverBtn.setOnAction(e -> {
+                String[] row = getTableView().getItems().get(getIndex());
+                String bookingId = row[0];
+
+                String result = bookingService.handoverVehicle(bookingId);
+
+                if (result != null && result.contains("HANDED_OVER")) {
+                    setStatus("✅ Handover requested successfully.");
+                    loadBookings(); // refresh table
                 } else {
-                    String[] row = getTableView().getItems().get(getIndex());
-                    String status = row[4];
-                    boolean canCancel = "ACTIVE".equalsIgnoreCase(status)
-                            || "CONFIRMED".equalsIgnoreCase(status)
-                            || "PENDING".equalsIgnoreCase(status);
-                    cancelBtn.setDisable(!canCancel);
-                    setGraphic(cancelBtn);
+                    setStatus("❌ Failed to request handover.");
                 }
-            }
-        });
+            });
+        
+    }
+
+    @Override
+    protected void updateItem(String item, boolean empty) {
+        super.updateItem(item, empty);
+
+        if (empty) {
+            setGraphic(null);
+            return;
+        }
+
+        String[] row = getTableView().getItems().get(getIndex());
+        String status = row[4];
+
+        switch (status.toUpperCase()) {
+
+            case "CONFIRMED":
+                setGraphic(handoverBtn);
+                break;
+
+            case "HANDED_OVER":
+                statusLabel.setText("⏳ Waiting for inspection");
+                statusLabel.setStyle("-fx-text-fill: #b45309; -fx-font-weight: bold;");
+                setGraphic(statusLabel);
+                break;
+
+            case "RETURNED":
+            case "COMPLETED":
+                statusLabel.setText("✅ Completed");
+                statusLabel.setStyle("-fx-text-fill: #15803d; -fx-font-weight: bold;");
+                setGraphic(statusLabel);
+                break;
+
+            case "ACTIVE":
+            case "PENDING":
+                cancelBtn.setDisable(false);
+                setGraphic(cancelBtn);
+                break;
+
+            default:
+                setGraphic(null);
+        }
+    }
+});
+
+        
     }
 
     @FXML

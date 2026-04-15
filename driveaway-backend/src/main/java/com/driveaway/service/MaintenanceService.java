@@ -1,13 +1,15 @@
 package com.driveaway.service;
 
-import com.driveaway.entity.Damage;
-import com.driveaway.entity.MaintenanceRecord;
-import com.driveaway.repository.MaintenanceRepository;
-import com.driveaway.exception.ResourceNotFoundException;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import com.driveaway.entity.MaintenanceRecord;
+import com.driveaway.exception.ResourceNotFoundException;
+import com.driveaway.repository.MaintenanceRepository;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * MaintenanceService - Contains business logic for vehicle maintenance

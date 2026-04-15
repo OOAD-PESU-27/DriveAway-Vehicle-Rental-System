@@ -5,4 +5,5 @@ public class RegisterRequest {
     public String email;
     public String password;
     public String phone;
+    public String role;
 }

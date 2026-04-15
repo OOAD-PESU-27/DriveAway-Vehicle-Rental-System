@@ -1,9 +1,11 @@
 package com.driveaway.repository;
 
-import com.driveaway.entity.Damage;
+import java.util.List;
+
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
-import java.util.List;
+
+import com.driveaway.entity.Damage;
 
 /**
  * DamageRepository - Handles database operations for damage records

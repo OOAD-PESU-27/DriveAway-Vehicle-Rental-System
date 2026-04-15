@@ -1,26 +1,28 @@
 package com.driveaway.service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import org.springframework.stereotype.Service;
+
+import com.driveaway.PaymentStatus;
 import com.driveaway.dto.BookingRequest;
 import com.driveaway.entity.Booking;
 import com.driveaway.entity.Payment;
 import com.driveaway.entity.Vehicle;
-import com.driveaway.PaymentStatus;
-import com.driveaway.repository.BookingRepository;
-import com.driveaway.repository.PaymentRepository;
-import com.driveaway.repository.HolidayRepository;
-import com.driveaway.exception.ResourceNotFoundException;
 import com.driveaway.exception.PaymentException;
+import com.driveaway.exception.ResourceNotFoundException;
+import com.driveaway.repository.BookingRepository;
+import com.driveaway.repository.HolidayRepository;
+import com.driveaway.repository.PaymentRepository;
+import com.driveaway.service.pricing.PricingService;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Locale;
-import com.driveaway.service.pricing.PricingService;
 
 /**
  * BookingService - Contains business logic for vehicle bookings
@@ -327,7 +329,12 @@ public class BookingService {
                         containsIgnoreCase(b.getStatus(), q))
                 .toList();
     }
-
+    /**
+ * Get bookings by status (used by Staff panel)
+ */
+    public List<Booking> getBookingsByStatus(String status) {
+        return bookingRepository.findByStatus(status);
+    }
     private boolean containsIgnoreCase(String value, String query) {
         return value != null && value.toLowerCase(Locale.ROOT).contains(query);
     }

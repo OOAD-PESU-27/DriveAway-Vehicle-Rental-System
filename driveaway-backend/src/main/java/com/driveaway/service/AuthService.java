@@ -1,14 +1,15 @@
 package com.driveaway.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Service;
+
 import com.driveaway.dto.LoginRequest;
 import com.driveaway.dto.RegisterRequest;
 import com.driveaway.entity.User;
 import com.driveaway.exception.DuplicateEmailException;
 import com.driveaway.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
@@ -35,7 +36,7 @@ public class AuthService {
         user.setEmail(normalizedEmail);
         user.setPassword(encoder.encode(req.password));
         user.setPhone(req.phone);
-        user.setRole("CUSTOMER");
+        user.setRole(req.role != null ? req.role : "CUSTOMER");
 
         try {
             userRepository.save(user);
@@ -48,10 +49,15 @@ public class AuthService {
     }
 
     public User login(LoginRequest req) {
+
+        if (req.email == null || req.password == null) {
+            throw new RuntimeException("Email and password required");
+        }
+
         String normalizedEmail = req.email.trim().toLowerCase();
 
         User user = userRepository.findByEmail(normalizedEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new RuntimeException("User not found"));
 
         if (!encoder.matches(req.password, user.getPassword())) {
             throw new RuntimeException("Invalid credentials");
