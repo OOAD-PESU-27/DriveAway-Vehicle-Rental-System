@@ -24,8 +24,7 @@
             <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
             <Button text="💳 Payment" onAction="#goToPayment" styleClass="nav-button"/>
             <Button text="🔔 Notifications" onAction="#goToNotifications" styleClass="nav-button"/>
-            <Button text="📊 Reports" onAction="#goToReports" styleClass="nav-button"/>
-            <Button text="⚙️ Admin" onAction="#goToAdminDashboard" styleClass="nav-button"/>
+           
             <Separator orientation="VERTICAL"/>
             <Label fx:id="userNameLabel" text="Welcome!" styleClass="nav-user-label"/>
             <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>

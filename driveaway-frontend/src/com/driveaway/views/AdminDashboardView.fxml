@@ -15,17 +15,16 @@
                 <Label text="🚗 DriveAway" styleClass="nav-logo"/>
                 <Label text="Admin Dashboard" styleClass="nav-subtitle"/>
             </VBox>
+            
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
-            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
-            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
+            
+            
             <Button text="📊 Reports" onAction="#goToReports" styleClass="nav-button"/>
-            <Button text="🔔 Notifications" onAction="#goToNotifications" styleClass="nav-button"/>
+            
             <Separator orientation="VERTICAL"/>
             <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
         </HBox>
     </top>
-
     <center>
         <ScrollPane fitToWidth="true" styleClass="scroll-pane">
             <VBox spacing="24" style="-fx-padding: 28 32 28 32;">

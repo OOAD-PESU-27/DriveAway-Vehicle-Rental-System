@@ -24,21 +24,18 @@
             <VBox.margin><Insets bottom="28"/></VBox.margin>
         </Label>
 
-        <!-- License Number -->
         <Label text="License Number" styleClass="form-label" maxWidth="Infinity"/>
         <TextField fx:id="licenseField" promptText="DL-1234567890123"
                    styleClass="form-field" maxWidth="Infinity">
             <VBox.margin><Insets top="4" bottom="14"/></VBox.margin>
         </TextField>
 
-        <!-- Expiry Date -->
         <Label text="Expiry Date" styleClass="form-label" maxWidth="Infinity"/>
-        <TextField fx:id="expiryField" promptText="yyyy-MM-dd (e.g. 2028-12-31)"
-                   styleClass="form-field" maxWidth="Infinity">
+        <DatePicker fx:id="expiryDatePicker" promptText="Select Expiry Date"
+                    styleClass="form-field" maxWidth="Infinity" editable="false">
             <VBox.margin><Insets top="4" bottom="6"/></VBox.margin>
-        </TextField>
+        </DatePicker>
 
-        <!-- Status -->
         <Label fx:id="statusLabel" styleClass="text-danger" maxWidth="Infinity"
                wrapText="true">
             <VBox.margin><Insets bottom="8"/></VBox.margin>

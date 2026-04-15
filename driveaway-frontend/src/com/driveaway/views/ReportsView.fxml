@@ -9,18 +9,17 @@
             stylesheets="@styles/main.css"
             styleClass="main-background">
 
-    <top>
+   <top>
         <HBox styleClass="nav-bar" alignment="CENTER_LEFT" spacing="10">
             <VBox alignment="CENTER_LEFT">
                 <Label text="🚗 DriveAway" styleClass="nav-logo"/>
-                <Label text="Vehicle Rental System" styleClass="nav-subtitle"/>
+                <Label text="Admin Reports" styleClass="nav-subtitle"/>
             </VBox>
+            
             <Region HBox.hgrow="ALWAYS"/>
-            <Button text="🏠 Home" onAction="#goToDashboard" styleClass="nav-button"/>
-            <Button text="🚘 Vehicles" onAction="#goToVehicles" styleClass="nav-button"/>
-            <Button text="📅 Bookings" onAction="#goToBookings" styleClass="nav-button"/>
-            <Button text="👤 Profile" onAction="#goToProfile" styleClass="nav-button"/>
-            <Button text="🔔 Notifications" onAction="#goToNotifications" styleClass="nav-button"/>
+            
+            <Button text="🏠 Admin Home" onAction="#goToAdminDashboard" styleClass="nav-button"/>
+            
             <Separator orientation="VERTICAL"/>
             <Button text="Logout" onAction="#handleLogout" styleClass="nav-logout-button"/>
         </HBox>

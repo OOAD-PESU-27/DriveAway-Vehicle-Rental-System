@@ -323,7 +323,11 @@ public class ReportsController {
         loadReports();
     }
 
-    // Navigation
+    // --- NAVIGATION ---
+    
+    // 🔥 NEW: Added the method to go back to the Admin Dashboard!
+    @FXML public void goToAdminDashboard() { SceneNavigator.load("views/AdminDashboardView.fxml"); }
+    
     @FXML public void goToDashboard() { SceneNavigator.load("views/DashboardView.fxml"); }
     @FXML public void goToVehicles() { SceneNavigator.load("views/VehicleCatalogView.fxml"); }
     @FXML public void goToBookings() { SceneNavigator.load("views/BookingManagementView.fxml"); }
@@ -365,4 +369,3 @@ public class ReportsController {
         return s != null ? s : "0";
     }
 }
-

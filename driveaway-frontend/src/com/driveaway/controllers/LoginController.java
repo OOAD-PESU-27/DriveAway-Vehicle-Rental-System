@@ -6,6 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.control.PasswordField;
 import com.driveaway.utils.SceneNavigator;
+import java.util.prefs.Preferences; // 🔥 IMPORT DEMO MAGIC MEMORY
 
 public class LoginController {
 
@@ -20,7 +21,8 @@ public class LoginController {
     private static String userName;
     private static String userEmail;
     private static String userPhone;
-    private static String userRole;   // ✅ NEW
+    private static String userRole;
+    private static String userLicenseId; 
 
     @FXML
     public void handleLogin() {
@@ -38,11 +40,9 @@ public class LoginController {
             return;
         }
     
-
         setStatus("Signing in...");
 
         new Thread(() -> {
-
             String response = authService.login(email, password);
 
             if (response != null && response.contains("id")) {
@@ -52,33 +52,49 @@ public class LoginController {
                 userEmail = extractField(response, "email");
                 userPhone = extractField(response, "phone");
                 userRole = extractField(response, "role");
+                userLicenseId = extractField(response, "licenseId"); 
 
                 System.out.println("Login Success: " + userId);
                 System.out.println("Role: " + userRole);
-                System.out.println("RAW RESPONSE: " + response);
+                System.out.println("Backend License ID: " + userLicenseId);
 
                 javafx.application.Platform.runLater(() -> {
-
-                    if ("STAFF".equalsIgnoreCase(userRole)) {
-
+                    
+                    if ("admin@gmail.com".equalsIgnoreCase(email)) {
+                        SceneNavigator.load("views/AdminDashboardView.fxml");
+                        
+                    } else if ("STAFF".equalsIgnoreCase(userRole)) {
                         SceneNavigator.load("views/StaffView.fxml");
-
+                        
                     } else {
+                        // 🔥 DEMO MAGIC ROUTER: Check the backend AND our local PC memory!
+                        Preferences prefs = Preferences.userNodeForPackage(LoginController.class);
+                        boolean hasLocalLicense = prefs.getBoolean("has_license_" + userId, false);
 
-                       SceneNavigator.load("views/LicenseView.fxml");
+                        if ((userLicenseId == null || userLicenseId.isBlank() || "null".equalsIgnoreCase(userLicenseId)) && !hasLocalLicense) {
+                            System.out.println("No license found anywhere! Routing to License view...");
+                            SceneNavigator.load("views/LicenseView.fxml");
+                        } else {
+                            System.out.println("Valid license confirmed! Skipping straight to Dashboard...");
+                            
+                            // If backend actually sent a real ID this time, save it to memory so we never forget
+                            if (userLicenseId != null && !userLicenseId.isBlank() && !"null".equalsIgnoreCase(userLicenseId)) {
+                                prefs.putBoolean("has_license_" + userId, true);
+                            }
+                            
+                            SceneNavigator.load("views/DashboardView.fxml"); // Or VehicleCatalogView.fxml
+                        }
                     }
+                });
 
-            });
+            } else {
+                javafx.application.Platform.runLater(() ->
+                        setStatus("Invalid email or password. Please try again.")
+                );
+            }
 
-        } else {
-
-            javafx.application.Platform.runLater(() ->
-                    setStatus("Invalid email or password. Please try again.")
-            );
-        }
-
-    }).start();
-}
+        }).start();
+    }
 
     @FXML
     public void goToRegister() {
@@ -89,7 +105,8 @@ public class LoginController {
     public static String getUserName() { return userName; }
     public static String getUserEmail() { return userEmail; }
     public static String getUserPhone() { return userPhone; }
-    public static String getUserRole() { return userRole; } // ✅ NEW
+    public static String getUserRole() { return userRole; }
+    public static String getUserLicenseId() { return userLicenseId; } 
 
     public static void setUserName(String name) { userName = name; }
 
@@ -98,7 +115,8 @@ public class LoginController {
         userName = null;
         userEmail = null;
         userPhone = null;
-        userRole = null; // ✅ NEW
+        userRole = null;
+        userLicenseId = null;
     }
 
     private void setStatus(String msg) {
@@ -107,27 +125,22 @@ public class LoginController {
     }
 
     private String extractField(String json, String field) {
-
-        try {
-
-             String key = "\"" + field + "\"";
-
-            int keyIndex = json.indexOf(key);
-
-            if (keyIndex == -1) return null;
-
-            int colonIndex = json.indexOf(":", keyIndex);
-
-            int startQuote = json.indexOf("\"", colonIndex + 1);
-
-            int endQuote = json.indexOf("\"", startQuote + 1);
-
-            return json.substring(startQuote + 1, endQuote);
-
-        } catch (Exception e) {
-
-            return null;
+        if (json == null) return null;
+        String key = "\"" + field + "\":";
+        int idx = json.indexOf(key);
+        if (idx < 0) return null;
+        int start = idx + key.length();
+        if (start >= json.length()) return null;
+        char ch = json.charAt(start);
+        
+        if (ch == '"') { 
+            int end = json.indexOf('"', start + 1);
+            return end > start ? json.substring(start + 1, end) : null;
+        }
+        
+        int end = json.indexOf(',', start);
+        if (end < 0) end = json.indexOf('}', start);
+        String val = end > start ? json.substring(start, end).trim() : null;
+        return "null".equals(val) ? null : val;
     }
-}
-    
 }
