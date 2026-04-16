@@ -1,21 +1,26 @@
 package com.driveaway.service;
 
-import com.driveaway.entity.Payment;
-import com.driveaway.entity.User;
-import com.driveaway.PaymentStatus;
-import com.driveaway.dto.PaymentRequest;
-import com.driveaway.dto.PaymentResponse;
-import com.driveaway.repository.BookingRepository;
-import com.driveaway.repository.PaymentRepository;
-import com.driveaway.repository.UserRepository;
-import com.driveaway.exception.PaymentException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import com.driveaway.PaymentStatus;
+import com.driveaway.dto.PaymentRequest;
+import com.driveaway.dto.PaymentResponse;
+import com.driveaway.entity.DateSelectionEntity;
+import com.driveaway.entity.Payment;
+import com.driveaway.entity.User;
+import com.driveaway.exception.PaymentException;
+import com.driveaway.repository.BookingRepository;
+import com.driveaway.repository.DateSelectionRepository;
+import com.driveaway.repository.PaymentRepository;
+import com.driveaway.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * PaymentService - Contains business logic for payment processing
@@ -34,7 +39,8 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final PaymentEmailVerificationService emailVerificationService;
     private final BookingRepository bookingRepository;
-
+    private final DateSelectionRepository dateSelectionRepository;
+    
     // -------------------------------------------------------------------------
     // Approval-gate workflow (Option B - simulated, no real SMTP required)
     // Flow: initiatePaymentRequest -> approvePayment -> completePayment
@@ -187,6 +193,28 @@ public class PaymentService {
 
             // Trigger email verification
             triggerEmailVerification(savedPayment);
+
+            // ✅ Save confirmed booking dates
+        try {
+            bookingRepository.findById(payment.getRentalId()).ifPresent(booking -> {
+
+                DateSelectionEntity dateEntry = new DateSelectionEntity();
+                dateEntry.setVehicleId(booking.getVehicleId());
+                dateEntry.setUserId(payment.getUserId());
+                dateEntry.setStartDate(booking.getStartDate().toString());
+                dateEntry.setEndDate(booking.getEndDate().toString());
+                dateEntry.setStatus("CONFIRMED");
+
+                dateSelectionRepository.save(dateEntry);
+
+                log.info("📅 Saved to dates_db: vehicle={} {} → {}",
+                        booking.getVehicleId(),
+                        booking.getStartDate(),
+                        booking.getEndDate());
+            });
+        } catch (Exception e) {
+            log.error("❌ Error saving dates: {}", e.getMessage());
+        }
 
             return buildResponse(savedPayment, "Payment completed successfully.", true);
         } else {

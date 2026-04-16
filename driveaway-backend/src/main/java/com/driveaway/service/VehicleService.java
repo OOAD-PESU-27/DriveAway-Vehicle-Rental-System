@@ -176,7 +176,7 @@ public class VehicleService {
             // always true regardless of existing bookings.
             boolean isAvailable = !bookingRepository
                     .existsByVehicleIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                            v.getId(), "CONFIRMED", endDate, startDate);
+                            v.getId(), "ACTIVE", endDate, startDate);
 
             System.out.println("   Available: " + isAvailable);
 

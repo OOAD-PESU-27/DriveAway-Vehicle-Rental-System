@@ -20,9 +20,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
-
-
-
+import java.time.LocalDate;
+import javafx.scene.control.DateCell;
+import javafx.util.Callback;
 public class VehicleCatalogController {
 
     @FXML private FlowPane vehicleGrid;
@@ -128,6 +128,36 @@ public class VehicleCatalogController {
     public void initialize() {
         System.out.println("🚀 VehicleCatalogController initialized");
         setupFilters();
+        
+        // ✅ Disable past dates for startDatePicker
+        startDatePicker.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+
+                if (date.isBefore(LocalDate.now())) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #ffc0cb;"); // optional: highlight disabled dates
+                }
+            }
+        });
+
+        // ✅ Disable past dates AND ensure end > start
+        endDatePicker.setDayCellFactory(picker -> new DateCell() {
+            @Override
+            public void updateItem(LocalDate date, boolean empty) {
+                super.updateItem(date, empty);
+
+                LocalDate today = LocalDate.now();
+                LocalDate startDate = startDatePicker.getValue();
+
+                if (date.isBefore(today) ||
+                    (startDate != null && !date.isAfter(startDate))) {
+                    setDisable(true);
+                    setStyle("-fx-background-color: #ffc0cb;");
+                }
+            }
+        });
 
         // ← RESTORE previously selected dates
         String savedStart = VehicleController.SelectedVehicleHolder.getSelectedStartDate();

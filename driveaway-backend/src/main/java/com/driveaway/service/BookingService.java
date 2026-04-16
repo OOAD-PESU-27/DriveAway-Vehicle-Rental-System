@@ -65,7 +65,7 @@ public class BookingService {
         // the first booking and blocks all subsequent bookings on the same vehicle.
         boolean overlapping = bookingRepository
                 .existsByVehicleIdAndStatusAndStartDateLessThanEqualAndEndDateGreaterThanEqual(
-                        request.getVehicleId(), "CONFIRMED",
+                        request.getVehicleId(), "ACTIVE",
                         request.getEndDate(), request.getStartDate());
         if (overlapping) {
             throw new PaymentException("Vehicle is already booked for the selected period");
